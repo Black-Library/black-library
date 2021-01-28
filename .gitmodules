@@ -1,0 +1,6 @@
+[submodule "ext/Parsers"]
+	path = ext/Parsers
+	url = git@github.com:Black-Library/Parsers.git
+[submodule "ext/blacklibrarydb"]
+	path = ext/blacklibrarydb
+	url = git@github.com:Black-Library/blacklibrarydb.git
