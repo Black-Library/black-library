@@ -1,5 +1,5 @@
 /**
- * blacklibrary.hh
+ * BlackLibrary.hh
  */
 
 #ifndef __BLACK_LIBRARY_BLACKLIBRARY_HH__
@@ -8,6 +8,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <BlackLibraryDB.hh>
 
 namespace black_library {
 
@@ -20,6 +22,8 @@ public:
     int Stop();
 
 private:
+
+    int Init();
     int PullUrls();
     int CompareUrls();
     int UpdateUrls();
@@ -27,9 +31,10 @@ private:
     int ParseUrls();
     int UpdateEntries();
 
-    std::vector<std::string> urls_;
+    black_library::core::db::BlackLibraryDB blacklibrarydb_;
     std::unordered_map<std::string, std::string> parse_urls_;
-
+    std::vector<std::string> urls_;
+    bool done_;
 };
 
 } // namespace black_library
