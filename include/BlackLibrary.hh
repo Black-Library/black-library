@@ -15,7 +15,9 @@ namespace black_library {
 
 class BlackLibrary {
 public:
-    explicit BlackLibrary();
+    explicit BlackLibrary(const std::string &db_url);
+
+    BlackLibrary &operator = (BlackLibrary &&) = default;
 
     int Run();
     int RunOnce();
@@ -30,6 +32,7 @@ private:
     int UpdateStaging();
     int ParseUrls();
     int UpdateEntries();
+    int CleanStaging();
 
     black_library::core::db::BlackLibraryDB blacklibrarydb_;
     std::unordered_map<std::string, std::string> parse_urls_;

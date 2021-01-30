@@ -10,7 +10,6 @@
 
 black_library::BlackLibrary *blacklibrary;
 
-
 void SigHandler(int sig)
 {
     if (sig == SIGTERM || sig == SIGINT)
@@ -33,9 +32,9 @@ int main(int argc, char* argv[])
     signal(SIGINT, SigHandler);
     signal(SIGTERM, SigHandler);
 
-    auto library = new black_library::BlackLibrary();
+    black_library::BlackLibrary library("");
 
-    blacklibrary = library;
+    blacklibrary = &library;
 
     blacklibrary->Run();
 
