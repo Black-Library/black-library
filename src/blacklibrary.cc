@@ -33,6 +33,10 @@ int main(int argc, char* argv[])
     signal(SIGINT, SigHandler);
     signal(SIGTERM, SigHandler);
 
+    auto library = new black_library::BlackLibrary();
+
+    blacklibrary = library;
+
     blacklibrary->Run();
 
     return 0;
