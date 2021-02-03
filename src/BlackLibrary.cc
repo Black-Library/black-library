@@ -7,11 +7,13 @@
 #include <thread>
 
 #include <BlackLibrary.hh>
+#include <WgetUrlPuller.hh>
 
 namespace black_library {
 
 BlackLibrary::BlackLibrary(const std::string &db_url) :
     blacklibrarydb_(db_url, true),
+    url_puller_(nullptr),
     parse_urls_(),
     urls_(),
     done_(true)
@@ -40,12 +42,21 @@ int BlackLibrary::Run()
 
 int BlackLibrary::RunOnce()
 {
+    urls_.clear();
+    parse_urls_.clear();
+
     if (PullUrls())
     {
-        std::cout << "Error: Pulling Urls Failed" << std::endl;
+        std::cout << "Error: Pulling Urls failed" << std::endl;
+        return -1;
     }
 
-    CompareUrls();
+    if (CompareUrls())
+    {
+        std::cout << "Error Comparing Urls failed" << std::endl;
+        return -1;
+    }
+
     UpdateUrls();
     UpdateStaging();
     ParseUrls();
@@ -67,6 +78,8 @@ int BlackLibrary::Stop()
 int BlackLibrary::Init()
 {
     std::cout << "Initializing BlackLibrary" << std::endl;
+
+    url_puller_ = std::make_shared<WgetUrlPuller>();
 
     return 0;
 }

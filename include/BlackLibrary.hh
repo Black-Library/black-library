@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <BlackLibraryUrlPuller.hh>
+
 #include <BlackLibraryDB.hh>
 
 namespace black_library {
@@ -35,6 +37,7 @@ private:
     int CleanStaging();
 
     black_library::core::db::BlackLibraryDB blacklibrarydb_;
+    std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
     std::unordered_map<std::string, std::string> parse_urls_;
     std::vector<std::string> urls_;
     bool done_;
