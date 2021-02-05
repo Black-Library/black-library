@@ -13,8 +13,8 @@
 
 namespace black_library {
 
-BlackLibrary::BlackLibrary(const std::string &db_url) :
-    blacklibrarydb_(db_url, true),
+BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
+    blacklibrarydb_(db_url, init_db),
     url_puller_(nullptr),
     parse_urls_(),
     urls_(),
@@ -112,7 +112,6 @@ int BlackLibrary::CompareAndUpdateUrls()
 
     for (auto it = urls_.begin(); it < urls_.end(); ++it)
     {
-        // auto i = std::distance(urls_.begin(), it);
         std::cout << "CompareUrls: " << *it << std::endl;
 
         if(blacklibrarydb_.DoesBlackEntryUrlExist(*it))
@@ -137,6 +136,10 @@ int BlackLibrary::UpdateStaging()
 {
     std::cout << "Update staging tables of database" << std::endl;
 
+    for (auto it = parse_urls_.begin(); it != parse_urls_.end(); ++it)
+    {
+        // blacklibrarydb_.SendStagingUUIDAndUrl(it->first, it->second);
+    }
     // add everything in parse_urls_ to staging entries
 
     return 0;
@@ -163,6 +166,8 @@ int BlackLibrary::CleanStaging()
     return 0;
 }
 
+// TODO: pull this into an include file and make it truly a uuid
+// https://stackoverflow.com/questions/24365331/how-can-i-generate-uuid-in-c-without-using-boost-library
 std::string BlackLibrary::GenerateUUID()
 {
     std::stringstream ss;
