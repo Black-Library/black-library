@@ -41,8 +41,8 @@ private:
 
     black_library::core::db::BlackLibraryDB blacklibrarydb_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
-    std::unordered_map<std::string, std::string> parse_urls_;
-    std::vector<std::string> urls_;
+    std::vector<black_library::core::db::DBEntry> parse_entries_;
+    std::vector<std::string> pull_urls_;
     std::random_device rd_;
     std::mt19937_64 gen_;
     std::uniform_int_distribution<> dist0_;

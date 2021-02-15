@@ -16,8 +16,8 @@ namespace black_library {
 BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
     blacklibrarydb_(db_url, init_db),
     url_puller_(nullptr),
-    parse_urls_(),
-    urls_(),
+    parse_entries_(),
+    pull_urls_(),
     rd_(),
     gen_(),
     dist0_(0, 15),
@@ -31,11 +31,21 @@ int BlackLibrary::Run()
 {
     done_ = false;
 
+    int seconds_counter = 0;
+
     while (!done_)
     {
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
         
-        RunOnce();
+        if (seconds_counter >= 15)
+            seconds_counter = 0;
+
+        if (seconds_counter == 0)
+        {
+            RunOnce();
+        }
+
+        ++seconds_counter;
 
         if (done_)
             break;
@@ -48,8 +58,8 @@ int BlackLibrary::Run()
 
 int BlackLibrary::RunOnce()
 {
-    urls_.clear();
-    parse_urls_.clear();
+    pull_urls_.clear();
+    parse_entries_.clear();
 
     if (PullUrls())
     {
@@ -95,38 +105,37 @@ int BlackLibrary::PullUrls()
 {
     std::cout << "Pulling Urls from source" << std::endl;
 
-    urls_ = url_puller_->PullUrls();
+    pull_urls_ = url_puller_->PullUrls();
 
-    urls_.emplace_back("foo");
+    pull_urls_.emplace_back("foo");
 
     return 0;
 }
 
 int BlackLibrary::CompareAndUpdateUrls()
 {
-    std::string UUID;
-    std::string update_url;
-
     std::cout << "Comparing Urls with database" << std::endl;
-    parse_urls_.clear();
+    parse_entries_.clear();
 
-    for (auto it = urls_.begin(); it < urls_.end(); ++it)
+    for (auto it = pull_urls_.begin(); it < pull_urls_.end(); ++it)
     {
         std::cout << "CompareUrls: " << *it << std::endl;
+        black_library::core::db::DBEntry entry;
 
         if(blacklibrarydb_.DoesBlackEntryUrlExist(*it))
         {
-            UUID = blacklibrarydb_.GetUUIDFromUrl(*it);
-            update_url = blacklibrarydb_.GetUrlFromUUID(UUID);
+            std::string UUID = blacklibrarydb_.GetUUIDFromUrl(*it);
+            entry = blacklibrarydb_.ReadBlackEntry(UUID);
         }
         else
         {
-            UUID = GenerateUUID();
-            update_url = *it;
+            entry.UUID = GenerateUUID();
+            entry.url = *it;
+            entry.last_url = *it;
         }
 
-        std::cout << "UUID: " << UUID << " url: " << update_url << std::endl;
-        parse_urls_.emplace(UUID, update_url);
+        std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << std::endl;
+        parse_entries_.emplace_back(entry);
     }
 
     return 0;
@@ -134,13 +143,12 @@ int BlackLibrary::CompareAndUpdateUrls()
 
 int BlackLibrary::UpdateStaging()
 {
-    std::cout << "Update staging tables of database" << std::endl;
+    std::cout << "Update staging tables of database with " << parse_entries_.size() << " entries" << std::endl;
 
-    for (auto it = parse_urls_.begin(); it != parse_urls_.end(); ++it)
+    for (auto it = parse_entries_.begin(); it != parse_entries_.end(); ++it)
     {
-        // blacklibrarydb_.SendStagingUUIDAndUrl(it->first, it->second);
+        blacklibrarydb_.CreateStagingEntry(*it);
     }
-    // add everything in parse_urls_ to staging entries
 
     return 0;
 }
