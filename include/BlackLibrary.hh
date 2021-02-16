@@ -35,6 +35,8 @@ private:
     int UpdateStaging();
     int ParseUrls();
     int UpdateEntries();
+
+    int UpdateBlackEntries();
     int CleanStaging();
 
     std::string GenerateUUID();

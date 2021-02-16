@@ -76,7 +76,6 @@ int BlackLibrary::RunOnce()
     UpdateStaging();
     ParseUrls();
     UpdateEntries();
-    CleanStaging();
 
     return 0;
 }
@@ -105,10 +104,14 @@ int BlackLibrary::PullUrls()
 {
     std::cout << "Pulling Urls from source" << std::endl;
 
-    // pull_urls_ = url_puller_->PullUrls();
+    pull_urls_ = url_puller_->PullUrls();
 
-    pull_urls_.emplace_back("foo");
-    pull_urls_.emplace_back("https://www.fictionpress.com/s/2961893/1/Mother-of-Learning");
+    for (auto it = pull_urls_.begin(); it < pull_urls_.end(); ++it)
+    {
+        std::cout << *it << std::endl;
+    }
+
+    // pull_urls_.emplace_back("https://www.fictionpress.com/s/2961893/1/Mother-of-Learning");
 
     return 0;
 }
@@ -129,6 +132,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             std::string UUID = res.result;
             entry = blacklibrarydb_.ReadBlackEntry(UUID);
         }
+        // TODO: determine how to handle case in which there has been an update since the last staging thing "staging entry is stale"
         else if (blacklibrarydb_.DoesStagingEntryUrlExist(*it))
         {
             black_library::core::db::DBStringResult res = blacklibrarydb_.GetStagingEntryUUIDFromUrl(*it);
@@ -171,6 +175,16 @@ int BlackLibrary::ParseUrls()
 int BlackLibrary::UpdateEntries()
 {
     std::cout << "Update entry tables" << std::endl;
+
+    UpdateBlackEntries();
+    CleanStaging();
+
+    return 0;
+}
+
+int BlackLibrary::UpdateBlackEntries()
+{
+    std::cout << "Update black entry table with successful parses" << std::endl;
 
     return 0;
 }
