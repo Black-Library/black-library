@@ -18,7 +18,9 @@ WgetUrlPuller::WgetUrlPuller()
 std::vector<std::string> WgetUrlPuller::PullUrls() const
 {
     std::vector<std::string> urls;
+    std::ifstream file_stream;
     std::stringstream ss;
+    std::string file_line;
     std::string file_name = "black_library_urls";
 
     ss << "wget https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY/export?format=txt --output-document ";
@@ -33,7 +35,19 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     if (ret < 0)
         return urls;
 
-    
+    file_stream.open(file_name);
+
+    if (!file_stream.is_open())
+    {
+        file_stream.close();
+        return urls;
+    }
+
+    while (getline(file_stream, file_line))
+    {
+        urls.emplace_back(file_line);
+    }
+    file_stream.close();
 
     return urls;
 }

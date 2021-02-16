@@ -35,5 +35,8 @@
 build
 install
 
+# application artifacts
+black_library_urls
+
 # IDE stuff
 .vscode
