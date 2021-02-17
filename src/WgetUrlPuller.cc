@@ -10,11 +10,6 @@
 
 namespace black_library {
 
-WgetUrlPuller::WgetUrlPuller()
-{
-
-}
-
 std::vector<std::string> WgetUrlPuller::PullUrls() const
 {
     std::vector<std::string> urls;
@@ -26,10 +21,17 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     ss << "wget https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs/export?format=txt --output-document ";
     ss << file_name;
 
-    std::cout << "Pulling urls using wget" << std::endl;
+    std::cout << "Pulling urls using Wget" << std::endl;
 
     std::string command = ss.str();
 
+    if (clearenv() != 0)
+    {
+        std::cout << "Error: could not clear local environment variables" << std::endl;
+    }
+
+    // TODO: consider not using system 
+    // https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152177
     int ret = system(command.c_str());
 
     if (ret < 0)

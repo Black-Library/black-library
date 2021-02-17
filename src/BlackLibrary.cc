@@ -61,6 +61,12 @@ int BlackLibrary::RunOnce()
     pull_urls_.clear();
     parse_entries_.clear();
 
+    if (!blacklibrarydb_.IsReady())
+    {
+        std::cout << "Error: Black Library stalled, database not initalized" << std::endl;
+        return -1;
+    }
+
     if (PullUrls())
     {
         std::cout << "Error: Pulling Urls failed" << std::endl;
@@ -73,9 +79,9 @@ int BlackLibrary::RunOnce()
         return -1;
     }
 
-    UpdateStaging();
-    ParseUrls();
-    UpdateEntries();
+    // UpdateStaging();
+    // ParseUrls();
+    // UpdateEntries();
 
     return 0;
 }
