@@ -10,6 +10,8 @@
 
 namespace black_library {
 
+#define MINIMUM_EXPECTED_URL_LENGTH 13
+
 std::vector<std::string> WgetUrlPuller::PullUrls() const
 {
     std::vector<std::string> urls;
@@ -47,6 +49,10 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
 
     while (getline(file_stream, file_line))
     {
+        std::string sanatized_url = UrlScraperSanatize(file_line);
+
+        if (sanatized_url.size() <= MINIMUM_EXPECTED_URL_LENGTH)
+            continue;
         urls.emplace_back(file_line);
     }
     file_stream.close();

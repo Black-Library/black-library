@@ -4,3 +4,6 @@
 [submodule "ext/blacklibrarydb"]
 	path = ext/blacklibrarydb
 	url = git@github.com:Black-Library/blacklibrarydb.git
+[submodule "ext/scraper-sanatizer"]
+	path = ext/scraper-sanatizer
+	url = git@github.com:benjaminchang23/scraper-sanatizer.git
