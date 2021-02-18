@@ -1,9 +1,9 @@
-[submodule "ext/Parsers"]
-	path = ext/Parsers
-	url = git@github.com:Black-Library/Parsers.git
-[submodule "ext/blacklibrarydb"]
-	path = ext/blacklibrarydb
-	url = git@github.com:Black-Library/blacklibrarydb.git
+[submodule "ext/black-library-parsers"]
+	path = ext/black-library-parsers
+	url = git@github.com:Black-Library/black-library-parsers.git
+[submodule "ext/black-library-db"]
+	path = ext/black-library-db
+	url = git@github.com:Black-Library/black-library-db.git
 [submodule "ext/scraper-sanatizer"]
 	path = ext/scraper-sanatizer
 	url = git@github.com:benjaminchang23/scraper-sanatizer.git
