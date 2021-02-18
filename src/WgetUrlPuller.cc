@@ -25,7 +25,7 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     ss << "wget https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs/export?format=txt --output-document ";
     ss << file_name;
 
-    std::cout << "Pulling urls using Wget" << std::endl;
+    std::cout << "Pulling Urls using Wget" << std::endl;
 
     std::string command = ss.str();
 

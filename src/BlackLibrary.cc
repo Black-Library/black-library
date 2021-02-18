@@ -61,6 +61,8 @@ int BlackLibrary::RunOnce()
     pull_urls_.clear();
     parse_entries_.clear();
 
+    std::cout << "\nRunning Black Library application" << std::endl;
+
     if (!blacklibrarydb_.IsReady())
     {
         std::cout << "Error: Black Library stalled, database not initalized" << std::endl;
@@ -85,9 +87,9 @@ int BlackLibrary::RunOnce()
         return -1;
     }
 
-    // UpdateStaging();
-    // ParseUrls();
-    // UpdateEntries();
+    UpdateStaging();
+    ParseUrls();
+    UpdateEntries();
 
     return 0;
 }
@@ -118,13 +120,6 @@ int BlackLibrary::PullUrls()
 
     pull_urls_ = url_puller_->PullUrls();
 
-    for (auto it = pull_urls_.begin(); it < pull_urls_.end(); ++it)
-    {
-        std::cout << *it << std::endl;
-    }
-
-    // pull_urls_.emplace_back("https://www.fictionpress.com/s/2961893/1/Mother-of-Learning");
-
     return 0;
 }
 
@@ -144,7 +139,7 @@ int BlackLibrary::CompareAndUpdateUrls()
 
     for (auto it = pull_urls_.begin(); it < pull_urls_.end(); ++it)
     {
-        std::cout << "CompareUrls: " << *it << std::endl;
+        PrintTabbed("CompareUrls: " + *it, 1);
         black_library::core::db::DBEntry entry;
 
         if (blacklibrarydb_.DoesBlackEntryUrlExist(*it))
@@ -180,6 +175,9 @@ int BlackLibrary::UpdateStaging()
 
     for (auto it = parse_entries_.begin(); it != parse_entries_.end(); ++it)
     {
+        auto entry = *it;
+        if (blacklibrarydb_.DoesStagingEntryUUIDExist(entry.UUID))
+            continue;
         blacklibrarydb_.CreateStagingEntry(*it);
     }
 
@@ -252,6 +250,22 @@ std::string BlackLibrary::GenerateUUID()
     }
 
     return ss.str();
+}
+
+int BlackLibrary::PrintTabbed(const std::string &statement, size_t num_tabs)
+{
+    std::stringstream ss;
+
+    for (size_t i = 0; i < num_tabs; ++i)
+    {
+        ss << "\t";
+    }
+
+    ss << statement;
+
+    std::cout << ss.str() << std::endl;
+
+    return 0;
 }
 
 } // namespace black_library

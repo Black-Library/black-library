@@ -41,6 +41,7 @@ private:
     int CleanStaging();
 
     std::string GenerateUUID();
+    int PrintTabbed(const std::string &statment, size_t num_tabs);
 
     black_library::core::db::BlackLibraryDB blacklibrarydb_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
