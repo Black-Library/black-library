@@ -8,7 +8,7 @@
 
 #include <WgetUrlPuller.hh>
 
-#include <UrlScraperSanatizer.hh>
+#include <SQLite3ScraperSanatizer.hh>
 
 namespace black_library {
 
@@ -51,7 +51,7 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
 
     while (getline(file_stream, file_line))
     {
-        scraper_sanatizer::UrlScraperSanatize(file_line);
+        scraper_sanatizer::SQLite3ScraperSanatize(file_line);
 
         if (file_line.size() <= MINIMUM_EXPECTED_URL_LENGTH)
             continue;
