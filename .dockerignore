@@ -1,0 +1,6 @@
+# Ignore git folder
+.git
+
+# Ignore build and install folders
+build
+install

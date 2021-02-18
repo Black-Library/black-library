@@ -1,0 +1,40 @@
+FROM ubuntu:bionic
+
+LABEL maintainer="bl"
+
+ARG docker_build_gid=1000
+ARG docker_build_uid=1000
+ARG docker_build_user=app_user
+
+RUN echo test
+
+RUN apt-get update && apt-get install --no-install-recommends --yes\
+    build-essential \
+    cmake \
+    gcc \
+    git \
+    libsqlite3-dev \
+    make \
+    openssh-client \
+    sqlite \
+&& rm -rf /var/lib/apt/lists/*
+
+# setup build user
+RUN groupadd --gid $docker_build_gid $docker_build_user
+RUN useradd --create-home --gid $docker_build_gid --uid $docker_build_uid --shell /bin/bash $docker_build_user
+RUN echo "$docker_build_user:library" | chpasswd && \
+    echo "root:library" | chpasswd
+RUN echo 'set -o vi' > /home/$docker_build_user/.bashrc
+
+RUN mkdir /build /source && chown $docker_build_user:$docker_build_user /build /source
+
+# build everything as a normal user.
+USER $docker_build_user
+
+# build parser in /build store source files in /source.
+WORKDIR /source
+COPY --chown=1000:1000 . ./black-library/
+WORKDIR /source/black-library
+RUN mkdir build \
+    && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install . -Bbuild \
+    && make -Cbuild install
