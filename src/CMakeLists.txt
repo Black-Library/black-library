@@ -1,5 +1,5 @@
 add_library(BlackLibrary BlackLibrary.cc WgetUrlPuller.cc)
-target_link_libraries(BlackLibrary BlackLibraryDB)
+target_link_libraries(BlackLibrary BlackLibraryDB ScraperSanatizer)
 target_include_directories(BlackLibrary PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 install(

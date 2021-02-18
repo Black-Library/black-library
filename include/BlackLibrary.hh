@@ -31,6 +31,7 @@ private:
 
     int Init();
     int PullUrls();
+    int VerifyUrls();
     int CompareAndUpdateUrls();
     int UpdateStaging();
     int ParseUrls();

@@ -73,6 +73,12 @@ int BlackLibrary::RunOnce()
         return -1;
     }
 
+    if (VerifyUrls())
+    {
+        std::cout << "Error: Verifying Urls failed" << std::endl;
+        return -1;
+    }
+
     if (CompareAndUpdateUrls())
     {
         std::cout << "Error Comparing and Updating Urls failed" << std::endl;
@@ -118,6 +124,15 @@ int BlackLibrary::PullUrls()
     }
 
     // pull_urls_.emplace_back("https://www.fictionpress.com/s/2961893/1/Mother-of-Learning");
+
+    return 0;
+}
+
+int BlackLibrary::VerifyUrls()
+{
+    std::cout << "Verifying Urls" << std::endl;
+
+    // make sure they contain a url pattern on the protected list
 
     return 0;
 }
