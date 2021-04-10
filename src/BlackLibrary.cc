@@ -137,7 +137,7 @@ int BlackLibrary::CompareAndUpdateUrls()
     std::cout << "Comparing Urls with database" << std::endl;
     parse_entries_.clear();
 
-    for (auto it = pull_urls_.begin(); it < pull_urls_.end(); ++it)
+    for (auto it = pull_urls_.begin(); it != pull_urls_.end(); ++it)
     {
         PrintTabbed("CompareUrls: " + *it, 1);
         black_library::core::db::DBEntry entry;
