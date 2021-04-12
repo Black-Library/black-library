@@ -14,7 +14,8 @@
 namespace black_library {
 
 BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
-    blacklibrarydb_(db_url, init_db),
+    blacklibrary_parser_manager_(""),
+    blacklibrary_db_(db_url, init_db),
     url_puller_(nullptr),
     parse_entries_(),
     pull_urls_(),
@@ -63,7 +64,7 @@ int BlackLibrary::RunOnce()
 
     std::cout << "\nRunning Black Library application" << std::endl;
 
-    if (!blacklibrarydb_.IsReady())
+    if (!blacklibrary_db_.IsReady())
     {
         std::cout << "Error: Black Library stalled, database not initalized" << std::endl;
         return -1;
@@ -142,18 +143,18 @@ int BlackLibrary::CompareAndUpdateUrls()
         PrintTabbed("CompareUrls: " + *it, 1);
         black_library::core::db::DBEntry entry;
 
-        if (blacklibrarydb_.DoesBlackEntryUrlExist(*it))
+        if (blacklibrary_db_.DoesBlackEntryUrlExist(*it))
         {
-            black_library::core::db::DBStringResult res = blacklibrarydb_.GetBlackEntryUUIDFromUrl(*it);
+            black_library::core::db::DBStringResult res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(*it);
             std::string UUID = res.result;
-            entry = blacklibrarydb_.ReadBlackEntry(UUID);
+            entry = blacklibrary_db_.ReadBlackEntry(UUID);
         }
         // TODO: determine how to handle case in which there has been an update since the last staging thing "staging entry is stale"
-        else if (blacklibrarydb_.DoesStagingEntryUrlExist(*it))
+        else if (blacklibrary_db_.DoesStagingEntryUrlExist(*it))
         {
-            black_library::core::db::DBStringResult res = blacklibrarydb_.GetStagingEntryUUIDFromUrl(*it);
+            black_library::core::db::DBStringResult res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(*it);
             std::string UUID = res.result;
-            entry = blacklibrarydb_.ReadStagingEntry(UUID);
+            entry = blacklibrary_db_.ReadStagingEntry(UUID);
         }
         else
         {
@@ -176,9 +177,9 @@ int BlackLibrary::UpdateStaging()
     for (auto it = parse_entries_.begin(); it != parse_entries_.end(); ++it)
     {
         auto entry = *it;
-        if (blacklibrarydb_.DoesStagingEntryUUIDExist(entry.UUID))
+        if (blacklibrary_db_.DoesStagingEntryUUIDExist(entry.UUID))
             continue;
-        blacklibrarydb_.CreateStagingEntry(*it);
+        blacklibrary_db_.CreateStagingEntry(*it);
     }
 
     return 0;

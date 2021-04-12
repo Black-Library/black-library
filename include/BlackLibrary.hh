@@ -15,6 +15,8 @@
 #include <BlackLibraryDB.hh>
 #include <BlackLibraryDBConnectionInterface.hh>
 
+#include <ParserManager.h>
+
 namespace black_library {
 
 class BlackLibrary {
@@ -43,7 +45,8 @@ private:
     std::string GenerateUUID();
     int PrintTabbed(const std::string &statment, size_t num_tabs);
 
-    black_library::core::db::BlackLibraryDB blacklibrarydb_;
+    black_library::core::parsers::ParserManager blacklibrary_parser_manager_;
+    black_library::core::db::BlackLibraryDB blacklibrary_db_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
     std::vector<black_library::core::db::DBEntry> parse_entries_;
     std::vector<std::string> pull_urls_;
