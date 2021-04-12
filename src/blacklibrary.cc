@@ -7,7 +7,7 @@
 #include <signal.h>
 #include <string.h>
 
-#include <BlackLibrary.hh>
+#include <BlackLibrary.h>
 
 struct options
 {

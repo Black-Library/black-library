@@ -1,19 +1,19 @@
 /**
- * BlackLibrary.hh
+ * BlackLibrary.h
  */
 
-#ifndef __BLACK_LIBRARY_BLACKLIBRARY_HH__
-#define __BLACK_LIBRARY_BLACKLIBRARY_HH__
+#ifndef __BLACK_LIBRARY_BLACKLIBRARY_H__
+#define __BLACK_LIBRARY_BLACKLIBRARY_H__
 
 #include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <BlackLibraryUrlPuller.hh>
+#include <BlackLibraryUrlPuller.h>
 
-#include <BlackLibraryDB.hh>
-#include <BlackLibraryDBConnectionInterface.hh>
+#include <BlackLibraryDB.h>
+#include <BlackLibraryDBConnectionInterface.h>
 
 #include <ParserManager.h>
 

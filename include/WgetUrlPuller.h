@@ -1,11 +1,11 @@
 /**
- * WgetUrlPuller.hh
+ * WgetUrlPuller.h
  */
 
-#ifndef __BLACK_LIBRARY_WGETURLPULLER_HH__
-#define __BLACK_LIBRARY_WGETURLPULLER_HH__
+#ifndef __BLACK_LIBRARY_WGETURLPULLER_H__
+#define __BLACK_LIBRARY_WGETURLPULLER_H__
 
-#include <BlackLibraryUrlPuller.hh>
+#include <BlackLibraryUrlPuller.h>
 
 namespace black_library {
 

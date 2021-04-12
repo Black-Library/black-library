@@ -8,8 +8,8 @@
 #include <sstream>
 #include <thread>
 
-#include <BlackLibrary.hh>
-#include <WgetUrlPuller.hh>
+#include <BlackLibrary.h>
+#include <WgetUrlPuller.h>
 
 namespace black_library {
 

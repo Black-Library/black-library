@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <WgetUrlPuller.hh>
+#include <WgetUrlPuller.h>
 
 #include <SQLite3ScraperSanatizer.hh>
 

@@ -1,9 +1,9 @@
 /**
- * BlackLibraryUrlPuller.hh
+ * BlackLibraryUrlPuller.h
  */
 
-#ifndef __BLACK_LIBRARY_BLACKLIBRARYURLPULLER_HH__
-#define __BLACK_LIBRARY_BLACKLIBRARYURLPULLER_HH__
+#ifndef __BLACK_LIBRARY_BLACKLIBRARYURLPULLER_H__
+#define __BLACK_LIBRARY_BLACKLIBRARYURLPULLER_H__
 
 #include <vector>
 #include <string>
