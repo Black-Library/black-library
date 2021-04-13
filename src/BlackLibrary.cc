@@ -186,7 +186,12 @@ int BlackLibrary::UpdateStaging()
 
 int BlackLibrary::ParseUrls()
 {
-    std::cout << "Parsing Urls" << std::endl;
+    std::cout << "Add " << parse_entries_.size() << " entries to parser manager" << std::endl;
+
+    for (auto & entry : parse_entries_)
+    {
+        blacklibrary_parser_manager_.AddUrl(entry.url);
+    }
 
     return 0;
 }
