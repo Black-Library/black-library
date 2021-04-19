@@ -117,12 +117,12 @@ int BlackLibrary::Init()
         [this](core::parsers::ParserJobResult result)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.uuid))
+            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
             {
-                std::cout << "Error: Staging entry with UUID: " << result.uuid << " does not exist" << std::endl;
+                std::cout << "Error: Staging entry with UUID: " << result.metadata.uuid << " does not exist" << std::endl;
             }
 
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.uuid);
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
 
             UpdateDatabaseWithResult(staging_entry, result);
         }
@@ -238,24 +238,24 @@ int BlackLibrary::CleanStaging()
 
 int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result)
 {
-    entry.last_url = result.last_url;
-    entry.series_length = result.series_length;
-    entry.update_date = result.update_date;
+    entry.last_url = result.metadata.last_url;
+    entry.series_length = result.metadata.series_length;
+    entry.update_date = result.metadata.update_date;
 
     // if entry already exists, just update, else create new
-    if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.uuid))
+    if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
     {
-        blacklibrary_db_.UpdateBlackEntry(result.uuid, entry);
+        blacklibrary_db_.UpdateBlackEntry(result.metadata.uuid, entry);
     }
     else
     {
-        entry.title = result.title;
-        entry.nickname = result.nickname;
-        entry.source = result.source;
-        entry.series = result.series;
-        entry.series_length = result.series_length;
-        entry.media_path = result.media_path;
-        entry.birth_date = result.update_date;
+        entry.title = result.metadata.title;
+        entry.nickname = result.metadata.nickname;
+        entry.source = result.metadata.source;
+        entry.series = result.metadata.series;
+        entry.series_length = result.metadata.series_length;
+        entry.media_path = result.metadata.media_path;
+        entry.birth_date = result.metadata.update_date;
         blacklibrary_db_.CreateBlackEntry(entry);
     }
 
