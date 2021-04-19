@@ -23,6 +23,7 @@ BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
     gen_(),
     dist0_(0, 15),
     dist1_(8, 11),
+    database_parser_mutex_(),
     done_(true)
 {
     Init();
@@ -115,19 +116,15 @@ int BlackLibrary::Init()
     blacklibrary_parser_manager_.RegisterDatabaseStatusCallback(
         [this](core::parsers::ParserJobResult result)
         {
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.uuid);
-            staging_entry.last_url = result.last_url;
-            staging_entry.series_length = result.series_length;
+            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
+            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.uuid))
+            {
+                std::cout << "Error: Staging entry with UUID: " << result.uuid << " does not exist" << std::endl;
+            }
 
-            if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.uuid))
-            {
-                blacklibrary_db_.UpdateBlackEntry(result.uuid, staging_entry);
-            }
-            else
-            {
-                staging_entry.url = result.url;
-                blacklibrary_db_.CreateBlackEntry(staging_entry);
-            }
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.uuid);
+
+            UpdateDatabaseWithResult(staging_entry, result);
         }
     );
 
@@ -238,6 +235,33 @@ int BlackLibrary::CleanStaging()
 
     return 0;
 }
+
+int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result)
+{
+    entry.last_url = result.last_url;
+    entry.series_length = result.series_length;
+    entry.update_date = result.update_date;
+
+    // if entry already exists, just update, else create new
+    if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.uuid))
+    {
+        blacklibrary_db_.UpdateBlackEntry(result.uuid, entry);
+    }
+    else
+    {
+        entry.title = result.title;
+        entry.nickname = result.nickname;
+        entry.source = result.source;
+        entry.series = result.series;
+        entry.series_length = result.series_length;
+        entry.media_path = result.media_path;
+        entry.birth_date = result.update_date;
+        blacklibrary_db_.CreateBlackEntry(entry);
+    }
+
+    return 0;
+}
+
 
 // TODO: pull this into an include file and make it truly a uuid
 // https://stackoverflow.com/questions/24365331/how-can-i-generate-uuid-in-c-without-using-boost-library

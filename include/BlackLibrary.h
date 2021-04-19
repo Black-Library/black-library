@@ -5,6 +5,7 @@
 #ifndef __BLACK_LIBRARY_BLACKLIBRARY_H__
 #define __BLACK_LIBRARY_BLACKLIBRARY_H__
 
+#include <mutex>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -42,6 +43,8 @@ private:
     int UpdateBlackEntries();
     int CleanStaging();
 
+    int UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result);
+
     std::string GenerateUUID();
     int PrintTabbed(const std::string &statment, size_t num_tabs);
 
@@ -54,6 +57,7 @@ private:
     std::mt19937_64 gen_;
     std::uniform_int_distribution<> dist0_;
     std::uniform_int_distribution<> dist1_;
+    std::mutex database_parser_mutex_;
 
     bool done_;
 };
