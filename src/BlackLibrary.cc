@@ -112,6 +112,25 @@ int BlackLibrary::Init()
 
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
+    blacklibrary_parser_manager_.RegisterDatabaseStatusCallback(
+        [this](core::parsers::ParserJobResult result)
+        {
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.uuid);
+            staging_entry.last_url = result.last_url;
+            staging_entry.series_length = result.series_length;
+
+            if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.uuid))
+            {
+                blacklibrary_db_.UpdateBlackEntry(result.uuid, staging_entry);
+            }
+            else
+            {
+                staging_entry.url = result.url;
+                blacklibrary_db_.CreateBlackEntry(staging_entry);
+            }
+        }
+    );
+
     return 0;
 }
 
@@ -190,7 +209,7 @@ int BlackLibrary::ParseUrls()
 
     for (auto & entry : parse_entries_)
     {
-        blacklibrary_parser_manager_.AddUrl(entry.url);
+        blacklibrary_parser_manager_.AddJob(entry.UUID, entry.url);
     }
 
     return 0;
