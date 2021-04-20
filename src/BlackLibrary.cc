@@ -165,7 +165,6 @@ int BlackLibrary::CompareAndUpdateUrls()
             std::string UUID = res.result;
             entry = blacklibrary_db_.ReadBlackEntry(UUID);
         }
-        // TODO: determine how to handle case in which there has been an update since the last staging thing "staging entry is stale"
         else if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
         {
             auto res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(url);
@@ -180,6 +179,7 @@ int BlackLibrary::CompareAndUpdateUrls()
         }
 
         std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << std::endl;
+
         parse_entries_.emplace_back(entry);
     }
 
@@ -202,36 +202,12 @@ int BlackLibrary::UpdateStaging()
 
 int BlackLibrary::ParseUrls()
 {
-    std::cout << "Add " << parse_entries_.size() << " entries to parser manager" << std::endl;
+    std::cout << "Add " << parse_entries_.size() << " jobs to parser manager" << std::endl;
 
     for (auto & entry : parse_entries_)
     {
         blacklibrary_parser_manager_.AddJob(entry.UUID, entry.url);
     }
-
-    return 0;
-}
-
-int BlackLibrary::UpdateEntries()
-{
-    std::cout << "Update entry tables" << std::endl;
-
-    UpdateBlackEntries();
-    CleanStaging();
-
-    return 0;
-}
-
-int BlackLibrary::UpdateBlackEntries()
-{
-    std::cout << "Update black entry table with successful parses" << std::endl;
-
-    return 0;
-}
-
-int BlackLibrary::CleanStaging()
-{
-    std::cout << "Clean staging tables by comparing against entry tables" << std::endl;
 
     return 0;
 }
@@ -245,7 +221,12 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     // if entry already exists, just update, else create new
     if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
     {
-        blacklibrary_db_.UpdateBlackEntry(result.metadata.uuid, entry);
+        int res = blacklibrary_db_.UpdateBlackEntry(result.metadata.uuid, entry);
+
+        if (res)
+            return -1;
+
+        blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid);
     }
     else
     {
@@ -257,7 +238,13 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
         entry.series_length = result.metadata.series_length;
         entry.media_path = result.metadata.media_path;
         entry.birth_date = result.metadata.update_date;
-        blacklibrary_db_.CreateBlackEntry(entry);
+        
+        int res = blacklibrary_db_.CreateBlackEntry(entry);
+
+        if (res)
+            return -1;
+
+        blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid);
     }
 
     return 0;

@@ -38,10 +38,6 @@ private:
     int CompareAndUpdateUrls();
     int UpdateStaging();
     int ParseUrls();
-    int UpdateEntries();
-
-    int UpdateBlackEntries();
-    int CleanStaging();
 
     int UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result);
 
