@@ -250,6 +250,7 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     else
     {
         entry.title = result.metadata.title;
+        entry.author = result.metadata.author;
         entry.nickname = result.metadata.nickname;
         entry.source = result.metadata.source;
         entry.series = result.metadata.series;
