@@ -19,6 +19,7 @@ BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
     url_puller_(nullptr),
     parse_entries_(),
     pull_urls_(),
+    manager_thread_(),
     rd_(),
     gen_(),
     dist0_(0, 15),
@@ -27,12 +28,25 @@ BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
     done_(true)
 {
     Init();
+    manager_thread_ = std::thread([this](){
+        while (!done_ && blacklibrary_parser_manager_.GetDone())
+        {
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+
+            blacklibrary_parser_manager_.RunOnce();
+
+            if (done_)
+                break;
+
+            std::this_thread::sleep_until(deadline);
+        }
+
+        blacklibrary_parser_manager_.Stop();
+    });
 }
 
 int BlackLibrary::Run()
 {
-    done_ = false;
-
     int seconds_counter = 0;
 
     while (!done_)
@@ -91,7 +105,6 @@ int BlackLibrary::RunOnce()
 
     UpdateStaging();
     ParseUrls();
-    UpdateEntries();
 
     return 0;
 }
@@ -99,6 +112,9 @@ int BlackLibrary::RunOnce()
 int BlackLibrary::Stop()
 {
     done_ = true;
+
+    if (manager_thread_.joinable())
+        manager_thread_.join();
 
     std::cout << "Stopping BlackLibrary" << std::endl;
 
@@ -127,6 +143,8 @@ int BlackLibrary::Init()
             UpdateDatabaseWithResult(staging_entry, result);
         }
     );
+
+    done_ = false;
 
     return 0;
 }
