@@ -14,7 +14,7 @@
 namespace black_library {
 
 BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
-    blacklibrary_parser_manager_(""),
+    parser_manager_(""),
     blacklibrary_db_(db_url, init_db),
     url_puller_(nullptr),
     parse_entries_(),
@@ -29,11 +29,11 @@ BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
 {
     Init();
     manager_thread_ = std::thread([this](){
-        while (!done_ && blacklibrary_parser_manager_.GetDone())
+        while (!done_ && parser_manager_.GetDone())
         {
             const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
 
-            blacklibrary_parser_manager_.RunOnce();
+            parser_manager_.RunOnce();
 
             if (done_)
                 break;
@@ -41,7 +41,7 @@ BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
             std::this_thread::sleep_until(deadline);
         }
 
-        blacklibrary_parser_manager_.Stop();
+        parser_manager_.Stop();
     });
 }
 
@@ -129,7 +129,7 @@ int BlackLibrary::Init()
 
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
-    blacklibrary_parser_manager_.RegisterDatabaseStatusCallback(
+    parser_manager_.RegisterDatabaseStatusCallback(
         [this](core::parsers::ParserJobResult result)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
@@ -224,7 +224,7 @@ int BlackLibrary::ParseUrls()
 
     for (auto & entry : parse_entries_)
     {
-        blacklibrary_parser_manager_.AddJob(entry.UUID, entry.url);
+        parser_manager_.AddJob(entry.UUID, entry.url);
     }
 
     return 0;

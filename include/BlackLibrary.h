@@ -44,7 +44,7 @@ private:
     std::string GenerateUUID();
     int PrintTabbed(const std::string &statment, size_t num_tabs);
 
-    black_library::core::parsers::ParserManager blacklibrary_parser_manager_;
+    black_library::core::parsers::ParserManager parser_manager_;
     black_library::core::db::BlackLibraryDB blacklibrary_db_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
     std::vector<black_library::core::db::DBEntry> parse_entries_;
