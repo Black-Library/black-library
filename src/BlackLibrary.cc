@@ -99,11 +99,17 @@ int BlackLibrary::RunOnce()
 
     if (CompareAndUpdateUrls())
     {
-        std::cout << "Error Comparing and Updating Urls failed" << std::endl;
+        std::cout << "Error: Comparing and Updating Urls failed" << std::endl;
         return -1;
     }
 
-    UpdateStaging();
+
+    if (UpdateStaging())
+    {
+        std::cout << "Error: Updating staging table failed" << std::endl;
+        return -1;
+    }
+
     ParseUrls();
 
     return 0;

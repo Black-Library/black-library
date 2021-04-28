@@ -7,6 +7,3 @@
 [submodule "ext/scraper-sanatizer"]
 	path = ext/scraper-sanatizer
 	url = git@github.com:benjaminchang23/scraper-sanatizer.git
-[submodule "ext/black-library-common"]
-	path = ext/black-library-common
-	url = https://github.com/Black-Library/black-library-common
