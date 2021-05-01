@@ -175,7 +175,7 @@ int BlackLibrary::VerifyUrls()
 
 int BlackLibrary::CompareAndUpdateUrls()
 {
-    std::cout << "Comparing Urls with database" << std::endl;
+    std::cout << "Comparing Urls with database" << std::endl << std::endl;;
     parse_entries_.clear();
 
     for (auto & url : pull_urls_)
@@ -202,7 +202,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.last_url = url;
         }
 
-        std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << std::endl;
+        std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << std::endl << std::endl;
 
         parse_entries_.emplace_back(entry);
     }
@@ -212,21 +212,33 @@ int BlackLibrary::CompareAndUpdateUrls()
 
 int BlackLibrary::UpdateStaging()
 {
-    std::cout << "Update staging tables of database with " << parse_entries_.size() << " entries" << std::endl;
+    std::cout << "Update staging table of database with " << parse_entries_.size() << " entries" << std::endl << std::endl;
+
+    size_t num_new_entries = 0;
+    size_t num_existing_entries = 0;
 
     for (auto & entry : parse_entries_)
     {
         if (blacklibrary_db_.DoesStagingEntryUUIDExist(entry.UUID))
+        {
+            ++num_existing_entries;
             continue;
-        blacklibrary_db_.CreateStagingEntry(entry);
+        }
+        else
+        {
+            blacklibrary_db_.CreateStagingEntry(entry);
+            ++num_new_entries;
+        }
     }
+
+    std::cout << "Staging table added " << num_new_entries << " entries and has " << num_existing_entries << " existing entries" << std::endl;
 
     return 0;
 }
 
 int BlackLibrary::ParseUrls()
 {
-    std::cout << "Add " << parse_entries_.size() << " jobs to parser manager" << std::endl;
+    std::cout << "Adding " << parse_entries_.size() << " jobs to parser manager" << std::endl << std::endl;
 
     for (auto & entry : parse_entries_)
     {
