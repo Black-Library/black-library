@@ -13,9 +13,9 @@
 
 namespace black_library {
 
-BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
-    parser_manager_(""),
-    blacklibrary_db_(db_url, init_db),
+BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db) :
+    parser_manager_(storage_path, ""),
+    blacklibrary_db_(db_path, init_db),
     url_puller_(nullptr),
     parse_entries_(),
     pull_urls_(),
@@ -28,21 +28,6 @@ BlackLibrary::BlackLibrary(const std::string &db_url, bool init_db) :
     done_(true)
 {
     Init();
-    manager_thread_ = std::thread([this](){
-        while (!done_ && parser_manager_.GetDone())
-        {
-            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
-
-            parser_manager_.RunOnce();
-
-            if (done_)
-                break;
-
-            std::this_thread::sleep_until(deadline);
-        }
-
-        parser_manager_.Stop();
-    });
 }
 
 int BlackLibrary::Run()
@@ -81,7 +66,13 @@ int BlackLibrary::RunOnce()
 
     if (!blacklibrary_db_.IsReady())
     {
-        std::cout << "Error: Black Library stalled, database not initalized" << std::endl;
+        std::cout << "Error: Black Library stalled, database not initalized/ready" << std::endl;
+        return -1;
+    }
+
+    if (!parser_manager_.IsReady())
+    {
+        std::cout << "Error: Black Library stalled, parser manager not initalized/ready" << std::endl;
         return -1;
     }
 
@@ -151,6 +142,22 @@ int BlackLibrary::Init()
     );
 
     done_ = false;
+
+    manager_thread_ = std::thread([this](){
+        while (!done_ && parser_manager_.GetDone())
+        {
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+
+            parser_manager_.RunOnce();
+
+            if (done_)
+                break;
+
+            std::this_thread::sleep_until(deadline);
+        }
+
+        parser_manager_.Stop();
+    });
 
     return 0;
 }

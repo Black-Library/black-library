@@ -12,22 +12,24 @@
 struct options
 {
     std::string db_path = "";
+    std::string storage_path = "";
     bool intialize_db = false;
 };
 
 static void Usage(const char *prog)
 {
     const char *p = strchr(prog, '/');
-    printf("usage: %s --(p)ath_db --[i]nit_db [-h]\n", p ? (p + 1) : prog);
+    printf("usage: %s --path_(d)b --path_(s)torage --[i]nit_db [-h]\n", p ? (p + 1) : prog);
 }
 
 static int ParseOptions(int argc, char **argv, struct options *opts)
 {
-    static const char *const optstr = "hip:";
+    static const char *const optstr = "d:his:v";
     static const struct option long_opts[] = {
+        { "path_db", required_argument, 0, 'd' },
         { "help", no_argument, 0, 'h' },
         { "init_db", no_argument, 0, 'i' },
-        { "path", required_argument, 0, 'p' },
+        { "path_storage", required_argument, 0, 's' },
         { "verbose", no_argument, 0, 'v' },
         { 0, 0, 0, 0 }
     };
@@ -40,6 +42,9 @@ static int ParseOptions(int argc, char **argv, struct options *opts)
     {
         switch (opt)
         {
+            case 'd':
+                opts->db_path = std::string(optarg);
+                break;
             case 'h':
                 Usage(argv[0]);
                 exit(0);
@@ -47,8 +52,8 @@ static int ParseOptions(int argc, char **argv, struct options *opts)
             case 'i':
                 opts->intialize_db = true;
                 break;
-            case 'p':
-                opts->db_path = std::string(optarg);
+            case 's':
+                opts->storage_path = std::string(optarg);
                 break;
             default:
                 exit(1);
@@ -86,7 +91,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    black_library::BlackLibrary library(opts.db_path, opts.intialize_db);
+    black_library::BlackLibrary library(opts.db_path, opts.storage_path, opts.intialize_db);
 
     blacklibrary = &library;
 

@@ -4,7 +4,7 @@ project(BlackLibraryProject VERSION 0.1 LANGUAGES C CXX)
 
 set(BUILD_SHARED_LIBS ON)
 
-set(GLOBAL_BLACKLIBRARYCOMMON ${PROJECT_SOURCE_DIR})
+set(GLOBAL_BLACKLIBRARYCOMMON ${PROJECT_SOURCE_DIR}/ext)
 
 add_compile_options(-Wall -Wextra -Werror)
 

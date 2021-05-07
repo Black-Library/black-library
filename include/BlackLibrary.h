@@ -22,7 +22,7 @@ namespace black_library {
 
 class BlackLibrary {
 public:
-    explicit BlackLibrary(const std::string &db_url, bool init_db);
+    explicit BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db);
 
     BlackLibrary &operator = (BlackLibrary &&) = default;
 
