@@ -38,7 +38,7 @@ int BlackLibrary::Run()
     {
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
         
-        if (seconds_counter >= 15)
+        if (seconds_counter >= 120)
             seconds_counter = 0;
 
         if (seconds_counter == 0)
