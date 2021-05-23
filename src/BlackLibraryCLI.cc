@@ -22,9 +22,9 @@ int BlackLibraryCLI::Run()
 
     while (!done_)
     {
-        std::cout << "BlackLibraryCLI>" << std::endl;
+        std::cout << "BlackLibraryCLI>";
 
-        std::cin >> input;
+        std::getline(std::cin, input);
 
         ProcessInput(input);
     }
