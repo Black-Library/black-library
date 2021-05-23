@@ -38,7 +38,7 @@ int BlackLibrary::Run()
     {
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
         
-        if (seconds_counter >= 120)
+        if (seconds_counter >= 21600)
             seconds_counter = 0;
 
         if (seconds_counter == 0)
@@ -110,6 +110,10 @@ int BlackLibrary::Stop()
 {
     done_ = true;
 
+    std::cout << "Joining manager thread" << std::endl;
+
+    curl_global_cleanup();
+
     if (manager_thread_.joinable())
         manager_thread_.join();
 
@@ -133,6 +137,7 @@ int BlackLibrary::Init()
             if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
             {
                 std::cout << "Error: Staging entry with UUID: " << result.metadata.uuid << " does not exist" << std::endl;
+                return;
             }
 
             auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
@@ -148,10 +153,10 @@ int BlackLibrary::Init()
         {
             const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
 
-            parser_manager_.RunOnce();
-
             if (done_)
                 break;
+
+            parser_manager_.RunOnce();
 
             std::this_thread::sleep_until(deadline);
         }
@@ -176,6 +181,10 @@ int BlackLibrary::VerifyUrls()
     std::cout << "Verifying Urls" << std::endl;
 
     // make sure they contain a url pattern on the protected list
+
+    // remove duplicate urls, sorting is faster then set for low number of duplicates
+    std::sort(pull_urls_.begin(), pull_urls_.end());
+    pull_urls_.erase(std::unique(pull_urls_.begin(), pull_urls_.end()), pull_urls_.end());
 
     return 0;
 }
@@ -207,9 +216,10 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.UUID = GenerateUUID();
             entry.url = url;
             entry.last_url = url;
+            entry.series_length = 1;
         }
 
-        std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << std::endl << std::endl;
+        std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
 
         parse_entries_.emplace_back(entry);
     }
@@ -249,7 +259,7 @@ int BlackLibrary::ParseUrls()
 
     for (auto & entry : parse_entries_)
     {
-        parser_manager_.AddJob(entry.UUID, entry.url);
+        parser_manager_.AddJob(entry.UUID, entry.url, entry.series_length);
     }
 
     return 0;

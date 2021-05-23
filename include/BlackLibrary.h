@@ -14,7 +14,6 @@
 #include <BlackLibraryUrlPuller.h>
 
 #include <BlackLibraryDB.h>
-#include <BlackLibraryDBConnectionInterface.h>
 
 #include <ParserManager.h>
 
