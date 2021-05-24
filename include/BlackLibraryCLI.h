@@ -6,6 +6,7 @@
 #define __BLACK_LIBRARY_BLACKLIBRARY_CLI_H__
 
 #include <atomic>
+#include <vector>
 
 #include <BlackLibraryDB.h>
 
@@ -20,7 +21,9 @@ public:
     int Stop();
 
 private:
-    void ProcessInput(const std::string &input);
+    void PrintEntries(const std::vector<std::string> &token);
+    void PrintUsage(const std::vector<std::string> &tokens);
+    void ProcessInput(const std::vector<std::string> &tokens);
 
     black_library::core::db::BlackLibraryDB blacklibrary_db_;
     std::string storage_path_;
