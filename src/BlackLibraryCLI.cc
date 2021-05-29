@@ -50,13 +50,22 @@ int BlackLibraryCLI::Stop()
 
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 {
-    std::string target_entry_type = tokens[1];
     std::string entry_list;
+    std::string target_entry_type;
+    if (tokens.size() >= 2)
+    {
+        target_entry_type = tokens[1];
+    }
 
     if (target_entry_type == "black")
         entry_list = blacklibrary_db_.GetBlackEntryList();
     else if (target_entry_type == "staging")
         entry_list = blacklibrary_db_.GetStagingEntryList();
+    else
+    {
+        entry_list += blacklibrary_db_.GetStagingEntryList();
+        entry_list += entry_list = blacklibrary_db_.GetBlackEntryList();
+    }
     
     std::cout << entry_list << std::endl;
 }
@@ -76,11 +85,11 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
 {
     std::string command = tokens[0];
-    if (command == "stop")
+    if (command == "stop" || command == "quit" || command == "exit")
     {
         Stop();
     }
-    if (command == "list")
+    else if (command == "list")
     {
         PrintEntries(tokens);
     }

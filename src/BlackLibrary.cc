@@ -37,8 +37,8 @@ int BlackLibrary::Run()
     while (!done_)
     {
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
-        
-        if (seconds_counter >= 21600)
+
+        if (seconds_counter >= 600)
             seconds_counter = 0;
 
         if (seconds_counter == 0)
@@ -142,7 +142,11 @@ int BlackLibrary::Init()
 
             auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
 
-            UpdateDatabaseWithResult(staging_entry, result);
+            if (!UpdateDatabaseWithResult(staging_entry, result))
+            {
+                std::cout << "Error: could not update database with result UUID: " << result.metadata.uuid << std::endl;
+            }
+
         }
     );
 
@@ -182,7 +186,7 @@ int BlackLibrary::VerifyUrls()
 
     // make sure they contain a url pattern on the protected list
 
-    // remove duplicate urls, sorting is faster then set for low number of duplicates
+    // remove duplicate urls, sorting is faster then using a set for low number of duplicates
     std::sort(pull_urls_.begin(), pull_urls_.end());
     pull_urls_.erase(std::unique(pull_urls_.begin(), pull_urls_.end()), pull_urls_.end());
 
@@ -219,7 +223,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.series_length = 1;
         }
 
-        std::cout << "UUID: " << entry.UUID << " url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
+        std::cout << "UUID: " << entry.UUID << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
 
         parse_entries_.emplace_back(entry);
     }
@@ -278,8 +282,6 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
 
         if (res)
             return -1;
-
-        blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid);
     }
     else
     {
@@ -296,9 +298,9 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
 
         if (res)
             return -1;
-
-        blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid);
     }
+
+    blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid);
 
     return 0;
 }
