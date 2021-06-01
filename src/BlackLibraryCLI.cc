@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <FileOperations.h>
+
 #include <BlackLibraryCLI.h>
 
 namespace black_library {
@@ -14,7 +16,11 @@ BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &
     storage_path_(storage_path),
     done_(false)
 {
-
+    if(!black_library::core::common::ExistsAndPermission(storage_path_))
+    {
+        std::cout << "Error: storage path does not exist or no permissions" << std::endl;
+        return;
+    }
 }
 
 int BlackLibraryCLI::Run()
