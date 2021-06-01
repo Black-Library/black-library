@@ -1,3 +1,4 @@
+add_subdirectory(black-library-binder)
 add_subdirectory(black-library-common)
 add_subdirectory(black-library-db)
 add_subdirectory(black-library-parsers)
