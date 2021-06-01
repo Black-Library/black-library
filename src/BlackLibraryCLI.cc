@@ -10,6 +10,7 @@ namespace black_library {
 
 BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &storage_path) :
     blacklibrary_db_(db_path, false),
+    blacklibrary_binder_(storage_path),
     storage_path_(storage_path),
     done_(false)
 {
