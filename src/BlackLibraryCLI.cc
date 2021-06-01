@@ -13,14 +13,9 @@ namespace black_library {
 BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &storage_path) :
     blacklibrary_db_(db_path, false),
     blacklibrary_binder_(storage_path),
-    storage_path_(storage_path),
     done_(false)
 {
-    if(!black_library::core::common::ExistsAndPermission(storage_path_))
-    {
-        std::cout << "Error: storage path does not exist or no permissions" << std::endl;
-        return;
-    }
+
 }
 
 int BlackLibraryCLI::Run()
@@ -53,6 +48,25 @@ int BlackLibraryCLI::Stop()
     done_ = true;
 
     return 0;
+}
+
+void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
+{
+    std::string target_uuid;
+    if (tokens.size() >= 2)
+    {
+        target_uuid = tokens[1];
+    }
+
+    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    {
+        std::cout << "Error: uuid: " << target_uuid << " does not exist" << std::endl;
+        return;
+    }
+
+    auto entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
+
+    blacklibrary_binder_.Bind(target_uuid, entry.title);
 }
 
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
@@ -95,6 +109,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     if (command == "stop" || command == "quit" || command == "exit")
     {
         Stop();
+    }
+    else if (command == "bind")
+    {
+        BindEntry(tokens);
     }
     else if (command == "list")
     {
