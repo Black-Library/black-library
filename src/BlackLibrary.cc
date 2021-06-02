@@ -38,7 +38,7 @@ int BlackLibrary::Run()
     {
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
 
-        if (seconds_counter >= 600)
+        if (seconds_counter >= 21600)
             seconds_counter = 0;
 
         if (seconds_counter == 0)
@@ -130,6 +130,27 @@ int BlackLibrary::Init()
 
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
+    parser_manager_.RegisterChapterNumberCallback(
+        [this](const std::string &uuid, size_t chapter_num)
+        {
+            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
+            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
+            {
+                std::cout << "Error: Staging entry with UUID: " << uuid << " does not exist" << std::endl;
+                return;
+            }
+
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
+
+            staging_entry.series_length = chapter_num;
+
+            if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
+            {
+                std::cout << "Error: Staging entry with UUID: " << staging_entry.UUID << " could not be updated" << std::endl;
+                return;
+            }
+        }
+    );
     parser_manager_.RegisterDatabaseStatusCallback(
         [this](core::parsers::ParserJobResult result)
         {
@@ -142,7 +163,7 @@ int BlackLibrary::Init()
 
             auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
 
-            if (!UpdateDatabaseWithResult(staging_entry, result))
+            if (UpdateDatabaseWithResult(staging_entry, result))
             {
                 std::cout << "Error: could not update database with result UUID: " << result.metadata.uuid << std::endl;
             }
@@ -278,7 +299,7 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     // if entry already exists, just update, else create new
     if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
     {
-        int res = blacklibrary_db_.UpdateBlackEntry(result.metadata.uuid, entry);
+        int res = blacklibrary_db_.UpdateBlackEntry(entry);
 
         if (res)
             return -1;
@@ -300,7 +321,11 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
             return -1;
     }
 
-    blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid);
+    if (blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid))
+    {
+        std::cout << "Error: could not delete staging entry with UUID: " << result.metadata.uuid << std::endl;
+        return -1;
+    }
 
     return 0;
 }
