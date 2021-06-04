@@ -27,6 +27,8 @@ private:
     void PrintUsage(const std::vector<std::string> &tokens);
     void ProcessInput(const std::vector<std::string> &tokens);
 
+    void SanatizeInput(std::vector<std::string> &tokens);
+
     black_library::core::db::BlackLibraryDB blacklibrary_db_;
     black_library::core::binder::BlackLibraryBinder blacklibrary_binder_;
     std::atomic_bool done_;

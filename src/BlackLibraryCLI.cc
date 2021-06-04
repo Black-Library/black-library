@@ -2,7 +2,9 @@
  * BlackLibraryCLI.cc
  */
 
+#include <algorithm>
 #include <iostream>
+#include <sstream>
 
 #include <FileOperations.h>
 
@@ -37,6 +39,8 @@ int BlackLibraryCLI::Run()
             tokens.push_back(intermediate);
         }
 
+        SanatizeInput(tokens);
+
         ProcessInput(tokens);
     }
 
@@ -56,6 +60,11 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
     if (tokens.size() >= 2)
     {
         target_uuid = tokens[1];
+    }
+    else
+    {
+        std::cout << "bind [uuid]" << std::endl;
+        return;
     }
 
     if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
@@ -82,6 +91,8 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
         entry_list = blacklibrary_db_.GetBlackEntryList();
     else if (target_entry_type == "staging")
         entry_list = blacklibrary_db_.GetStagingEntryList();
+    else if (target_entry_type == "help")
+        entry_list = "print [black, staging]";
     else
     {
         entry_list += blacklibrary_db_.GetStagingEntryList();
@@ -93,7 +104,14 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
-    std::cout << "Usage: " << std::endl; 
+    std::stringstream ss;
+
+    ss << "Usage: [bind, help, list]";
+
+    // TODO make some kind of command mapping/register
+
+    std::cout << ss.str() << std::endl;
+    std::cout << "Input: " << std::endl; 
 
     for (size_t i = 0; i < tokens.size(); ++i)
     {
@@ -114,6 +132,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     {
         BindEntry(tokens);
     }
+    else if (command == "help")
+    {
+        PrintUsage(tokens);
+    }
     else if (command == "list")
     {
         PrintEntries(tokens);
@@ -123,6 +145,27 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
         PrintUsage(tokens);
     }
     std::cout << "COMMAND: " << command << std::endl;
+}
+
+void BlackLibraryCLI::SanatizeInput(std::vector<std::string> &tokens)
+{
+    for (auto & token : tokens)
+    {
+        token.erase(std::remove(token.begin(), token.end(), '\r'), token.end());
+        token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
+        token.erase(std::remove(token.begin(), token.end(), ' '), token.end());
+        token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
+        token.erase(std::remove(token.begin(), token.end(), '\0'), token.end());
+        token.erase(std::remove(token.begin(), token.end(), ';'), token.end());
+
+        // remove unprintable characters
+        token.erase(std::remove_if(token.begin(), token.end(), 
+            [](unsigned char c)
+            {
+                return !std::isprint(c);
+            })
+            , token.end());
+    }
 }
 
 } // namespace black_library

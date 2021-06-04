@@ -3,7 +3,6 @@
  */
 
 #include <getopt.h>
-#include <signal.h>
 #include <string.h>
 
 #include <BlackLibraryCLI.h>
@@ -66,18 +65,9 @@ static int ParseOptions(int argc, char **argv, struct options *opts)
     return 0;
 }
 
-void SigHandler(int sig)
-{
-    if (sig == SIGTERM || sig == SIGINT)
-        blacklibrary_cli->Stop();
-}
-
 int main(int argc, char* argv[])
 {
     struct options opts;
-
-    signal(SIGINT, SigHandler);
-    signal(SIGTERM, SigHandler);
 
     if (ParseOptions(argc, argv, &opts))
     {
