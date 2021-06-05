@@ -146,7 +146,7 @@ int BlackLibrary::Init()
 
             if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
             {
-                std::cout << "Error: Staging entry with UUID: " << staging_entry.UUID << " could not be updated" << std::endl;
+                std::cout << "Error: Staging entry with UUID: " << staging_entry.uuid << " could not be updated" << std::endl;
                 return;
             }
         }
@@ -227,24 +227,24 @@ int BlackLibrary::CompareAndUpdateUrls()
         if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
         {
             auto res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(url);
-            std::string UUID = res.result;
-            entry = blacklibrary_db_.ReadStagingEntry(UUID);
+            std::string uuid = res.result;
+            entry = blacklibrary_db_.ReadStagingEntry(uuid);
         }
         else if (blacklibrary_db_.DoesBlackEntryUrlExist(url))
         {
             auto res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(url);
-            std::string UUID = res.result;
-            entry = blacklibrary_db_.ReadBlackEntry(UUID);
+            std::string uuid = res.result;
+            entry = blacklibrary_db_.ReadBlackEntry(uuid);
         }
         else
         {
-            entry.UUID = GenerateUUID();
+            entry.uuid = GenerateUUID();
             entry.url = url;
             entry.last_url = url;
             entry.series_length = 1;
         }
 
-        std::cout << "UUID: " << entry.UUID << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
+        std::cout << "UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
 
         parse_entries_.emplace_back(entry);
     }
@@ -261,7 +261,7 @@ int BlackLibrary::UpdateStaging()
 
     for (auto & entry : parse_entries_)
     {
-        if (blacklibrary_db_.DoesStagingEntryUUIDExist(entry.UUID))
+        if (blacklibrary_db_.DoesStagingEntryUUIDExist(entry.uuid))
         {
             ++num_existing_entries;
             continue;
@@ -284,7 +284,7 @@ int BlackLibrary::ParseUrls()
 
     for (auto & entry : parse_entries_)
     {
-        parser_manager_.AddJob(entry.UUID, entry.url, entry.series_length);
+        parser_manager_.AddJob(entry.uuid, entry.url, entry.series_length);
     }
 
     return 0;
