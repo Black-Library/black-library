@@ -41,7 +41,6 @@ private:
     int UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result);
 
     std::string GenerateUUID();
-    int PrintTabbed(const std::string &statment, size_t num_tabs);
 
     black_library::core::parsers::ParserManager parser_manager_;
     black_library::core::db::BlackLibraryDB blacklibrary_db_;

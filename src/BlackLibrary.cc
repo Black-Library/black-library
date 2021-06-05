@@ -221,20 +221,20 @@ int BlackLibrary::CompareAndUpdateUrls()
 
     for (auto & url : pull_urls_)
     {
-        PrintTabbed("CompareUrls: " + url, 1);
         black_library::core::db::DBEntry entry;
 
-        if (blacklibrary_db_.DoesBlackEntryUrlExist(url))
-        {
-            auto res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(url);
-            std::string UUID = res.result;
-            entry = blacklibrary_db_.ReadBlackEntry(UUID);
-        }
-        else if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
+        // check staging entries first to continue jobs that were still in progress
+        if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
         {
             auto res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(url);
             std::string UUID = res.result;
             entry = blacklibrary_db_.ReadStagingEntry(UUID);
+        }
+        else if (blacklibrary_db_.DoesBlackEntryUrlExist(url))
+        {
+            auto res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(url);
+            std::string UUID = res.result;
+            entry = blacklibrary_db_.ReadBlackEntry(UUID);
         }
         else
         {
@@ -295,6 +295,11 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     entry.last_url = result.metadata.last_url;
     entry.series_length = result.metadata.series_length;
     entry.update_date = result.metadata.update_date;
+    entry.title = result.metadata.title;
+    entry.author = result.metadata.author;
+    entry.nickname = result.metadata.nickname;
+    entry.source = result.metadata.source;
+    entry.series = result.metadata.series;
 
     // if entry already exists, just update, else create new
     if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
@@ -306,12 +311,6 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     }
     else
     {
-        entry.title = result.metadata.title;
-        entry.author = result.metadata.author;
-        entry.nickname = result.metadata.nickname;
-        entry.source = result.metadata.source;
-        entry.series = result.metadata.series;
-        entry.series_length = result.metadata.series_length;
         entry.media_path = result.metadata.media_path;
         entry.birth_date = result.metadata.update_date;
         
@@ -366,22 +365,6 @@ std::string BlackLibrary::GenerateUUID()
     }
 
     return ss.str();
-}
-
-int BlackLibrary::PrintTabbed(const std::string &statement, size_t num_tabs)
-{
-    std::stringstream ss;
-
-    for (size_t i = 0; i < num_tabs; ++i)
-    {
-        ss << "\t";
-    }
-
-    ss << statement;
-
-    std::cout << ss.str() << std::endl;
-
-    return 0;
 }
 
 } // namespace black_library
