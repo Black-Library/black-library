@@ -130,8 +130,8 @@ int BlackLibrary::Init()
 
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
-    parser_manager_.RegisterChapterNumberCallback(
-        [this](const std::string &uuid, size_t chapter_num)
+    parser_manager_.RegisterProgressNumberCallback(
+        [this](const std::string &uuid, size_t progress_num, bool error)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
@@ -140,9 +140,22 @@ int BlackLibrary::Init()
                 return;
             }
 
+            if (error)
+            {
+                if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
+                {
+                    std::cout << "Error: Error entry with UUID: " << uuid << " progress_num: " << progress_num << " already exists" << std::endl;
+                    return;
+                }
+
+                black_library::core::db::ErrorEntry entry = { uuid, progress_num };
+
+                blacklibrary_db_.CreateErrorEntry(entry);
+            }
+
             auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
 
-            staging_entry.series_length = chapter_num;
+            staging_entry.series_length = progress_num;
 
             if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
             {
