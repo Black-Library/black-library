@@ -1,0 +1,18 @@
+{
+    "paths":[
+        {
+            "db_path":"/mnt/db/catalog.db"
+        },
+        {
+            "log_path":"/mnt/log/"
+        },
+        {
+            "storage_path":"/mnt/store/"
+        }
+    ],
+    "manager":[
+        {
+            "worker_threads": 3
+        }
+    ]
+}

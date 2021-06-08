@@ -81,6 +81,7 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 {
     std::vector<black_library::core::db::DBEntry> entry_list;
+    std::vector<black_library::core::db::ErrorEntry> error_list;
     std::string target_entry_type;
     if (tokens.size() >= 2)
     {
@@ -89,10 +90,12 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
     if (target_entry_type == "black")
         entry_list = blacklibrary_db_.GetBlackEntryList();
+    if (target_entry_type == "error")
+        error_list = blacklibrary_db_.GetErrorEntryList();
     else if (target_entry_type == "staging")
         entry_list = blacklibrary_db_.GetStagingEntryList();
     else if (target_entry_type == "help")
-        std::cout << "print [black, staging]" << std::endl;
+        std::cout << "print [black, error, staging]" << std::endl;
     else
     {
         auto staging_entries = blacklibrary_db_.GetStagingEntryList();
@@ -100,9 +103,16 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
         entry_list.reserve(staging_entries.size() + black_entires.size());
         entry_list.insert(entry_list.end(), staging_entries.begin(), staging_entries.end());
         entry_list.insert(entry_list.end(), black_entires.begin(), black_entires.end());
+
+        error_list = blacklibrary_db_.GetErrorEntryList();
     }
     
     for (const auto & entry : entry_list)
+    {
+        std::cout << entry << std::endl;
+    }
+
+    for (const auto & entry : error_list)
     {
         std::cout << entry << std::endl;
     }
