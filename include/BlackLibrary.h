@@ -37,6 +37,7 @@ private:
     int CompareAndUpdateUrls();
     int UpdateStaging();
     int ParseUrls();
+    int ParserErrorEntries();
 
     int UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result);
 

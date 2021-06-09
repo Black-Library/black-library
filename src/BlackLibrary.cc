@@ -103,6 +103,8 @@ int BlackLibrary::RunOnce()
 
     ParseUrls();
 
+    ParserErrorEntries();
+
     return 0;
 }
 
@@ -232,7 +234,7 @@ int BlackLibrary::CompareAndUpdateUrls()
     std::cout << "Comparing Urls with database" << std::endl << std::endl;;
     parse_entries_.clear();
 
-    for (auto & url : pull_urls_)
+    for (const auto & url : pull_urls_)
     {
         black_library::core::db::DBEntry entry;
 
@@ -255,6 +257,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.url = url;
             entry.last_url = url;
             entry.series_length = 1;
+            // entry.birth_date = 
         }
 
         std::cout << "UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
@@ -303,11 +306,50 @@ int BlackLibrary::ParseUrls()
     return 0;
 }
 
+int BlackLibrary::ParserErrorEntries()
+{
+    auto error_list = blacklibrary_db_.GetErrorEntryList();
+
+    std::cout << "Adding " << error_list.size() << " error jobs to parser manager" << std::endl << std::endl;
+
+    for (const auto & error : error_list)
+    {
+        std::string url;
+
+        if (blacklibrary_db_.DoesStagingEntryUUIDExist(error.uuid))
+        {
+            auto res = blacklibrary_db_.GetStagingEntryUrlFromUUID(error.uuid);
+
+            if (res.error)
+                continue;
+            
+            url = res.result;
+        }
+        else if (blacklibrary_db_.DoesBlackEntryUUIDExist(error.uuid))
+        {
+            auto res = blacklibrary_db_.GetStagingEntryUrlFromUUID(error.uuid);
+
+            if (res.error)
+                continue;
+            
+            url = res.result;
+        }
+        else
+        {
+            std::cout << "could not match error entry " << error << std::endl;;
+            continue;
+        }
+
+        parser_manager_.AddJob(error.uuid, url, error.progress_num, error.progress_num);
+    }
+
+    return 0;
+}
+
 int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result)
 {
     entry.last_url = result.metadata.last_url;
     entry.series_length = result.metadata.series_length;
-    entry.update_date = result.metadata.update_date;
     entry.title = result.metadata.title;
     entry.author = result.metadata.author;
     entry.nickname = result.metadata.nickname;
@@ -325,7 +367,6 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     else
     {
         entry.media_path = result.metadata.media_path;
-        entry.birth_date = result.metadata.update_date;
         
         int res = blacklibrary_db_.CreateBlackEntry(entry);
 
