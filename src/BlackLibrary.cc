@@ -8,6 +8,8 @@
 #include <sstream>
 #include <thread>
 
+#include <TimeOperations.h>
+
 #include <BlackLibrary.h>
 #include <WgetUrlPuller.h>
 
@@ -250,6 +252,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             auto res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(url);
             std::string uuid = res.result;
             entry = blacklibrary_db_.ReadBlackEntry(uuid);
+            entry.check_date = black_library::core::common::GetUnixTime();
         }
         else
         {
@@ -257,7 +260,8 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.url = url;
             entry.last_url = url;
             entry.series_length = 1;
-            // entry.birth_date = 
+            entry.birth_date = black_library::core::common::GetUnixTime();
+            entry.check_date = black_library::core::common::GetUnixTime();
         }
 
         std::cout << "UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
@@ -355,6 +359,7 @@ int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core:
     entry.nickname = result.metadata.nickname;
     entry.source = result.metadata.source;
     entry.series = result.metadata.series;
+    entry.update_date = result.metadata.update_date;
 
     // if entry already exists, just update, else create new
     if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
