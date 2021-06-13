@@ -37,6 +37,7 @@ install
 
 # application artifacts
 black_library_urls
+imgui.ini
 
 # IDE stuff
 .vscode
