@@ -11,7 +11,12 @@ add_compile_options(-Wall -Wextra -Werror)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-include(cmake/docker.cmake)
+option(BUILD_GUI "Build the front end GUI" OFF)
+option(INCLUDE_DOCKER_BUILD "Add docker targets" ON)
+
+if (INCLUDE_DOCKER_BUILD)
+    include(cmake/docker.cmake)
+endif()
 
 add_subdirectory(ext)
 add_subdirectory(src)
