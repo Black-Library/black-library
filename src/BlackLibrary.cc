@@ -15,6 +15,9 @@
 
 namespace black_library {
 
+namespace BlackLibraryCommon = black_library::core::common;
+namespace BlackLibraryDB = black_library::core::db;
+
 BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db) :
     parser_manager_(storage_path, ""),
     blacklibrary_db_(db_path, init_db),
@@ -152,7 +155,7 @@ int BlackLibrary::Init()
                     return;
                 }
 
-                black_library::core::db::ErrorEntry entry = { uuid, progress_num };
+                BlackLibraryDB::ErrorEntry entry = { uuid, progress_num };
 
                 blacklibrary_db_.CreateErrorEntry(entry);
             }
@@ -238,7 +241,7 @@ int BlackLibrary::CompareAndUpdateUrls()
 
     for (const auto & url : pull_urls_)
     {
-        black_library::core::db::DBEntry entry;
+        BlackLibraryDB::DBEntry entry;
 
         // check staging entries first to continue jobs that were still in progress
         if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
@@ -252,7 +255,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             auto res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(url);
             std::string uuid = res.result;
             entry = blacklibrary_db_.ReadBlackEntry(uuid);
-            entry.check_date = black_library::core::common::GetUnixTime();
+            entry.check_date = BlackLibraryCommon::GetUnixTime();
         }
         else
         {
@@ -260,8 +263,8 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.url = url;
             entry.last_url = url;
             entry.series_length = 1;
-            entry.birth_date = black_library::core::common::GetUnixTime();
-            entry.check_date = black_library::core::common::GetUnixTime();
+            entry.birth_date = BlackLibraryCommon::GetUnixTime();
+            entry.check_date = BlackLibraryCommon::GetUnixTime();
         }
 
         std::cout << "UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;

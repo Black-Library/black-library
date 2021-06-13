@@ -13,6 +13,8 @@
 
 namespace black_library {
 
+namespace BlackLibraryDB = black_library::core::db;
+
 class BlackLibraryCLI {
 public:
     explicit BlackLibraryCLI(const std::string &db_path, const std::string &storage_path);
@@ -29,7 +31,7 @@ private:
 
     void SanatizeInput(std::vector<std::string> &tokens);
 
-    black_library::core::db::BlackLibraryDB blacklibrary_db_;
+    BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
     black_library::core::binder::BlackLibraryBinder blacklibrary_binder_;
     std::atomic_bool done_;
 };

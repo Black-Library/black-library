@@ -19,6 +19,9 @@
 
 namespace black_library {
 
+namespace BlackLibraryDB = black_library::core::db;
+namespace BlackLibraryParsers = black_library::core::parsers;
+
 class BlackLibrary {
 public:
     explicit BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db);
@@ -43,10 +46,10 @@ private:
 
     std::string GenerateUUID();
 
-    black_library::core::parsers::ParserManager parser_manager_;
-    black_library::core::db::BlackLibraryDB blacklibrary_db_;
+    BlackLibraryParsers::ParserManager parser_manager_;
+    BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
-    std::vector<black_library::core::db::DBEntry> parse_entries_;
+    std::vector<BlackLibraryDB::DBEntry> parse_entries_;
     std::vector<std::string> pull_urls_;
     std::thread manager_thread_;
     std::random_device rd_;

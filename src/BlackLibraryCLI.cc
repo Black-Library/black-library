@@ -12,6 +12,8 @@
 
 namespace black_library {
 
+namespace BlackLibraryDB = black_library::core::db;
+
 BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &storage_path) :
     blacklibrary_db_(db_path, false),
     blacklibrary_binder_(storage_path),
@@ -80,8 +82,8 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 {
-    std::vector<black_library::core::db::DBEntry> entry_list;
-    std::vector<black_library::core::db::ErrorEntry> error_list;
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::vector<BlackLibraryDB::ErrorEntry> error_list;
     std::string target_entry_type;
     if (tokens.size() >= 2)
     {
