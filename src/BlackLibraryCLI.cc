@@ -2,16 +2,17 @@
  * BlackLibraryCLI.cc
  */
 
-#include <algorithm>
 #include <iostream>
 #include <sstream>
 
 #include <FileOperations.h>
+#include <StringOperations.h>
 
 #include <BlackLibraryCLI.h>
 
 namespace black_library {
 
+namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
 BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &storage_path) :
@@ -169,20 +170,7 @@ void BlackLibraryCLI::SanatizeInput(std::vector<std::string> &tokens)
 {
     for (auto & token : tokens)
     {
-        token.erase(std::remove(token.begin(), token.end(), '\r'), token.end());
-        token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
-        token.erase(std::remove(token.begin(), token.end(), ' '), token.end());
-        token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
-        token.erase(std::remove(token.begin(), token.end(), '\0'), token.end());
-        token.erase(std::remove(token.begin(), token.end(), ';'), token.end());
-
-        // remove unprintable characters
-        token.erase(std::remove_if(token.begin(), token.end(), 
-            [](unsigned char c)
-            {
-                return !std::isprint(c);
-            })
-            , token.end());
+        BlackLibraryCommon::SanatizeString(token);
     }
 }
 
