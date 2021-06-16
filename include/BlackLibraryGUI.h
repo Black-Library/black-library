@@ -137,15 +137,19 @@ public:
 private:
     void BindEntry(const std::string &uuid);
 
-    static void ShowCopyLocationWindow(bool* p_open);
-    static void ShowRefreshAndSearch();
-    static void ShowBlackEntryTable();
-    static void ShowStagingEntryTable();
-    static void ShowLog();
+    void ShowCopyLocationWindow(bool* p_open);
+    void ShowRefreshAndSearch();
+    void ShowBlackEntryTable();
+    void ShowStagingEntryTable();
+    void ShowLog();
+
+    void RefreshDBEntries();
 
     BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
     BlackLibraryBinder::BlackLibraryBinder blacklibrary_binder_;
-    std::atomic_bool done_;
+    std::vector<BlackLibraryDB::DBEntry> black_entries_;
+    std::vector<BlackLibraryDB::DBEntry> staging_entries_;
+    bool initialized_;
 };
 
 } // namespace black_library

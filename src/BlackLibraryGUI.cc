@@ -165,13 +165,29 @@ void PopStyleCompact()
 BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &storage_path) :
     blacklibrary_db_(db_path, false),
     blacklibrary_binder_(storage_path),
-    done_(false)
+    black_entries_(),
+    staging_entries_(),
+    initialized_(false)
 {
+    std::cout << "\nRunning Black Library GUI" << std::endl;
 
+    if (!blacklibrary_db_.IsReady())
+    {
+        std::cout << "Error: Black Library GUI stalled, database not initalized/ready" << std::endl;
+        return;
+    }
+
+    black_entries_ = blacklibrary_db_.GetBlackEntryList();
+    staging_entries_ = blacklibrary_db_.GetStagingEntryList();
 }
 
 int BlackLibraryGUI::Run()
 {
+    if (!initialized_)
+    {
+        std::cout << "Error: Black Library GUI not initialized" << std::endl;
+    }
+
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -355,8 +371,6 @@ int BlackLibraryGUI::Run()
 
 int BlackLibraryGUI::Stop()
 {
-    done_ = true;
-
     return 0;
 }
 
@@ -610,6 +624,12 @@ void BlackLibraryGUI::ShowLog()
 
         ImGui::TreePop();
     }
+}
+
+void RefreshDBEntries()
+{
+    black_entries_ = blacklibrary_db_.GetBlackEntryList();
+    staging_entries_ = blacklibrary_db_.GetStagingEntryList();
 }
 
 } // namespace black_library

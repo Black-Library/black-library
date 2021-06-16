@@ -13,7 +13,7 @@ struct options
 {
     std::string db_path = "";
     std::string storage_path = "";
-    bool intialize_db = false;
+    bool initialize_db = false;
 };
 
 static void Usage(const char *prog)
@@ -50,7 +50,7 @@ static int ParseOptions(int argc, char **argv, struct options *opts)
                 exit(0);
                 break;
             case 'i':
-                opts->intialize_db = true;
+                opts->initialize_db = true;
                 break;
             case 's':
                 opts->storage_path = std::string(optarg);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    black_library::BlackLibrary library(opts.db_path, opts.storage_path, opts.intialize_db);
+    black_library::BlackLibrary library(opts.db_path, opts.storage_path, opts.initialize_db);
 
     blacklibrary = &library;
 
