@@ -177,8 +177,9 @@ BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &
         return;
     }
 
-    black_entries_ = blacklibrary_db_.GetBlackEntryList();
-    staging_entries_ = blacklibrary_db_.GetStagingEntryList();
+    RefreshDBEntries();
+
+    initialized_ = true;
 }
 
 int BlackLibraryGUI::Run()
@@ -186,6 +187,7 @@ int BlackLibraryGUI::Run()
     if (!initialized_)
     {
         std::cout << "Error: Black Library GUI not initialized" << std::endl;
+        return -1;
     }
 
     // Setup window
@@ -626,7 +628,7 @@ void BlackLibraryGUI::ShowLog()
     }
 }
 
-void RefreshDBEntries()
+void BlackLibraryGUI::RefreshDBEntries()
 {
     black_entries_ = blacklibrary_db_.GetBlackEntryList();
     staging_entries_ = blacklibrary_db_.GetStagingEntryList();
