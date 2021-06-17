@@ -150,6 +150,7 @@ private:
     std::vector<BlackLibraryDB::DBEntry> black_entries_;
     std::vector<BlackLibraryDB::DBEntry> staging_entries_;
     bool initialized_;
+    bool is_refreshing_;
 };
 
 } // namespace black_library

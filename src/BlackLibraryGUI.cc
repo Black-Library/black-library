@@ -167,7 +167,8 @@ BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &
     blacklibrary_binder_(storage_path),
     black_entries_(),
     staging_entries_(),
-    initialized_(false)
+    initialized_(false),
+    is_refreshing_(false)
 {
     std::cout << "\nRunning Black Library GUI" << std::endl;
 
@@ -413,13 +414,13 @@ void BlackLibraryGUI::ShowCopyLocationWindow(bool* p_open)
 
 void BlackLibraryGUI::ShowRefreshAndSearch()
 {
-    static int refresh_clicked = 0;
     if (ImGui::Button("Refresh"))
-        refresh_clicked++;
-    if (refresh_clicked & 1)
+        is_refreshing_ = true;
+    if (is_refreshing_)
     {
         ImGui::SameLine();
         ImGui::Text("Refreshing...");
+        RefreshDBEntries();
     }
 
     ImGui::SameLine();
@@ -474,9 +475,9 @@ void BlackLibraryGUI::ShowBlackEntryTable()
     ImGui::SameLine(); HelpMarker("When sorting is enabled: hold shift when clicking headers to sort on multiple column. ");
     PopStyleCompact();
 
-    ImGui::Text("First Table");
+    ImGui::Text("Black Entries");
 
-    if (ImGui::BeginTable("table_sorting", 4, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
+    if (ImGui::BeginTable("table_black_entries", static_cast<int>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID), flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
     {
         // Declare columns
         // We use the "user_id" parameter of TableSetupColumn() to specify a user id that will be stored in the sort specifications.
@@ -485,10 +486,22 @@ void BlackLibraryGUI::ShowBlackEntryTable()
         // - ImGuiTableColumnFlags_DefaultSort
         // - ImGuiTableColumnFlags_NoSort / ImGuiTableColumnFlags_NoSortAscending / ImGuiTableColumnFlags_NoSortDescending
         // - ImGuiTableColumnFlags_PreferSortAscending / ImGuiTableColumnFlags_PreferSortDescending
-        ImGui::TableSetupColumn("ID",       ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_ID);
-        ImGui::TableSetupColumn("Name",                                                  ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_Name);
-        ImGui::TableSetupColumn("Action",   ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_Action);
-        ImGui::TableSetupColumn("Quantity", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, MyItemColumnID_Quantity);
+        ImGui::TableSetupColumn("UUID",       ImGuiTableColumnFlags_NoSort          | ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
+        ImGui::TableSetupColumn("Title",                                                  ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
+        ImGui::TableSetupColumn("Author",   ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author));
+        ImGui::TableSetupColumn("Nickname", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname));
+        ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source));
+        ImGui::TableSetupColumn("URL", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
+        ImGui::TableSetupColumn("Last URL", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::last_url));
+        ImGui::TableSetupColumn("Series", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series));
+        ImGui::TableSetupColumn("Series Length", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length));
+        ImGui::TableSetupColumn("Version", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::version));
+        ImGui::TableSetupColumn("Media Path", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::media_path));
+        ImGui::TableSetupColumn("Birth Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
+        ImGui::TableSetupColumn("Last Check Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
+        ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
+        ImGui::TableSetupColumn("User Contributed", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::user_contributed));
+
         ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
         ImGui::TableHeadersRow();
 
@@ -505,22 +518,44 @@ void BlackLibraryGUI::ShowBlackEntryTable()
 
         // Demonstrate using clipper for large vertical lists
         ImGuiListClipper clipper;
-        clipper.Begin(items.Size);
+        clipper.Begin(black_entries_.size());
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++)
             {
-                // Display a data item
-                MyItem* item = &items[row_n];
-                ImGui::PushID(item->ID);
+                // Display a database entry
+                BlackLibraryDB::DBEntry* entry = &black_entries_[row_n];
+                ImGui::PushID(entry->uuid.c_str());
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text("%04d", item->ID);
+                ImGui::Text("%s", entry->uuid.c_str());
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted(item->Name);
+                ImGui::TextUnformatted(entry->title.c_str());
                 ImGui::TableNextColumn();
-                ImGui::SmallButton("None");
+                ImGui::Text("%s", entry->author.c_str());
                 ImGui::TableNextColumn();
-                ImGui::Text("%d", item->Quantity);
+                ImGui::Text("%s", entry->nickname.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", entry->source.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", entry->url.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", entry->last_url.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", entry->series.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", entry->series_length);
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", entry->version);
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", entry->media_path.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%lu", entry->birth_date);
+                ImGui::TableNextColumn();
+                ImGui::Text("%lu", entry->check_date);
+                ImGui::TableNextColumn();
+                ImGui::Text("%lu", entry->update_date);
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", entry->user_contributed);
                 ImGui::PopID();
             }
         ImGui::EndTable();
@@ -529,7 +564,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
 
 void BlackLibraryGUI::ShowStagingEntryTable()
 {
-    if (ImGui::TreeNode("Second Table"))
+    if (ImGui::TreeNode("Staging Entries"))
     {
         const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
 
@@ -560,7 +595,7 @@ void BlackLibraryGUI::ShowStagingEntryTable()
             | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody
             | ImGuiTableFlags_ScrollY;
 
-        if (ImGui::BeginTable("table_sorting", 4, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
+        if (ImGui::BeginTable("table_staging_entries", static_cast<int>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID), flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
         {
             // Declare columns
             // We use the "user_id" parameter of TableSetupColumn() to specify a user id that will be stored in the sort specifications.
@@ -569,10 +604,22 @@ void BlackLibraryGUI::ShowStagingEntryTable()
             // - ImGuiTableColumnFlags_DefaultSort
             // - ImGuiTableColumnFlags_NoSort / ImGuiTableColumnFlags_NoSortAscending / ImGuiTableColumnFlags_NoSortDescending
             // - ImGuiTableColumnFlags_PreferSortAscending / ImGuiTableColumnFlags_PreferSortDescending
-            ImGui::TableSetupColumn("ID",       ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_ID);
-            ImGui::TableSetupColumn("Name",                                                  ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_Name);
-            ImGui::TableSetupColumn("Action",   ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   0.0f, MyItemColumnID_Action);
-            ImGui::TableSetupColumn("Quantity", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, MyItemColumnID_Quantity);
+            ImGui::TableSetupColumn("UUID",       ImGuiTableColumnFlags_NoSort          | ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
+            ImGui::TableSetupColumn("Title",                                                  ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
+            ImGui::TableSetupColumn("Author",   ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author));
+            ImGui::TableSetupColumn("Nickname", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname));
+            ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source));
+            ImGui::TableSetupColumn("URL", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
+            ImGui::TableSetupColumn("Last URL", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::last_url));
+            ImGui::TableSetupColumn("Series", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series));
+            ImGui::TableSetupColumn("Series Length", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length));
+            ImGui::TableSetupColumn("Version", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::version));
+            ImGui::TableSetupColumn("Media Path", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::media_path));
+            ImGui::TableSetupColumn("Birth Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
+            ImGui::TableSetupColumn("Last Check Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
+            ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
+            ImGui::TableSetupColumn("User Contributed", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::user_contributed));
+
             ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
             ImGui::TableHeadersRow();
 
@@ -589,22 +636,44 @@ void BlackLibraryGUI::ShowStagingEntryTable()
 
             // Demonstrate using clipper for large vertical lists
             ImGuiListClipper clipper;
-            clipper.Begin(items.Size);
+            clipper.Begin(staging_entries_.size());
             while (clipper.Step())
                 for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++)
                 {
-                    // Display a data item
-                    MyItem* item = &items[row_n];
-                    ImGui::PushID(item->ID);
+                    // Display a database entry
+                    BlackLibraryDB::DBEntry* entry = &staging_entries_[row_n];
+                    ImGui::PushID(entry->uuid.c_str());
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::Text("%04d", item->ID);
+                    ImGui::Text("%s", entry->uuid.c_str());
                     ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(item->Name);
+                    ImGui::TextUnformatted(entry->title.c_str());
                     ImGui::TableNextColumn();
-                    ImGui::SmallButton("None");
+                    ImGui::Text("%s", entry->author.c_str());
                     ImGui::TableNextColumn();
-                    ImGui::Text("%d", item->Quantity);
+                    ImGui::Text("%s", entry->nickname.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", entry->source.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", entry->url.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", entry->last_url.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", entry->series.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", entry->series_length);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", entry->version);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", entry->media_path.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%lu", entry->birth_date);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%lu", entry->check_date);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%lu", entry->update_date);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", entry->user_contributed);
                     ImGui::PopID();
                 }
             ImGui::EndTable();
@@ -617,12 +686,13 @@ void BlackLibraryGUI::ShowLog()
 {
     if (ImGui::TreeNode("Log"))
     {
-        static ApplicationLog log;
+        // TODO: hook this up to logging
+        // static ApplicationLog log;
 
-        log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
-            ImGui::GetFrameCount(), "hello", ImGui::GetTime(), "world");
+        // log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
+        //     ImGui::GetFrameCount(), "hello", ImGui::GetTime(), "world");
 
-        log.Draw();
+        // log.Draw();
 
         ImGui::TreePop();
     }
@@ -632,6 +702,8 @@ void BlackLibraryGUI::RefreshDBEntries()
 {
     black_entries_ = blacklibrary_db_.GetBlackEntryList();
     staging_entries_ = blacklibrary_db_.GetStagingEntryList();
+
+    is_refreshing_ = false;
 }
 
 } // namespace black_library
