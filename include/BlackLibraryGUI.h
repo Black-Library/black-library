@@ -142,7 +142,9 @@ private:
     void ShowBlackEntryTable();
     void ShowStagingEntryTable();
     void ShowLog();
+    void ShowEntry(const BlackLibraryDB::DBEntry &entry);
 
+    void SetupTableColumns();
     void RefreshDBEntries();
 
     BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
