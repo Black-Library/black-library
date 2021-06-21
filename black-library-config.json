@@ -1,13 +1,13 @@
 {
     "paths":[
         {
-            "db_path":"/mnt/db/catalog.db"
+            "db_path":"/mnt/black-library/db/catalog.db"
         },
         {
-            "log_path":"/mnt/log/"
+            "log_path":"/mnt/black-library/log/"
         },
         {
-            "storage_path":"/mnt/store/"
+            "storage_path":"/mnt/black-library/store/"
         }
     ],
     "manager":[

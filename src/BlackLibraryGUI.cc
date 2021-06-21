@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include <FileOperations.h>
+#include <TimeOperations.h>
 
 #include <BlackLibraryGUI.h>
 
@@ -67,6 +68,7 @@ using namespace gl;
 
 namespace black_library {
 
+namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
 namespace
@@ -399,7 +401,7 @@ void BlackLibraryGUI::ShowCopyLocationWindow(bool* p_open)
             ImGui::EndMenuBar();
         }
 
-        static char buf1[64] = "/mnt/output/";
+        static char buf1[64] = "/mnt/black-library/output/";
         static char buf2[64] = "";
         ImGui::Text("Current Copy Location: %s", buf1);
         ImGui::InputText("Copy Location", buf2, 64);
@@ -453,7 +455,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
 
     ImGui::Text("Black Entries");
 
-    if (ImGui::BeginTable("table_black_entries", 11, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
+    if (ImGui::BeginTable("table_black_entries", 10, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
     {
         // Declare columns
         // We use the "user_id" parameter of TableSetupColumn() to specify a user id that will be stored in the sort specifications.
@@ -510,7 +512,7 @@ void BlackLibraryGUI::ShowStagingEntryTable()
             | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody
             | ImGuiTableFlags_ScrollY;
 
-        if (ImGui::BeginTable("table_staging_entries", 11, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
+        if (ImGui::BeginTable("table_staging_entries", 10, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
         {
             // Declare columns
             // We use the "user_id" parameter of TableSetupColumn() to specify a user id that will be stored in the sort specifications.
@@ -575,7 +577,6 @@ void BlackLibraryGUI::SetupTableColumns()
     ImGui::TableSetupColumn("Birth Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
     ImGui::TableSetupColumn("Last Check Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
     ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
-    ImGui::TableSetupColumn("User Contributed", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::user_contributed));
     ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
     ImGui::TableHeadersRow();
 }
@@ -599,13 +600,11 @@ void BlackLibraryGUI::ShowEntry(const BlackLibraryDB::DBEntry &entry)
     ImGui::TableNextColumn();
     ImGui::Text("%d", entry.series_length);
     ImGui::TableNextColumn();
-    ImGui::Text("%lu", entry.birth_date);
+    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.birth_date).c_str());
     ImGui::TableNextColumn();
-    ImGui::Text("%lu", entry.check_date);
+    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.check_date).c_str());
     ImGui::TableNextColumn();
-    ImGui::Text("%lu", entry.update_date);
-    ImGui::TableNextColumn();
-    ImGui::Text("%d", entry.user_contributed);
+    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.update_date).c_str());
     ImGui::PopID();
 }
 

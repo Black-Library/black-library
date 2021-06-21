@@ -3,10 +3,13 @@ Black Library main application.
 
 ## Default directory structure
     mnt
-    ├── db
-    └── store
+    └── black-library
+        ├── db
+        ├── log
+        ├── output
+        └── store
 
-The `db` directory contains the `catalog.db` database. The `store` directory contains directories with names as the UUID of a particular stored media. The user will need read-write permissions for both directories. 
+The `db` directory contains the `catalog.db` database. The `store` directory contains directories with names as the UUID of a particular stored media. The user will need read-write permissions for black-library and its child directories. 
 
 ## Building the project
 ```mkdir build```
@@ -26,12 +29,12 @@ then
 ## Running the main application
 If installed in ./install
 
-```./install/bin/blacklibrary_app -d /mnt/db/catalog.db -s /mnt/store/```
+```./install/bin/blacklibrary_app -d /mnt/black-library/db/catalog.db -s /mnt/black-library/store/```
 
 ## Running the CLI interface
 If installed in ./install
 
-```./install/bin/blacklibrary_cli -d /mnt/db/catalog.db -s /mnt/store/```
+```./install/bin/blacklibrary_cli -d /mnt/black-library/db/catalog.db -s /mnt/black-library/store/```
 
 supported commands are listed under the `help` command
 
