@@ -71,69 +71,6 @@ namespace black_library {
 namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
-namespace
-{
-// We are passing our own identifier to TableSetupColumn() to facilitate identifying columns in the sorting code.
-// This identifier will be passed down into ImGuiTableSortSpec::ColumnUserID.
-// But it is possible to omit the user id parameter of TableSetupColumn() and just use the column index instead! (ImGuiTableSortSpec::ColumnIndex)
-// If you don't use sorting, you will generally never care about giving column an ID!
-enum MyItemColumnID
-{
-    MyItemColumnID_ID,
-    MyItemColumnID_Name,
-    MyItemColumnID_Action,
-    MyItemColumnID_Quantity,
-    MyItemColumnID_Description
-};
-
-struct MyItem
-{
-    int         ID;
-    const char* Name;
-    int         Quantity;
-
-    // We have a problem which is affecting _only this demo_ and should not affect your code:
-    // As we don't rely on std:: or other third-party library to compile dear imgui, we only have reliable access to qsort(),
-    // however qsort doesn't allow passing user data to comparing function.
-    // As a workaround, we are storing the sort specs in a static/global for the comparing function to access.
-    // In your own use case you would probably pass the sort specs to your sorting/comparing functions directly and not use a global.
-    // We could technically call ImGui::TableGetSortSpecs() in CompareWithSortSpecs(), but considering that this function is called
-    // very often by the sorting algorithm it would be a little wasteful.
-    static const ImGuiTableSortSpecs* s_current_sort_specs;
-
-    // Compare function to be used by qsort()
-    static int IMGUI_CDECL CompareWithSortSpecs(const void* lhs, const void* rhs)
-    {
-        const MyItem* a = (const MyItem*)lhs;
-        const MyItem* b = (const MyItem*)rhs;
-        for (int n = 0; n < s_current_sort_specs->SpecsCount; n++)
-        {
-            // Here we identify columns using the ColumnUserID value that we ourselves passed to TableSetupColumn()
-            // We could also choose to identify columns based on their index (sort_spec->ColumnIndex), which is simpler!
-            const ImGuiTableColumnSortSpecs* sort_spec = &s_current_sort_specs->Specs[n];
-            int delta = 0;
-            switch (sort_spec->ColumnUserID)
-            {
-            case MyItemColumnID_ID:             delta = (a->ID - b->ID);                break;
-            case MyItemColumnID_Name:           delta = (strcmp(a->Name, b->Name));     break;
-            case MyItemColumnID_Quantity:       delta = (a->Quantity - b->Quantity);    break;
-            case MyItemColumnID_Description:    delta = (strcmp(a->Name, b->Name));     break;
-            default: IM_ASSERT(0); break;
-            }
-            if (delta > 0)
-                return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? +1 : -1;
-            if (delta < 0)
-                return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? -1 : +1;
-        }
-
-        // qsort() is instable so always return a way to differenciate items.
-        // Your own compare function may want to avoid fallback on implicit sort specs e.g. a Name compare if it wasn't already part of the sort specs.
-        return (a->ID - b->ID);
-    }
-};
-const ImGuiTableSortSpecs* MyItem::s_current_sort_specs = NULL;
-} // namespace
-
 void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -466,7 +403,18 @@ void BlackLibraryGUI::ShowBlackEntryTable()
         // - ImGuiTableColumnFlags_PreferSortAscending / ImGuiTableColumnFlags_PreferSortDescending
         SetupTableColumns();
 
-        // Demonstrate using clipper for large vertical lists
+        // Sort our data if sort specs have been changed!
+        if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
+            if (sorts_specs->SpecsDirty)
+            {
+                EntrySort sort_struct;
+                sort_struct.s_current_sort_specs = sorts_specs;
+                if (black_entries_.size() > 1)
+                    std::sort(black_entries_.begin(), black_entries_.end(), sort_struct);
+                sorts_specs->SpecsDirty = false;
+            }
+
+        // Use clipper for large list
         ImGuiListClipper clipper;
         clipper.Begin(black_entries_.size());
         while (clipper.Step())
@@ -485,27 +433,6 @@ void BlackLibraryGUI::ShowStagingEntryTable()
     {
         const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
 
-        static const char* template_items_names[] =
-        {
-            "Banana", "Apple", "Cherry", "Watermelon", "Grapefruit", "Strawberry", "Mango",
-            "Kiwi", "Orange", "Pineapple", "Blueberry", "Plum", "Coconut", "Pear", "Apricot"
-        };
-
-        // Create item list
-        static ImVector<MyItem> items;
-        if (items.Size == 0)
-        {
-            items.resize(50, MyItem());
-            for (int n = 0; n < items.Size; n++)
-            {
-                const int template_n = n % IM_ARRAYSIZE(template_items_names);
-                MyItem& item = items[n];
-                item.ID = n;
-                item.Name = template_items_names[template_n];
-                item.Quantity = (n * n - n) % 20; // Assign default quantities
-            }
-        }
-
         // Options
         static ImGuiTableFlags flags =
             ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti
@@ -522,19 +449,19 @@ void BlackLibraryGUI::ShowStagingEntryTable()
             // - ImGuiTableColumnFlags_NoSort / ImGuiTableColumnFlags_NoSortAscending / ImGuiTableColumnFlags_NoSortDescending
             // - ImGuiTableColumnFlags_PreferSortAscending / ImGuiTableColumnFlags_PreferSortDescending
             SetupTableColumns();
-
+            
             // Sort our data if sort specs have been changed!
             if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
                 if (sorts_specs->SpecsDirty)
                 {
-                    MyItem::s_current_sort_specs = sorts_specs; // Store in variable accessible by the sort function.
-                    if (items.Size > 1)
-                        qsort(&items[0], (size_t)items.Size, sizeof(items[0]), MyItem::CompareWithSortSpecs);
-                    MyItem::s_current_sort_specs = NULL;
+                    EntrySort sort_struct;
+                    sort_struct.s_current_sort_specs = sorts_specs;
+                    if (black_entries_.size() > 1)
+                        std::sort(black_entries_.begin(), black_entries_.end(), sort_struct);
                     sorts_specs->SpecsDirty = false;
                 }
 
-            // Demonstrate using clipper for large vertical lists
+            // Use clipper for large list
             ImGuiListClipper clipper;
             clipper.Begin(staging_entries_.size());
             while (clipper.Step())
@@ -570,13 +497,13 @@ void BlackLibraryGUI::SetupTableColumns()
     ImGui::TableSetupColumn("UUID",       ImGuiTableColumnFlags_NoSort          | ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
     ImGui::TableSetupColumn("Title",                                                  ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
     ImGui::TableSetupColumn("Author",   ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author));
-    ImGui::TableSetupColumn("Nickname", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname));
-    ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source));
-    ImGui::TableSetupColumn("URL", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
-    ImGui::TableSetupColumn("Series Length", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length));
-    ImGui::TableSetupColumn("Birth Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
-    ImGui::TableSetupColumn("Last Check Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
-    ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthStretch, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
+    ImGui::TableSetupColumn("Nickname", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname));
+    ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source));
+    ImGui::TableSetupColumn("Series Length", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length));
+    ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
+    ImGui::TableSetupColumn("Last Check Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
+    ImGui::TableSetupColumn("Birth Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
+    ImGui::TableSetupColumn("URL", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
     ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
     ImGui::TableHeadersRow();
 }
@@ -596,15 +523,15 @@ void BlackLibraryGUI::ShowEntry(const BlackLibraryDB::DBEntry &entry)
     ImGui::TableNextColumn();
     ImGui::Text("%s", entry.source.c_str());
     ImGui::TableNextColumn();
-    ImGui::Text("%s", entry.url.c_str());
-    ImGui::TableNextColumn();
     ImGui::Text("%d", entry.series_length);
     ImGui::TableNextColumn();
-    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.birth_date).c_str());
+    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.update_date).c_str());
     ImGui::TableNextColumn();
     ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.check_date).c_str());
     ImGui::TableNextColumn();
-    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.update_date).c_str());
+    ImGui::Text("%s", BlackLibraryCommon::GetISOString(entry.birth_date).c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", entry.url.c_str());
     ImGui::PopID();
 }
 

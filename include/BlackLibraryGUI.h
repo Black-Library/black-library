@@ -126,6 +126,48 @@ struct ApplicationLog
     }
 };
 
+struct EntrySort
+{
+    ImGuiTableSortSpecs* s_current_sort_specs;
+
+    bool operator() (const BlackLibraryDB::DBEntry &left, const BlackLibraryDB::DBEntry &right)
+    {
+        for (int n = 0; n < s_current_sort_specs->SpecsCount; ++n)
+        {
+            const ImGuiTableColumnSortSpecs* sort_spec = &s_current_sort_specs->Specs[n];
+            int delta = 0;
+            switch (sort_spec->ColumnUserID)
+            {
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid):             delta = (left.uuid.compare(right.uuid));               break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title):            delta = (left.title.compare(right.title));             break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author):           delta = (left.author.compare(right.author));           break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname):         delta = (left.nickname.compare(right.nickname));       break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source):           delta = (left.source.compare(right.source));           break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length):    delta = (left.series_length - right.series_length);    break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date):      delta = (left.update_date - right.update_date);        break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date):       delta = (left.check_date - right.check_date);          break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date):       delta = (left.birth_date - right.birth_date);          break;
+                case static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url):              delta = (left.url.compare(right.url));                 break;
+                default: IM_ASSERT(0); break;
+            }
+            if (delta > 0)
+            {
+                if (sort_spec->SortDirection == ImGuiSortDirection_Ascending)
+                    return 1;
+                return -1;
+            }
+            if (delta < 0)
+            {
+                if (sort_spec->SortDirection == ImGuiSortDirection_Ascending)
+                    return -1;
+                return 1;
+            }
+        }
+
+        return (left.uuid.compare(right.uuid));
+    }
+};
+
 class BlackLibraryGUI {
 public:
     explicit BlackLibraryGUI(const std::string &db_path, const std::string &storage_path);
