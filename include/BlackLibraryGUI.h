@@ -51,7 +51,7 @@ struct ApplicationLog
         va_start(args, fmt);
         Buf.appendfv(fmt, args);
         va_end(args);
-        for (int new_size = Buf.size(); old_size < new_size; old_size++)
+        for (int new_size = Buf.size(); old_size < new_size; ++old_size)
             if (Buf[old_size] == '\n')
                 LineOffsets.push_back(old_size + 1);
     }
@@ -81,7 +81,7 @@ struct ApplicationLog
             // This is because we don't have a random access on the result on our filter.
             // A real application processing logs with ten of thousands of entries may want to store the result of
             // search/filter.. especially if the filtering function is not trivial (e.g. reg-exp).
-            for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
+            for (int line_no = 0; line_no < LineOffsets.Size; ++line_no)
             {
                 const char* line_start = buf + LineOffsets[line_no];
                 const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
@@ -108,7 +108,7 @@ struct ApplicationLog
             clipper.Begin(LineOffsets.Size);
             while (clipper.Step())
             {
-                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; ++line_no)
                 {
                     const char* line_start = buf + LineOffsets[line_no];
                     const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
@@ -153,18 +153,18 @@ struct EntrySort
             if (delta > 0)
             {
                 if (sort_spec->SortDirection == ImGuiSortDirection_Ascending)
-                    return 1;
-                return -1;
+                    return false;
+                return true;
             }
             if (delta < 0)
             {
                 if (sort_spec->SortDirection == ImGuiSortDirection_Ascending)
-                    return -1;
-                return 1;
+                    return true;
+                return false;
             }
         }
 
-        return (left.uuid.compare(right.uuid));
+        return left.update_date < right.update_date;
     }
 };
 
@@ -184,17 +184,20 @@ private:
     void ShowBlackEntryTable();
     void ShowStagingEntryTable();
     void ShowLog();
-    void ShowEntry(const BlackLibraryDB::DBEntry &entry);
+    void ShowEntry(const BlackLibraryDB::DBEntry &entry, BlackLibraryDB::entry_table_rep_t type);
 
-    void SetupTableColumns();
+    void SetupTableColumns(BlackLibraryDB::entry_table_rep_t type);
     void RefreshDBEntries();
 
     BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
     BlackLibraryBinder::BlackLibraryBinder blacklibrary_binder_;
     std::vector<BlackLibraryDB::DBEntry> black_entries_;
     std::vector<BlackLibraryDB::DBEntry> staging_entries_;
+    ImGuiTextFilter filter_;
     bool initialized_;
     bool is_refreshing_;
+    bool force_sort_black_;
+    bool force_sort_staging_;
 };
 
 } // namespace black_library
