@@ -5,17 +5,18 @@
 #ifndef __BLACK_LIBRARY_BLACKLIBRARY_H__
 #define __BLACK_LIBRARY_BLACKLIBRARY_H__
 
+#include <memory>
 #include <mutex>
 #include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <BlackLibraryUrlPuller.h>
-
 #include <BlackLibraryDB.h>
 
 #include <ParserManager.h>
+
+#include <BlackLibraryUrlPuller.h>
 
 namespace black_library {
 
@@ -42,7 +43,7 @@ private:
     int ParseUrls();
     int ParserErrorEntries();
 
-    int UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result);
+    int UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result);
 
     std::string GenerateUUID();
 

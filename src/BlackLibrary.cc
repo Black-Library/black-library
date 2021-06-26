@@ -17,6 +17,7 @@ namespace black_library {
 
 namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
+namespace BlackLibraryParsers = black_library::core::parsers;
 
 BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db) :
     parser_manager_(storage_path, ""),
@@ -172,7 +173,7 @@ int BlackLibrary::Init()
         }
     );
     parser_manager_.RegisterDatabaseStatusCallback(
-        [this](core::parsers::ParserJobResult result)
+        [this](BlackLibraryParsers::ParserJobResult result)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
@@ -353,7 +354,7 @@ int BlackLibrary::ParserErrorEntries()
     return 0;
 }
 
-int BlackLibrary::UpdateDatabaseWithResult(core::db::DBEntry &entry, const core::parsers::ParserJobResult &result)
+int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result)
 {
     entry.last_url = result.metadata.last_url;
     entry.series_length = result.metadata.series_length;
