@@ -22,7 +22,7 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     std::string file_line;
     std::string file_name = "black_library_urls";
 
-    ss << "wget https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs/export?format=txt --output-document ";
+    ss << "wget --quiet https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs/export?format=txt --output-document ";
     ss << file_name;
 
     std::cout << "Pulling Urls using Wget" << std::endl;
