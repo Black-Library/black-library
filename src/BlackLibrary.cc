@@ -217,6 +217,7 @@ int BlackLibrary::PullUrls()
 {
     std::cout << "Pulling Urls from source" << std::endl;
 
+    // puller sanatizes urls
     pull_urls_ = url_puller_->PullUrls();
 
     return 0;
@@ -227,6 +228,7 @@ int BlackLibrary::VerifyUrls()
     std::cout << "Verifying Urls" << std::endl;
 
     // make sure they contain a url pattern on the protected list
+    pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), BlackLibraryCommon::SourceInformationMember), pull_urls_.end());
 
     // remove duplicate urls, sorting is faster then using a set for low number of duplicates
     std::sort(pull_urls_.begin(), pull_urls_.end());
