@@ -81,6 +81,35 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
     blacklibrary_binder_.Bind(target_uuid, entry.title);
 }
 
+void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
+{
+    std::string target_uuid;
+    size_t desired_size;
+    if (tokens.size() >= 3)
+    {
+        target_uuid = tokens[1];
+        desired_size = std::stol(tokens[2]);
+    }
+    else
+    {
+        std::cout << "size [uuid] [new_size]" << std::endl;
+        return;
+    }
+
+    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    {
+        std::cout << "Error: uuid: " << target_uuid << " does not exist" << std::endl;
+        return;
+    }
+
+    auto entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
+
+    entry.series_length = desired_size;
+    entry.last_url = entry.url;
+
+    blacklibrary_db_.UpdateBlackEntry(entry);
+}
+
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
@@ -110,10 +139,14 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
         error_list = blacklibrary_db_.GetErrorEntryList();
     }
     
+    std::cout << "Entries" << std::endl;
+
     for (const auto & entry : entry_list)
     {
         std::cout << entry << std::endl;
     }
+
+    std::cout << "Errors" << std::endl;
 
     for (const auto & entry : error_list)
     {
@@ -125,7 +158,7 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, help, list]";
+    ss << "Usage: [bind, help, list, size]";
 
     // TODO make some kind of command mapping/register
 
@@ -158,6 +191,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "list")
     {
         PrintEntries(tokens);
+    }
+    else if (command == "size")
+    {
+        ChangeSize(tokens);
     }
     else
     {
