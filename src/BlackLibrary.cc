@@ -220,6 +220,8 @@ int BlackLibrary::PullUrls()
     // puller sanatizes urls
     pull_urls_ = url_puller_->PullUrls();
 
+    std::cout << "Pulled " << pull_urls_.size() << " urls" << std::endl;
+
     return 0;
 }
 
@@ -228,11 +230,13 @@ int BlackLibrary::VerifyUrls()
     std::cout << "Verifying Urls" << std::endl;
 
     // make sure they contain a url pattern on the protected list
-    pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), BlackLibraryCommon::SourceInformationMember), pull_urls_.end());
+    pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), std::not1(BlackLibraryCommon::SourceInformationMember())), pull_urls_.end());
 
     // remove duplicate urls, sorting is faster then using a set for low number of duplicates
     std::sort(pull_urls_.begin(), pull_urls_.end());
     pull_urls_.erase(std::unique(pull_urls_.begin(), pull_urls_.end()), pull_urls_.end());
+
+    std::cout << "Verified " << pull_urls_.size() << " urls" << std::endl;
 
     return 0;
 }
@@ -310,7 +314,7 @@ int BlackLibrary::ParseUrls()
 
     for (auto & entry : parse_entries_)
     {
-        parser_manager_.AddJob(entry.uuid, entry.url, entry.series_length);
+        parser_manager_.AddJob(entry.uuid, entry.url, entry.last_url, entry.series_length);
     }
 
     return 0;
@@ -350,7 +354,7 @@ int BlackLibrary::ParserErrorEntries()
             continue;
         }
 
-        parser_manager_.AddJob(error.uuid, url, error.progress_num, error.progress_num);
+        parser_manager_.AddJob(error.uuid, url, url, error.progress_num, error.progress_num, true);
     }
 
     return 0;
@@ -365,7 +369,9 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
     entry.nickname = result.metadata.nickname;
     entry.source = result.metadata.source;
     entry.series = result.metadata.series;
-    entry.update_date = result.metadata.update_date;
+
+    if (entry.update_date < result.metadata.update_date)
+        entry.update_date = result.metadata.update_date;
 
     // if entry already exists, just update, else create new
     if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))

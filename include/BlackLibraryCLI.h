@@ -26,6 +26,7 @@ public:
 
 private:
     void BindEntry(const std::vector<std::string> &tokens);
+    void ChangeSize(const std::vector<std::string> &tokens);
     void PrintEntries(const std::vector<std::string> &tokens);
     void PrintUsage(const std::vector<std::string> &tokens);
     void ProcessInput(const std::vector<std::string> &tokens);
