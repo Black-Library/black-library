@@ -98,16 +98,63 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
     if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
     {
-        std::cout << "Error: uuid: " << target_uuid << " does not exist" << std::endl;
+        std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
         return;
     }
 
-    auto entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
+    auto black_entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
 
-    entry.series_length = desired_size;
-    entry.last_url = entry.url;
+    black_entry.series_length = desired_size;
+    black_entry.last_url = black_entry.url;
 
-    blacklibrary_db_.UpdateBlackEntry(entry);
+    if (blacklibrary_db_.UpdateBlackEntry(black_entry))
+    {
+        std::cout << "Error: could not update black entry from cli" << std::endl;
+        return;
+    }
+
+    if (!blacklibrary_db_.DoesStagingEntryUUIDExist(target_uuid))
+    {
+        std::cout << "Info: staging uuid: " << target_uuid << " does not exist" << std::endl;
+        return;
+    }
+
+    auto staging_entry = blacklibrary_db_.ReadStagingEntry(target_uuid);
+
+    staging_entry.series_length = desired_size;
+    staging_entry.last_url = staging_entry.url;
+
+    if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
+    {
+        std::cout << "Error: could not update staging entry from cli" << std::endl;
+        return;
+    }
+}
+
+void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
+{
+    std::string target_uuid;
+    if (tokens.size() >= 2)
+    {
+        target_uuid = tokens[1];
+    }
+    else
+    {
+        std::cout << "delete [uuid]" << std::endl;
+        return;
+    }
+
+    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    {
+        std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
+        return;
+    }
+
+    if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
+    {
+        std::cout << "Error: could not delete black entry with uuid: " << target_uuid << std::endl;
+        return;
+    }
 }
 
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
@@ -158,7 +205,7 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, help, list, size]";
+    ss << "Usage: [bind, delete, help, list, size]";
 
     // TODO make some kind of command mapping/register
 
@@ -183,6 +230,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "bind")
     {
         BindEntry(tokens);
+    }
+    else if (command == "delete")
+    {
+        DeleteEntry(tokens);
     }
     else if (command == "help")
     {

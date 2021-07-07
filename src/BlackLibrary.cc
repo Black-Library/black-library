@@ -163,7 +163,8 @@ int BlackLibrary::Init()
 
             auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
 
-            staging_entry.series_length = progress_num;
+            if (staging_entry.series_length < progress_num)
+                staging_entry.series_length = progress_num;
 
             if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
             {
@@ -362,8 +363,6 @@ int BlackLibrary::ParserErrorEntries()
 
 int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result)
 {
-    entry.last_url = result.metadata.last_url;
-    entry.series_length = result.metadata.series_length;
     entry.title = result.metadata.title;
     entry.author = result.metadata.author;
     entry.nickname = result.metadata.nickname;
@@ -372,6 +371,12 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
 
     if (entry.update_date < result.metadata.update_date)
         entry.update_date = result.metadata.update_date;
+
+    if (entry.series_length < result.metadata.series_length)
+    {
+        entry.series_length = result.metadata.series_length;
+        entry.last_url = result.metadata.last_url;
+    }
 
     // if entry already exists, just update, else create new
     if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
