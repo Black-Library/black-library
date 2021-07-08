@@ -368,6 +368,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
     entry.nickname = result.metadata.nickname;
     entry.source = result.metadata.source;
     entry.series = result.metadata.series;
+    entry.last_url = result.metadata.last_url;
 
     if (entry.update_date < result.metadata.update_date)
         entry.update_date = result.metadata.update_date;
