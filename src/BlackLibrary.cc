@@ -369,13 +369,16 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
     entry.source = result.metadata.source;
     entry.series = result.metadata.series;
 
+    // TODO staging should check against black for these
+    if (!result.is_error_job)
+        entry.last_url = result.metadata.last_url;
+
     if (entry.update_date < result.metadata.update_date)
         entry.update_date = result.metadata.update_date;
 
     if (entry.series_length < result.metadata.series_length)
     {
         entry.series_length = result.metadata.series_length;
-        entry.last_url = result.metadata.last_url;
     }
 
     // if entry already exists, just update, else create new
