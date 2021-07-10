@@ -28,8 +28,11 @@ private:
     void BindEntry(const std::vector<std::string> &tokens);
     void ChangeSize(const std::vector<std::string> &tokens);
     void DeleteEntry(const std::vector<std::string> &tokens);
+    void ListEntries(const std::vector<std::string> &tokens);
     void PrintEntries(const std::vector<std::string> &tokens);
     void PrintUsage(const std::vector<std::string> &tokens);
+    void SaveEntries(const std::vector<std::string> &tokens);
+
     void ProcessInput(const std::vector<std::string> &tokens);
 
     void SanatizeInput(std::vector<std::string> &tokens);
