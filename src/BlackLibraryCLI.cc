@@ -16,6 +16,14 @@ namespace black_library {
 namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
+static constexpr const char DefaultPrintEntryFileName[] = "black_library_print_entries";
+
+template <typename T>
+inline size_t DBColumnIDCast(T const &id)
+{
+    return static_cast<size_t>(id);
+}
+
 BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &storage_path) :
     blacklibrary_db_(db_path, false),
     blacklibrary_binder_(storage_path),
@@ -211,7 +219,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
     std::vector<BlackLibraryDB::DBEntry> entry_list;
     std::vector<BlackLibraryDB::ErrorEntry> error_list;
     std::string target_entry_type;
-    std::string target_path = "black_library_print_entries";
+    std::string target_path = DefaultPrintEntryFileName;
     std::stringstream ss;
 
     if (tokens.size() >= 2)
@@ -307,17 +315,21 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
     std::string target_entry_type;
-    std::string target_path;
+    std::string target_path = DefaultPrintEntryFileName;
 
-    if (tokens.size() >= 3)
+    if (tokens.size() >= 2)
     {
         target_entry_type = tokens[1];   
-        target_path = tokens[2];
     }
     else
     {
         std::cout << "save [type] [path]" << std::endl;
         return;
+    }
+
+    if (tokens.size() >= 3)
+    {
+        target_path = tokens[2];
     }
 
     if (!BlackLibraryCommon::FileExists(target_path))
@@ -357,6 +369,33 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
         {
             std::cout << "Error: could not read: " << entry_line << std::endl;
             continue;
+        }
+
+        BlackLibraryDB::DBEntry entry = {
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::uuid)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::title)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::author)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::nickname)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::source)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::url)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::last_url)],
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::series)],
+            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::series_length)])),
+            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::version)])),
+            tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::media_path)],
+            stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::birth_date)]),
+            stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::check_date)]),
+            stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::update_date)]),
+            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::user_contributed)]))
+        };
+
+        if (blacklibrary_db_.DoesBlackEntryUUIDExist(entry.uuid))
+        {
+            blacklibrary_db_.UpdateBlackEntry(entry);
+        }
+        else
+        {
+            blacklibrary_db_.CreateBlackEntry(entry);
         }
     }
 }
