@@ -2,6 +2,7 @@
  * BlackLibraryCLI.cc
  */
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -210,11 +211,17 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
     std::vector<BlackLibraryDB::DBEntry> entry_list;
     std::vector<BlackLibraryDB::ErrorEntry> error_list;
     std::string target_entry_type;
+    std::string target_path = "black_library_print_entries";
     std::stringstream ss;
 
     if (tokens.size() >= 2)
     {
         target_entry_type = tokens[1];
+    }
+
+    if (tokens.size() >= 3)
+    {
+        target_path = tokens[2];
     }
 
     if (target_entry_type == "black")
@@ -256,14 +263,32 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
         ss << '\n';
     }
 
-    std::cout << ss.str() << std::endl;
+    std::fstream output_file;
+
+    if (BlackLibraryCommon::FileExists(target_path))
+    {
+        std::cout << "Error: file already exists" << std::endl;
+        return;
+    }
+
+    output_file.open(target_path, std::fstream::out | std::fstream::trunc);
+
+    if (!output_file.is_open())
+    {
+        std::cout << "Error: file is not open: " << target_path << std::endl;
+        return;
+    }
+
+    output_file << ss.str();
+
+    output_file.close();
 }
 
 void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, delete, help, list, size]";
+    ss << "Usage: [bind, delete, help, list, print, save, size]";
 
     // TODO make some kind of command mapping/register
 
@@ -281,7 +306,6 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::vector<BlackLibraryDB::ErrorEntry> error_list;
     std::string target_entry_type;
     std::string target_path;
 
@@ -300,6 +324,40 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
     {
         std::cout << target_path << " file does not exist" << std::endl;
         return;
+    }
+
+    std::ifstream input_file;
+    std::string input_file_line;
+    std::vector<std::string> entry_lines;
+
+    input_file.open(target_path, std::fstream::in);
+
+    if (!input_file.is_open())
+    {
+        std::cout << "Error: file is not open: " << target_path << std::endl;
+        return;
+    }
+
+    while (getline(input_file, input_file_line))
+    {
+        entry_lines.emplace_back(input_file_line);
+    }
+
+    for (const auto & entry_line : entry_lines)
+    {
+        std::istringstream is(entry_line);
+        std::vector<std::string> tokens;
+        std::string token;
+        while (getline(is, token, ','))
+        {
+            tokens.emplace_back(token);
+        }
+
+        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID))
+        {
+            std::cout << "Error: could not read: " << entry_line << std::endl;
+            continue;
+        }
     }
 }
 
