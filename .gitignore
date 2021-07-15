@@ -36,6 +36,7 @@ build
 install
 
 # application artifacts
+black_library_print_entries
 black_library_urls
 imgui.ini
 
