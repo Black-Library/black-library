@@ -223,6 +223,9 @@ int BlackLibrary::PullUrls()
 
     std::cout << "Pulled " << pull_urls_.size() << " urls" << std::endl;
 
+    if (pull_urls_.size() <= 0)
+        return -1;
+
     return 0;
 }
 
