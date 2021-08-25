@@ -19,6 +19,8 @@ namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 namespace BlackLibraryParsers = black_library::core::parsers;
 
+const int BLACKLIBRARY_FREQUENCY = 3*24*60*60;
+
 BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db) :
     parser_manager_(storage_path, ""),
     blacklibrary_db_(db_path, init_db),
