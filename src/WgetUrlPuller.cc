@@ -21,7 +21,12 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     std::stringstream ss;
     std::string file_line;
     const auto file_name = "black_library_urls";
+
+    // prod url
     const auto doc_url = "https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY";
+    
+    // test url
+    // const auto doc_url = "https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs";
 
     // TODO: check if connected to internet first
 
