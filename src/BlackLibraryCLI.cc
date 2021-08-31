@@ -144,6 +144,7 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 {
+    std::string target_entry_type;
     std::string target_uuid;
 
     if (tokens.size() >= 2)
@@ -152,21 +153,58 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
     }
     else
     {
-        std::cout << "delete [uuid]" << std::endl;
+        std::cout << "delete [uuid] (table)" << std::endl;
         return;
     }
 
-    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    if (tokens.size() >= 2)
     {
-        std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
-        return;
+        target_entry_type = tokens[2];
     }
 
-    if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
+    if (target_entry_type == "black")
     {
-        std::cout << "Error: could not delete black entry with uuid: " << target_uuid << std::endl;
-        return;
+        if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+        {
+            std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
+            return;
+        }
+
+        if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
+        {
+            std::cout << "Error: could not delete black entry with uuid: " << target_uuid << std::endl;
+            return;
+        }
     }
+    else if (target_entry_type == "staging")
+    {
+        if (!blacklibrary_db_.DoesStagingEntryUUIDExist(target_uuid))
+        {
+            std::cout << "Error: staging entry uuid: " << target_uuid << " does not exist" << std::endl;
+            return;
+        }
+
+        if (blacklibrary_db_.DeleteStagingEntry(target_uuid))
+        {
+            std::cout << "Error: could not delete staging entry with uuid: " << target_uuid << std::endl;
+            return;
+        }
+    }
+    else
+    {
+        if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+        {
+            std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
+            return;
+        }
+
+        if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
+        {
+            std::cout << "Error: could not delete black entry with uuid: " << target_uuid << std::endl;
+            return;
+        }
+    }
+
 }
 
 void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
