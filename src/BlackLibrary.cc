@@ -255,6 +255,7 @@ int BlackLibrary::CompareAndUpdateUrls()
     for (const auto & url : pull_urls_)
     {
         BlackLibraryDB::DBEntry entry;
+        std::string type = "unknown";
 
         // check staging entries first to continue jobs that were still in progress
         if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
@@ -262,6 +263,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             auto res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(url);
             std::string uuid = res.result;
             entry = blacklibrary_db_.ReadStagingEntry(uuid);
+            type = "STAGING";
         }
         else if (blacklibrary_db_.DoesBlackEntryUrlExist(url))
         {
@@ -269,6 +271,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             std::string uuid = res.result;
             entry = blacklibrary_db_.ReadBlackEntry(uuid);
             entry.check_date = BlackLibraryCommon::GetUnixTime();
+            type = "BLACK";
         }
         else
         {
@@ -278,9 +281,10 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.series_length = 1;
             entry.birth_date = BlackLibraryCommon::GetUnixTime();
             entry.check_date = BlackLibraryCommon::GetUnixTime();
+            type = "NEW";
         }
 
-        std::cout << "UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
+        std::cout << "type: " << type << " UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
 
         parse_entries_.emplace_back(entry);
     }
