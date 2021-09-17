@@ -35,7 +35,84 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
     database_parser_mutex_(),
     done_(true)
 {
-    Init();
+    std::cout << "Initializing BlackLibrary" << std::endl;
+
+    gen_ = std::mt19937_64(rd_());
+
+    url_puller_ = std::make_shared<WgetUrlPuller>();
+
+    parser_manager_.RegisterProgressNumberCallback(
+        [this](const std::string &uuid, size_t progress_num, bool error)
+        {
+            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
+            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
+            {
+                std::cout << "Error: Staging entry with UUID: " << uuid << " does not exist" << std::endl;
+                return;
+            }
+
+            if (error)
+            {
+                if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
+                {
+                    std::cout << "Error: Error entry with UUID: " << uuid << " progress_num: " << progress_num << " already exists" << std::endl;
+                    return;
+                }
+
+                BlackLibraryDB::ErrorEntry entry = { uuid, progress_num };
+
+                blacklibrary_db_.CreateErrorEntry(entry);
+            }
+
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
+
+            if (staging_entry.series_length < progress_num)
+                staging_entry.series_length = progress_num;
+
+            if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
+            {
+                std::cout << "Error: Staging entry with UUID: " << staging_entry.uuid << " could not be updated" << std::endl;
+                return;
+            }
+        }
+    );
+    parser_manager_.RegisterDatabaseStatusCallback(
+        [this](BlackLibraryParsers::ParserJobResult result)
+        {
+            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
+            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
+            {
+                std::cout << "Error: Staging entry with UUID: " << result.metadata.uuid << " does not exist" << std::endl;
+                return;
+            }
+
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
+
+            if (UpdateDatabaseWithResult(staging_entry, result))
+            {
+                std::cout << "Error: could not update database with result UUID: " << result.metadata.uuid << std::endl;
+            }
+
+        }
+    );
+
+    done_ = false;
+
+    manager_thread_ = std::thread([this](){
+        while (!done_ && parser_manager_.GetDone())
+        {
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+
+            if (done_)
+                break;
+
+            parser_manager_.RunOnce();
+
+            std::this_thread::sleep_until(deadline);
+        }
+
+        parser_manager_.Stop();
+    });
 }
 
 int BlackLibrary::Run()
@@ -132,90 +209,6 @@ int BlackLibrary::Stop()
     return 0;
 }
 
-int BlackLibrary::Init()
-{
-    std::cout << "Initializing BlackLibrary" << std::endl;
-
-    gen_ = std::mt19937_64(rd_());
-
-    url_puller_ = std::make_shared<WgetUrlPuller>();
-
-    parser_manager_.RegisterProgressNumberCallback(
-        [this](const std::string &uuid, size_t progress_num, bool error)
-        {
-            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
-            {
-                std::cout << "Error: Staging entry with UUID: " << uuid << " does not exist" << std::endl;
-                return;
-            }
-
-            if (error)
-            {
-                if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
-                {
-                    std::cout << "Error: Error entry with UUID: " << uuid << " progress_num: " << progress_num << " already exists" << std::endl;
-                    return;
-                }
-
-                BlackLibraryDB::ErrorEntry entry = { uuid, progress_num };
-
-                blacklibrary_db_.CreateErrorEntry(entry);
-            }
-
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
-
-            if (staging_entry.series_length < progress_num)
-                staging_entry.series_length = progress_num;
-
-            if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
-            {
-                std::cout << "Error: Staging entry with UUID: " << staging_entry.uuid << " could not be updated" << std::endl;
-                return;
-            }
-        }
-    );
-    parser_manager_.RegisterDatabaseStatusCallback(
-        [this](BlackLibraryParsers::ParserJobResult result)
-        {
-            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
-            {
-                std::cout << "Error: Staging entry with UUID: " << result.metadata.uuid << " does not exist" << std::endl;
-                return;
-            }
-
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
-
-            if (UpdateDatabaseWithResult(staging_entry, result))
-            {
-                std::cout << "Error: could not update database with result UUID: " << result.metadata.uuid << std::endl;
-            }
-
-        }
-    );
-
-    done_ = false;
-
-    manager_thread_ = std::thread([this](){
-        while (!done_ && parser_manager_.GetDone())
-        {
-            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
-
-            if (done_)
-                break;
-
-            parser_manager_.RunOnce();
-
-            std::this_thread::sleep_until(deadline);
-        }
-
-        parser_manager_.Stop();
-    });
-
-    return 0;
-}
-
 int BlackLibrary::PullUrls()
 {
     std::cout << "Pulling Urls from source" << std::endl;
@@ -284,7 +277,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             type = "NEW";
         }
 
-        std::cout << "type: " << type << " UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl << std::endl;
+        std::cout << "Type: " << type << " UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl;
 
         parse_entries_.emplace_back(entry);
     }

@@ -34,8 +34,6 @@ public:
     int Stop();
 
 private:
-
-    int Init();
     int PullUrls();
     int VerifyUrls();
     int CompareAndUpdateUrls();
