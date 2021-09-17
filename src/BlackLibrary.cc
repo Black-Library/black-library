@@ -8,6 +8,7 @@
 #include <sstream>
 #include <thread>
 
+#include <LogOperations.h>
 #include <TimeOperations.h>
 
 #include <BlackLibrary.h>
@@ -35,7 +36,9 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
     database_parser_mutex_(),
     done_(true)
 {
-    std::cout << "Initializing BlackLibrary" << std::endl;
+    BlackLibraryCommon::InitRotatingLogger("black_library", "/mnt/black-library/log/");
+
+    BlackLibraryCommon::LogInfo("black_library", "Initializing BlackLibrary application");
 
     gen_ = std::mt19937_64(rd_());
 
@@ -47,7 +50,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
             {
-                std::cout << "Error: Staging entry with UUID: " << uuid << " does not exist" << std::endl;
+                BlackLibraryCommon::LogError("black_library", "Progress number staging entry with UUID: {} does not exist", uuid);
                 return;
             }
 
@@ -55,7 +58,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
             {
                 if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
                 {
-                    std::cout << "Error: Error entry with UUID: " << uuid << " progress_num: " << progress_num << " already exists" << std::endl;
+                    BlackLibraryCommon::LogWarn("black_library", "Error entry with UUID: {} progress_num: {}", uuid, progress_num);
                     return;
                 }
 
@@ -71,7 +74,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
 
             if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
             {
-                std::cout << "Error: Staging entry with UUID: " << staging_entry.uuid << " could not be updated" << std::endl;
+                BlackLibraryCommon::LogError("black_library", "Staging entry with UUID: {} could not be updated", staging_entry.uuid);
                 return;
             }
         }
@@ -82,7 +85,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
             {
-                std::cout << "Error: Staging entry with UUID: " << result.metadata.uuid << " does not exist" << std::endl;
+                BlackLibraryCommon::LogError("black_library", "Status staging entry with UUID: {} does not exist", result.metadata.uuid);
                 return;
             }
 
@@ -90,7 +93,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
 
             if (UpdateDatabaseWithResult(staging_entry, result))
             {
-                std::cout << "Error: could not update database with result UUID: " << result.metadata.uuid << std::endl;
+                BlackLibraryCommon::LogError("black_library", "Could not update database with result with UUID: {}", result.metadata.uuid);
             }
 
         }
@@ -147,42 +150,42 @@ int BlackLibrary::RunOnce()
     pull_urls_.clear();
     parse_entries_.clear();
 
-    std::cout << "\nRunning Black Library application" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Running Black Library application");
 
     if (!blacklibrary_db_.IsReady())
     {
-        std::cout << "Error: Black Library stalled, database not initalized/ready" << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Black Library stalled, database not initalized/ready");
         return -1;
     }
 
     if (!parser_manager_.IsReady())
     {
-        std::cout << "Error: Black Library stalled, parser manager not initalized/ready" << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Black Library stalled, parser manager not initalized/ready");
         return -1;
     }
 
     if (PullUrls())
     {
-        std::cout << "Error: Pulling Urls failed" << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Pulling Urls failed");
         return -1;
     }
 
     if (VerifyUrls())
     {
-        std::cout << "Error: Verifying Urls failed" << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Verifying Urls failed");
         return -1;
     }
 
     if (CompareAndUpdateUrls())
     {
-        std::cout << "Error: Comparing and Updating Urls failed" << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Comparing and Updating Urls failed");
         return -1;
     }
 
 
     if (UpdateStaging())
     {
-        std::cout << "Error: Updating staging table failed" << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Updating staging table failed");
         return -1;
     }
 
@@ -197,26 +200,26 @@ int BlackLibrary::Stop()
 {
     done_ = true;
 
-    std::cout << "Joining manager thread" << std::endl;
+    BlackLibraryCommon::LogWarn("black_library", "Joining manager thread");
 
     curl_global_cleanup();
 
     if (manager_thread_.joinable())
         manager_thread_.join();
 
-    std::cout << "Stopping BlackLibrary" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Stopping BlackLibrary");
 
     return 0;
 }
 
 int BlackLibrary::PullUrls()
 {
-    std::cout << "Pulling Urls from source" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Pulling Urls from source");
 
     // puller sanatizes urls
     pull_urls_ = url_puller_->PullUrls();
 
-    std::cout << "Pulled " << pull_urls_.size() << " urls" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Pulled {} urls", pull_urls_.size());
 
     if (pull_urls_.size() <= 0)
         return -1;
@@ -226,7 +229,7 @@ int BlackLibrary::PullUrls()
 
 int BlackLibrary::VerifyUrls()
 {
-    std::cout << "Verifying Urls" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Verifying Urls");
 
     // make sure they contain a url pattern on the protected list
     pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), std::not1(BlackLibraryCommon::SourceInformationMember())), pull_urls_.end());
@@ -235,14 +238,15 @@ int BlackLibrary::VerifyUrls()
     std::sort(pull_urls_.begin(), pull_urls_.end());
     pull_urls_.erase(std::unique(pull_urls_.begin(), pull_urls_.end()), pull_urls_.end());
 
-    std::cout << "Verified " << pull_urls_.size() << " urls" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Verified {} urls", pull_urls_.size());
 
     return 0;
 }
 
 int BlackLibrary::CompareAndUpdateUrls()
 {
-    std::cout << "Comparing Urls with database" << std::endl << std::endl;;
+    BlackLibraryCommon::LogInfo("black_library", "Comparing Urls with database");
+
     parse_entries_.clear();
 
     for (const auto & url : pull_urls_)
@@ -256,7 +260,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             auto res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(url);
             std::string uuid = res.result;
             entry = blacklibrary_db_.ReadStagingEntry(uuid);
-            type = "STAGING";
+            type = "staging";
         }
         else if (blacklibrary_db_.DoesBlackEntryUrlExist(url))
         {
@@ -264,7 +268,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             std::string uuid = res.result;
             entry = blacklibrary_db_.ReadBlackEntry(uuid);
             entry.check_date = BlackLibraryCommon::GetUnixTime();
-            type = "BLACK";
+            type = "black";
         }
         else
         {
@@ -274,10 +278,10 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.series_length = 1;
             entry.birth_date = BlackLibraryCommon::GetUnixTime();
             entry.check_date = BlackLibraryCommon::GetUnixTime();
-            type = "NEW";
+            type = "new";
         }
 
-        std::cout << "Type: " << type << " UUID: " << entry.uuid << " last_url: " << entry.last_url << " length: " << entry.series_length << std::endl;
+        BlackLibraryCommon::LogDebug("black_library", "Type: {} UUID: {} last_url: {} length: {}", type, entry.uuid, entry.last_url, entry.series_length);
 
         parse_entries_.emplace_back(entry);
     }
@@ -287,7 +291,7 @@ int BlackLibrary::CompareAndUpdateUrls()
 
 int BlackLibrary::UpdateStaging()
 {
-    std::cout << "Update staging table of database with " << parse_entries_.size() << " entries" << std::endl << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Update staging table of database with {} entries", parse_entries_);
 
     size_t num_new_entries = 0;
     size_t num_existing_entries = 0;
@@ -306,14 +310,14 @@ int BlackLibrary::UpdateStaging()
         }
     }
 
-    std::cout << "Staging table added " << num_new_entries << " entries and has " << num_existing_entries << " existing entries" << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Staging table added {} entries and has {} existing entries", num_new_entries, num_existing_entries);
 
     return 0;
 }
 
 int BlackLibrary::ParseUrls()
 {
-    std::cout << "Adding " << parse_entries_.size() << " jobs to parser manager" << std::endl << std::endl;
+    BlackLibraryCommon::LogInfo("black_library", "Adding {} jobs to parser manager", parse_entries_.size());
 
     for (auto & entry : parse_entries_)
     {
@@ -325,9 +329,9 @@ int BlackLibrary::ParseUrls()
 
 int BlackLibrary::ParserErrorEntries()
 {
-    auto error_list = blacklibrary_db_.GetErrorEntryList();
+    BlackLibraryCommon::LogInfo("black_library", "Adding {} error jobs to parser manager", error_list.size());
 
-    std::cout << "Adding " << error_list.size() << " error jobs to parser manager" << std::endl << std::endl;
+    auto error_list = blacklibrary_db_.GetErrorEntryList();
 
     for (const auto & error : error_list)
     {
@@ -353,7 +357,7 @@ int BlackLibrary::ParserErrorEntries()
         }
         else
         {
-            std::cout << "could not match error entry " << error << std::endl;;
+            BlackLibraryCommon::LogWarn("black_library", "Could not match error entry {}");
             continue;
         }
 
@@ -403,7 +407,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
 
     if (blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid))
     {
-        std::cout << "Error: could not delete staging entry with UUID: " << result.metadata.uuid << std::endl;
+        BlackLibraryCommon::LogError("black_library", "Could not delete staging entry with UUID: {}", result.metadata.uuid);
         return -1;
     }
 
