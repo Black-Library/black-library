@@ -6,11 +6,14 @@
 #include <iostream>
 #include <sstream>
 
-#include <WgetUrlPuller.h>
-
+#include <LogOperations.h>
 #include <SQLite3ScraperSanatizer.hh>
 
+#include <WgetUrlPuller.h>
+
 namespace black_library {
+
+namespace BlackLibraryCommon = black_library::core::common;
 
 #define MINIMUM_EXPECTED_URL_LENGTH 13
 
@@ -33,13 +36,13 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     ss << "wget --quiet " << doc_url << "/export?format=txt --output-document ";
     ss << file_name;
 
-    std::cout << "Pulling Urls using Wget" << std::endl;
+    BlackLibraryCommon::LogDebug("black_library", "Pulling Urls using Wget");
 
     const auto command = ss.str();
 
     if (clearenv() != 0)
     {
-        std::cout << "Error: could not clear local environment variables" << std::endl;
+        BlackLibraryCommon::LogWarn("black_library", "WgetUrlPuller could not clear local environment variables");
     }
 
     // TODO: consider not using system 
