@@ -291,7 +291,7 @@ int BlackLibrary::CompareAndUpdateUrls()
 
 int BlackLibrary::UpdateStaging()
 {
-    BlackLibraryCommon::LogInfo("black_library", "Update staging table of database with {} entries", parse_entries_);
+    BlackLibraryCommon::LogInfo("black_library", "Update staging table of database with {} entries", parse_entries_.size());
 
     size_t num_new_entries = 0;
     size_t num_existing_entries = 0;
@@ -329,9 +329,9 @@ int BlackLibrary::ParseUrls()
 
 int BlackLibrary::ParserErrorEntries()
 {
-    BlackLibraryCommon::LogInfo("black_library", "Adding {} error jobs to parser manager", error_list.size());
-
     auto error_list = blacklibrary_db_.GetErrorEntryList();
+
+    BlackLibraryCommon::LogInfo("black_library", "Adding {} error jobs to parser manager", error_list.size());
 
     for (const auto & error : error_list)
     {
