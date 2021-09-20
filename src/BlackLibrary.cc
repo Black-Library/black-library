@@ -74,7 +74,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
 
             if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
             {
-                BlackLibraryCommon::LogError("black_library", "Staging entry with UUID: {} could not be updated", staging_entry.uuid);
+                BlackLibraryCommon::LogError("black_library", "Staging entry with UUID: {} failed to be updated", staging_entry.uuid);
                 return;
             }
         }
@@ -93,7 +93,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
 
             if (UpdateDatabaseWithResult(staging_entry, result))
             {
-                BlackLibraryCommon::LogError("black_library", "Could not update database with result with UUID: {}", result.metadata.uuid);
+                BlackLibraryCommon::LogError("black_library", "Failed to update database with result with UUID: {}", result.metadata.uuid);
             }
 
         }
@@ -357,7 +357,7 @@ int BlackLibrary::ParserErrorEntries()
         }
         else
         {
-            BlackLibraryCommon::LogWarn("black_library", "Could not match error entry {}");
+            BlackLibraryCommon::LogWarn("black_library", "Failed to match error entry {}");
             continue;
         }
 
@@ -407,7 +407,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
 
     if (blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid))
     {
-        BlackLibraryCommon::LogError("black_library", "Could not delete staging entry with UUID: {}", result.metadata.uuid);
+        BlackLibraryCommon::LogError("black_library", "Failed to delete staging entry with UUID: {}", result.metadata.uuid);
         return -1;
     }
 

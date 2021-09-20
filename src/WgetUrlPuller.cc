@@ -42,7 +42,7 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
 
     if (clearenv() != 0)
     {
-        BlackLibraryCommon::LogWarn("black_library", "WgetUrlPuller could not clear local environment variables");
+        BlackLibraryCommon::LogWarn("black_library", "WgetUrlPuller failed to clear local environment variables");
     }
 
     // TODO: consider not using system 

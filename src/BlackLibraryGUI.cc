@@ -122,7 +122,7 @@ BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &
 
     if (!blacklibrary_binder_.SetBindDir("/mnt/black-library/output/"))
     {
-        std::cout << "Error: could not set bind directory" << std::endl;
+        std::cout << "Error: Failed to set bind directory" << std::endl;
     }
 
     RefreshDBEntries();
@@ -355,7 +355,7 @@ void BlackLibraryGUI::ShowCopyLocationWindow(bool* p_open)
             // save copy location
             snprintf(buf1, 64, "%s", buf2);
             if (!blacklibrary_binder_.SetBindDir(std::string(buf2)))
-                std::cout << "Error: could not set bind directory" << std::endl;
+                std::cout << "Error: Failed to set bind directory" << std::endl;
         }
     }
     ImGui::End();
