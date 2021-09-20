@@ -4,11 +4,6 @@ add_subdirectory(black-library-db)
 add_subdirectory(black-library-parsers)
 add_subdirectory(scraper-sanatizer)
 
-set(SPDLOG_BUILD_SHARED ON)
-set(SPDLOG_INSTALL ON)
-
-add_subdirectory(spdlog)
-
 if (BUILD_GUI)
     message("BUILD_GUI ON")
     include(GNUInstallDirs)
