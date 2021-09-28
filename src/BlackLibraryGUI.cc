@@ -240,7 +240,7 @@ int BlackLibraryGUI::Run()
         static bool show_app_metrics = false;
         static bool show_app_about = false;
 
-        if (!ImGui::Begin("Dear ImGui 1"))
+        if (!ImGui::Begin("Black Library GUI"))
         {
             // Early out if the window is collapsed, as an optimization.
             ImGui::End();
