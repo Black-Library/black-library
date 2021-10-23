@@ -30,7 +30,7 @@ BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &
     blacklibrary_binder_(storage_path),
     done_(false)
 {
-    BlackLibraryCommon::InitRotatingLogger("black_library_cli", "/mnt/black-library/log/");
+    BlackLibraryCommon::InitRotatingLogger("black_library_cli", "/mnt/black-library/log/", true);
 }
 
 int BlackLibraryCLI::Run()

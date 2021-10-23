@@ -17,7 +17,7 @@ namespace BlackLibraryCommon = black_library::core::common;
 
 #define MINIMUM_EXPECTED_URL_LENGTH 13
 
-std::vector<std::string> WgetUrlPuller::PullUrls() const
+std::vector<std::string> WgetUrlPuller::PullUrls(bool test_mode) const
 {
     std::vector<std::string> urls;
     std::ifstream file_stream;
@@ -26,19 +26,19 @@ std::vector<std::string> WgetUrlPuller::PullUrls() const
     const auto file_name = "black_library_urls";
 
     // prod url
-    const auto doc_url = "https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY";
-    
-    // test url
-    // const auto doc_url = "https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs";
+    auto doc_url = "https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY";
+
+    if (test_mode)
+        doc_url = "https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs";
 
     // TODO: check if connected to internet first
 
     ss << "wget --quiet " << doc_url << "/export?format=txt --output-document ";
     ss << file_name;
 
-    BlackLibraryCommon::LogDebug("black_library", "Pulling Urls using Wget");
-
     const auto command = ss.str();
+
+    BlackLibraryCommon::LogDebug("black_library", "Pulling Urls using Wget with command: {}", command);
 
     if (clearenv() != 0)
     {

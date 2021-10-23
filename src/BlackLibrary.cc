@@ -36,7 +36,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
     database_parser_mutex_(),
     done_(true)
 {
-    BlackLibraryCommon::InitRotatingLogger("black_library", "/mnt/black-library/log/");
+    BlackLibraryCommon::InitRotatingLogger("black_library", "/mnt/black-library/log/", false);
 
     BlackLibraryCommon::LogInfo("black_library", "Initializing BlackLibrary application");
 
@@ -217,7 +217,7 @@ int BlackLibrary::PullUrls()
     BlackLibraryCommon::LogInfo("black_library", "Pulling Urls from source");
 
     // puller sanatizes urls
-    pull_urls_ = url_puller_->PullUrls();
+    pull_urls_ = url_puller_->PullUrls(false);
 
     BlackLibraryCommon::LogInfo("black_library", "Pulled {} urls", pull_urls_.size());
 
@@ -233,6 +233,8 @@ int BlackLibrary::VerifyUrls()
 
     // make sure they contain a url pattern on the protected list
     pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), std::not1(BlackLibraryCommon::SourceInformationMember())), pull_urls_.end());
+
+    BlackLibraryCommon::LogInfo("black_library", "After source information check {} urls", pull_urls_.size());
 
     // remove duplicate urls, sorting is faster then using a set for low number of duplicates
     std::sort(pull_urls_.begin(), pull_urls_.end());
