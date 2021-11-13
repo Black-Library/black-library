@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 option(BUILD_GUI "Build the front end GUI" OFF)
 option(INCLUDE_DOCKER_BUILD "Add docker targets" ON)
+option(REQUIRE_PYTHON "Check for Python Dependencies required for certain adapters and parsers" ON)
 
 if (INCLUDE_DOCKER_BUILD)
     include(cmake/docker.cmake)
