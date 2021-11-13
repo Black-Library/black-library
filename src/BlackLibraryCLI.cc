@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include <FileOperations.h>
+#include <LogOperations.h>
 #include <StringOperations.h>
 
 #include <BlackLibraryCLI.h>
@@ -29,7 +30,7 @@ BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &
     blacklibrary_binder_(storage_path),
     done_(false)
 {
-
+    BlackLibraryCommon::InitRotatingLogger("black_library_cli", "/mnt/black-library/log/", true);
 }
 
 int BlackLibraryCLI::Run()
@@ -82,7 +83,7 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
 
     if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
     {
-        std::cout << "Error: uuid: " << target_uuid << " does not exist" << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for bind", target_uuid);
         return;
     }
 
@@ -109,7 +110,7 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
     if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
     {
-        std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for size", target_uuid);
         return;
     }
 
@@ -120,13 +121,15 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
     if (blacklibrary_db_.UpdateBlackEntry(black_entry))
     {
-        std::cout << "Error: could not update black entry from cli" << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", target_uuid, desired_size);
         return;
     }
 
+    BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", target_uuid, desired_size);
+
     if (!blacklibrary_db_.DoesStagingEntryUUIDExist(target_uuid))
     {
-        std::cout << "Info: staging uuid: " << target_uuid << " does not exist" << std::endl;
+        BlackLibraryCommon::LogWarn("black_library_cli", "Staging UUID: {} does not exist for size", target_uuid);
         return;
     }
 
@@ -137,13 +140,14 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
     if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
     {
-        std::cout << "Error: could not update staging entry from cli" << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to update staging entry with UUID: {} size: {}", target_uuid, desired_size);
         return;
     }
 }
 
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 {
+    std::string target_entry_type;
     std::string target_uuid;
 
     if (tokens.size() >= 2)
@@ -152,21 +156,48 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
     }
     else
     {
-        std::cout << "delete [uuid]" << std::endl;
+        std::cout << "delete [uuid] (table)" << std::endl;
         return;
     }
 
-    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    if (tokens.size() >= 2)
     {
-        std::cout << "Error: black entry uuid: " << target_uuid << " does not exist" << std::endl;
-        return;
+        target_entry_type = tokens[2];
     }
 
-    if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
+    if (target_entry_type == "black")
     {
-        std::cout << "Error: could not delete black entry with uuid: " << target_uuid << std::endl;
-        return;
+        if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+        {
+            BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for delete", target_uuid);
+            return;
+        }
+
+        if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
+        {
+            BlackLibraryCommon::LogError("black_library_cli", "Failed to delete black entry with UUID: {}", target_uuid);
+            return;
+        }
     }
+    else if (target_entry_type == "staging")
+    {
+        if (!blacklibrary_db_.DoesStagingEntryUUIDExist(target_uuid))
+        {
+            BlackLibraryCommon::LogError("black_library_cli", "Staging entry with UUID: {} does not exist for delete", target_uuid);
+            return;
+        }
+
+        if (blacklibrary_db_.DeleteStagingEntry(target_uuid))
+        {
+            BlackLibraryCommon::LogError("black_library_cli", "Failed to delete staging entry with UUID: {}", target_uuid);
+            return;
+        }
+    }
+    else
+    {
+        BlackLibraryCommon::LogWarn("black_library_cli", "Failed to match entry with UUID: {}", target_uuid);
+    }
+
 }
 
 void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
@@ -275,7 +306,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
     if (BlackLibraryCommon::FileExists(target_path))
     {
-        std::cout << "Error: file already exists" << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "File already exists for print");
         return;
     }
 
@@ -283,7 +314,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
     if (!output_file.is_open())
     {
-        std::cout << "Error: file is not open: " << target_path << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for print", target_path);
         return;
     }
 
@@ -334,6 +365,7 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 
     if (!BlackLibraryCommon::FileExists(target_path))
     {
+        BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for save", target_path);
         std::cout << target_path << " file does not exist" << std::endl;
         return;
     }
@@ -346,7 +378,7 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 
     if (!input_file.is_open())
     {
-        std::cout << "Error: file is not open: " << target_path << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for save", target_path);
         return;
     }
 
@@ -367,7 +399,7 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 
         if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID))
         {
-            std::cout << "Error: could not read: " << entry_line << std::endl;
+            BlackLibraryCommon::LogWarn("black_library_cli", "Failed to read: {}", entry_line);
             continue;
         }
 

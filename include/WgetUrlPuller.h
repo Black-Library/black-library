@@ -12,7 +12,7 @@ namespace black_library {
 class WgetUrlPuller : public BlackLibraryUrlPuller
 {
 public:
-    std::vector<std::string> PullUrls() const override;
+    std::vector<std::string> PullUrls(bool test_mode) const override;
 };
 
 } // namespace black_library

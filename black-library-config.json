@@ -1,5 +1,5 @@
 {
-    "paths":[
+    "path":[
         {
             "db_path":"/mnt/black-library/db/catalog.db"
         },
@@ -12,7 +12,33 @@
     ],
     "manager":[
         {
-            "worker_threads": 3
+            "worker_threads": 1
+        }
+    ],
+    "logging":[
+        {
+            "binder": true
+        },
+        {
+            "db": false
+        },
+        {
+            "parser": false
+        },
+        {
+            "factory": false
+        },
+        {
+            "manager": false
+        },
+        {
+            "worker": false
+        },
+        {
+            "main": false
+        },
+        {
+            "cli": true
         }
     ]
 }

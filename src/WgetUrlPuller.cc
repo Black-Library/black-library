@@ -6,35 +6,43 @@
 #include <iostream>
 #include <sstream>
 
-#include <WgetUrlPuller.h>
-
+#include <LogOperations.h>
 #include <SQLite3ScraperSanatizer.hh>
+
+#include <WgetUrlPuller.h>
 
 namespace black_library {
 
+namespace BlackLibraryCommon = black_library::core::common;
+
 #define MINIMUM_EXPECTED_URL_LENGTH 13
 
-std::vector<std::string> WgetUrlPuller::PullUrls() const
+std::vector<std::string> WgetUrlPuller::PullUrls(bool test_mode) const
 {
     std::vector<std::string> urls;
     std::ifstream file_stream;
     std::stringstream ss;
     std::string file_line;
     const auto file_name = "black_library_urls";
-    const auto doc_url = "https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY";
+
+    // prod url
+    auto doc_url = "https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY";
+
+    if (test_mode)
+        doc_url = "https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs";
 
     // TODO: check if connected to internet first
 
     ss << "wget --quiet " << doc_url << "/export?format=txt --output-document ";
     ss << file_name;
 
-    std::cout << "Pulling Urls using Wget" << std::endl;
-
     const auto command = ss.str();
+
+    BlackLibraryCommon::LogDebug("black_library", "Pulling Urls using Wget with command: {}", command);
 
     if (clearenv() != 0)
     {
-        std::cout << "Error: could not clear local environment variables" << std::endl;
+        BlackLibraryCommon::LogWarn("black_library", "WgetUrlPuller failed to clear local environment variables");
     }
 
     // TODO: consider not using system 

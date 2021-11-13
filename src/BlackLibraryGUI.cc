@@ -122,7 +122,7 @@ BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &
 
     if (!blacklibrary_binder_.SetBindDir("/mnt/black-library/output/"))
     {
-        std::cout << "Error: could not set bind directory" << std::endl;
+        std::cout << "Error: Failed to set bind directory" << std::endl;
     }
 
     RefreshDBEntries();
@@ -240,7 +240,7 @@ int BlackLibraryGUI::Run()
         static bool show_app_metrics = false;
         static bool show_app_about = false;
 
-        if (!ImGui::Begin("Dear ImGui 1"))
+        if (!ImGui::Begin("Black Library GUI"))
         {
             // Early out if the window is collapsed, as an optimization.
             ImGui::End();
@@ -355,7 +355,7 @@ void BlackLibraryGUI::ShowCopyLocationWindow(bool* p_open)
             // save copy location
             snprintf(buf1, 64, "%s", buf2);
             if (!blacklibrary_binder_.SetBindDir(std::string(buf2)))
-                std::cout << "Error: could not set bind directory" << std::endl;
+                std::cout << "Error: Failed to set bind directory" << std::endl;
         }
     }
     ImGui::End();
@@ -398,6 +398,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
 
         // Sort our data if sort specs have been changed!
         if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
+        {
             if (sorts_specs->SpecsDirty || force_sort_black_)
             {
                 EntrySort sort_struct;
@@ -407,17 +408,28 @@ void BlackLibraryGUI::ShowBlackEntryTable()
                 sorts_specs->SpecsDirty = false;
                 force_sort_black_ = false;
             }
+        }
 
+        if (filter_.IsActive())
+        {
+            for (size_t row_n = 0; row_n < black_entries_.size(); ++row_n)
+            {
+                // Display a filtered database entry
+                if (filter_.PassFilter(black_entries_[row_n].title.c_str()) || filter_.PassFilter(black_entries_[row_n].author.c_str()))
+                    ShowEntry(black_entries_[row_n], BlackLibraryDB::BLACK_ENTRY);
+            }
+        }
+        else
+        {
         // Use clipper for large list
         ImGuiListClipper clipper;
         clipper.Begin(black_entries_.size());
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; ++row_n)
             {
-                if (filter_.PassFilter(black_entries_[row_n].title.c_str()) || filter_.PassFilter(black_entries_[row_n].author.c_str()))
-                    // Display a database entry
-                    ShowEntry(black_entries_[row_n], BlackLibraryDB::BLACK_ENTRY);
+                ShowEntry(black_entries_[row_n], BlackLibraryDB::BLACK_ENTRY);
             }
+        }
         ImGui::EndTable();
     }
 }
