@@ -3,7 +3,7 @@ add_subdirectory(black-library-common)
 add_subdirectory(black-library-db)
 add_subdirectory(black-library-parsers)
 add_subdirectory(scraper-sanatizer)
-add_subdirectory(spdlog)
+# add_subdirectory(spdlog)
 
 if (BUILD_GUI)
     message("BUILD_GUI ON")
