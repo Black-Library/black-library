@@ -42,3 +42,7 @@ imgui.ini
 
 # IDE stuff
 .vscode
+
+# Logs and Created Files
+*.log 
+*.html 
