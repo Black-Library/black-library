@@ -1,4 +1,5 @@
 {
+    "url_puller_debug": false,
     "path":[
         {
             "db_path":"/mnt/black-library/db/catalog.db"
@@ -15,7 +16,7 @@
             "worker_threads": 1
         }
     ],
-    "logging":[
+    "debug_logging":[
         {
             "binder": true
         },
