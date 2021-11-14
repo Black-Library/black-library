@@ -145,6 +145,52 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
     }
 }
 
+void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
+{
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::string target_source;
+    size_t desired_size;
+    time_t desired_after_date;
+
+    if (tokens.size() >= 3)
+    {
+        desired_size = std::stol(tokens[1]);
+        desired_after_date = std::stol(tokens[2]);
+        std::cout << desired_after_date << std::endl;
+    }
+    else
+    {
+        std::cout << "sizeall [new_size] [seconds since epoch desired after date]" << std::endl;
+        return;
+    }
+
+    if (tokens.size() >= 4)
+    {
+        target_source = tokens[3];
+    }
+
+    entry_list = blacklibrary_db_.GetBlackEntryList();
+
+    for (auto &entry : entry_list)
+    {
+        // std::cout << entry.uuid << " update date: " << entry.update_date << " after_date: " << desired_after_date << " - " << (entry.update_date > desired_after_date) << " - " << desired_size << std::endl;
+        // change size if they come after the provided date
+        if (entry.update_date > desired_after_date && entry.source == target_source)
+        {
+            entry.series_length = desired_size;
+            entry.last_url = entry.url;
+
+            if (blacklibrary_db_.UpdateBlackEntry(entry))
+            {
+                BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", entry.uuid, desired_size);
+                continue;
+            }
+
+            BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", entry.uuid, desired_size);
+        }
+    }
+}
+
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 {
     std::string target_entry_type;
@@ -327,7 +373,7 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, delete, help, list, print, save, size]";
+    ss << "Usage: [bind, delete, help, list, print (to file), save (from file), size, sizeall]";
 
     // TODO make some kind of command mapping/register
 
@@ -467,6 +513,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "size")
     {
         ChangeSize(tokens);
+    }
+    else if (command == "sizeall")
+    {
+        ChangeSizeAll(tokens);
     }
     else
     {
