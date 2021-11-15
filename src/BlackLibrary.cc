@@ -50,7 +50,7 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
             {
-                BlackLibraryCommon::LogError("black_library", "Progress number staging entry with UUID: {} does not exist", uuid);
+                BlackLibraryCommon::LogWarn("black_library", "Progress number staging entry with UUID: {} does not exist", uuid);
                 return;
             }
 
@@ -83,17 +83,34 @@ BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storag
         [this](BlackLibraryParsers::ParserJobResult result)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
+            if (!result.is_error_job)
             {
-                BlackLibraryCommon::LogError("black_library", "Status staging entry with UUID: {} does not exist", result.metadata.uuid);
+                if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
+                {
+                    BlackLibraryCommon::LogError("black_library", "Status staging entry with UUID: {} does not exist", result.metadata.uuid);
+                    return;
+                }
+
+                auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
+
+                if (UpdateDatabaseWithResult(staging_entry, result))
+                {
+                    BlackLibraryCommon::LogError("black_library", "Failed to update database with result with UUID: {}", result.metadata.uuid);
+                }
+
                 return;
             }
 
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
-
-            if (UpdateDatabaseWithResult(staging_entry, result))
+            if (!blacklibrary_db_.DoesErrorEntryExist(result.metadata.uuid, result.start_number))
             {
-                BlackLibraryCommon::LogError("black_library", "Failed to update database with result with UUID: {}", result.metadata.uuid);
+                BlackLibraryCommon::LogError("black_library", "Error entry with UUID: {} does not exist", result.metadata.uuid);
+                return;
+            }
+
+            if (blacklibrary_db_.DeleteErrorEntry(result.metadata.uuid, result.start_number))
+            {
+                BlackLibraryCommon::LogError("black_library", "Failed to delete error entry with UUID: {} and progress number: {}", result.metadata.uuid, result.start_number);
+                return;
             }
 
         }
@@ -216,7 +233,7 @@ int BlackLibrary::PullUrls()
 {
     BlackLibraryCommon::LogInfo("black_library", "Pulling Urls from source");
 
-    // puller sanatizes urls
+    // puller sanatizes urls, boolean for test doc
     pull_urls_ = url_puller_->PullUrls(false);
 
     BlackLibraryCommon::LogInfo("black_library", "Pulled {} urls", pull_urls_.size());
@@ -356,6 +373,10 @@ int BlackLibrary::ParserErrorEntries()
                 continue;
             
             url = res.result;
+            BlackLibraryDB::DBEntry entry = blacklibrary_db_.ReadBlackEntry(error.uuid);
+            if (entry.uuid.empty())
+                continue;
+            blacklibrary_db_.CreateStagingEntry(entry);
         }
         else
         {
@@ -371,15 +392,19 @@ int BlackLibrary::ParserErrorEntries()
 
 int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result)
 {
-    entry.title = result.metadata.title;
-    entry.author = result.metadata.author;
-    entry.nickname = result.metadata.nickname;
-    entry.source = result.metadata.source;
-    entry.series = result.metadata.series;
-
     // TODO staging should check against black for these
     if (!result.is_error_job)
+    {
         entry.last_url = result.metadata.last_url;
+        entry.author = result.metadata.author;
+    }
+    else
+    {
+        entry.title = result.metadata.title;
+        entry.nickname = result.metadata.nickname;
+        entry.source = result.metadata.source;
+        entry.series = result.metadata.series;
+    }
 
     if (entry.update_date < result.metadata.update_date)
         entry.update_date = result.metadata.update_date;
