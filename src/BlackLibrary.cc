@@ -226,6 +226,9 @@ int BlackLibrary::Stop()
 
     BlackLibraryCommon::LogInfo("black_library", "Stopping BlackLibrary");
 
+    // shutdown logging manually just in case termination flush fails
+    spdlog::shutdown();
+
     return 0;
 }
 
@@ -430,6 +433,13 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
 
         if (res)
             return -1;
+    }
+
+    // Do not delete staging entry if still working on uuid
+    if (parser_manager_.StillWorkingOn(result.metadata.uuid))
+    {
+        BlackLibraryCommon::LogInfo("black_library", "Still working on job with UUID: {}", result.metadata.uuid);
+        return 0;
     }
 
     if (blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid))
