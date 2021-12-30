@@ -1,45 +1,19 @@
 {
-    "url_puller_debug": false,
-    "path":[
-        {
-            "db_path":"/mnt/black-library/db/catalog.db"
-        },
-        {
-            "log_path":"/mnt/black-library/log/"
-        },
-        {
-            "storage_path":"/mnt/black-library/store/"
-        }
-    ],
-    "manager":[
-        {
-            "worker_threads": 1
-        }
-    ],
-    "debug_logging":[
-        {
-            "binder": true
-        },
-        {
-            "db": false
-        },
-        {
-            "parser": false
-        },
-        {
-            "factory": false
-        },
-        {
-            "manager": false
-        },
-        {
-            "worker": false
-        },
-        {
-            "main": false
-        },
-        {
-            "cli": true
-        }
-    ]
+    "config": {
+        "binder_debug_log": true,
+        "cli_debug_log": true,
+        "db_debug_log": false,
+        "db_path": "/mnt/black-library/db/catalog.db",
+        "db_remote": false,
+        "factory_debug_log": false,
+        "logger_path": "/mnt/black-library/log/",
+        "main_app_debug_log": false,
+        "manager_debug_log": false,
+        "manager_worker_count": 1,
+        "parser_debug_log": false,
+        "storage_path": "/mnt/black-library/store/",
+        "url_puller_debug": false,
+        "worker_debug_log": false
+    },
+    "config_version": "1.0"
 }
