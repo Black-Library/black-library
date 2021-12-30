@@ -11,7 +11,7 @@ Black Library main application.
 
 The `db` directory contains the `catalog.db` database. The `store` directory contains directories with names as the UUID of a particular stored media. The user will need read-write permissions for black-library and its child directories. 
 
-## Dependencies
+## Dependencies for main application
 The GUI uses dear imgui using glfw3, a portable library for OpenGL.
 
 It can be installed on ubuntu with
