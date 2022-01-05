@@ -12,8 +12,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <ConfigOperations.h>
 #include <BlackLibraryDB.h>
-
 #include <ParserManager.h>
 
 #include <BlackLibraryUrlPuller.h>
@@ -25,7 +25,7 @@ namespace BlackLibraryParsers = black_library::core::parsers;
 
 class BlackLibrary {
 public:
-    explicit BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db);
+    explicit BlackLibrary(const njson &json);
 
     BlackLibrary &operator = (BlackLibrary &&) = default;
 

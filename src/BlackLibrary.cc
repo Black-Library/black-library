@@ -22,9 +22,9 @@ namespace BlackLibraryParsers = black_library::core::parsers;
 
 const int BLACKLIBRARY_FREQUENCY = 24*60*60;
 
-BlackLibrary::BlackLibrary(const std::string &db_path, const std::string &storage_path, bool init_db) :
-    parser_manager_(storage_path, ""),
-    blacklibrary_db_(db_path, init_db),
+BlackLibrary::BlackLibrary(const njson &config) :
+    parser_manager_(config),
+    blacklibrary_db_(config),
     url_puller_(nullptr),
     parse_entries_(),
     pull_urls_(),

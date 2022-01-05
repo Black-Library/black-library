@@ -1,6 +1,7 @@
 {
     "config": {
         "binder_debug_log": true,
+        "binder_dir": "/mnt/black-library/output/",
         "cli_debug_log": true,
         "db_debug_log": false,
         "db_path": "/mnt/black-library/db/catalog.db",
