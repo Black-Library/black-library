@@ -18,7 +18,7 @@ namespace BlackLibraryDB = black_library::core::db;
 
 class BlackLibraryCLI {
 public:
-    explicit BlackLibraryCLI(const std::string &db_path, const std::string &storage_path);
+    explicit BlackLibraryCLI(const njson &config);
     BlackLibraryCLI &operator = (BlackLibraryCLI &&) = default;
 
     int Run();

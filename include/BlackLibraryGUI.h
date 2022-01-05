@@ -170,7 +170,7 @@ struct EntrySort
 
 class BlackLibraryGUI {
 public:
-    explicit BlackLibraryGUI(const std::string &db_path, const std::string &storage_path);
+    explicit BlackLibraryGUI(const njson &config);
     BlackLibraryGUI &operator = (BlackLibraryGUI &&) = default;
 
     int Run();
