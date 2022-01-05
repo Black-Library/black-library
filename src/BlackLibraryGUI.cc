@@ -101,9 +101,9 @@ void PopStyleCompact()
     ImGui::PopStyleVar(2);
 }
 
-BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &storage_path) :
-    blacklibrary_db_(db_path, false),
-    blacklibrary_binder_(storage_path),
+BlackLibraryGUI::BlackLibraryGUI(const njson &config) :
+    blacklibrary_db_(config),
+    blacklibrary_binder_(config),
     black_entries_(),
     staging_entries_(),
     filter_(),
@@ -112,6 +112,15 @@ BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &
     force_sort_black_(false),
     force_sort_staging_(false)
 {
+    njson nconfig = config["config"];
+
+    std::string bind_dir = "/mnt/black-library/output/";
+
+    if (nconfig.contains("bind_dir"))
+    {
+        bind_dir = nconfig["bind_dir"];
+    }
+
     std::cout << "\nRunning Black Library GUI" << std::endl;
 
     if (!blacklibrary_db_.IsReady())
@@ -120,7 +129,7 @@ BlackLibraryGUI::BlackLibraryGUI(const std::string &db_path, const std::string &
         return;
     }
 
-    if (!blacklibrary_binder_.SetBindDir("/mnt/black-library/output/"))
+    if (!blacklibrary_binder_.SetBindDir(bind_dir))
     {
         std::cout << "Error: Failed to set bind directory" << std::endl;
     }
