@@ -25,12 +25,21 @@ inline size_t DBColumnIDCast(T const &id)
     return static_cast<size_t>(id);
 }
 
-BlackLibraryCLI::BlackLibraryCLI(const std::string &db_path, const std::string &storage_path) :
-    blacklibrary_db_(db_path, false),
-    blacklibrary_binder_(storage_path),
+BlackLibraryCLI::BlackLibraryCLI(const njson &config) :
+    blacklibrary_db_(config),
+    blacklibrary_binder_(config),
     done_(false)
 {
-    BlackLibraryCommon::InitRotatingLogger("black_library_cli", "/mnt/black-library/log/", true);
+    njson nconfig = config["config"];
+
+    std::string logger_path = BlackLibraryCommon::DefaultLogPath;
+
+    if (nconfig.contains("logger_path"))
+    {
+        logger_path = nconfig["logger_path"];
+    }
+
+    BlackLibraryCommon::InitRotatingLogger("black_library_cli", logger_path, true);
 }
 
 int BlackLibraryCLI::Run()
