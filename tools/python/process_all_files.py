@@ -2,7 +2,7 @@
 # python3 process_all_files.py --input_fields input_fields.json
 # sample json file
 # {
-#     "store_directory": "/mnt/black-library/store"
+#     "store_directory": "/mnt/black-library/store/"
 # }
 # 
 # Trying to use
