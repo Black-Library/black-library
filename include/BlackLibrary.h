@@ -56,6 +56,7 @@ private:
     std::uniform_int_distribution<> dist0_;
     std::uniform_int_distribution<> dist1_;
     std::mutex database_parser_mutex_;
+    bool debug_target_;
 
     bool done_;
 };

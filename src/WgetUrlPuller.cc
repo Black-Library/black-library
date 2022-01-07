@@ -17,7 +17,7 @@ namespace BlackLibraryCommon = black_library::core::common;
 
 #define MINIMUM_EXPECTED_URL_LENGTH 13
 
-std::vector<std::string> WgetUrlPuller::PullUrls(bool test_mode) const
+std::vector<std::string> WgetUrlPuller::PullUrls(bool debug_target) const
 {
     std::vector<std::string> urls;
     std::ifstream file_stream;
@@ -28,7 +28,7 @@ std::vector<std::string> WgetUrlPuller::PullUrls(bool test_mode) const
     // prod url
     auto doc_url = "https://docs.google.com/document/d/1kSsAoUKg6aiXHb_sksAM5qpcCLYNS9n8-MfSgTg9XAY";
 
-    if (test_mode)
+    if (debug_target)
         doc_url = "https://docs.google.com/document/d/16cnAc7BmSUKsBUdtKny2uQpRezxfDu_n_PIWVVSHsCs";
 
     // TODO: check if connected to internet first

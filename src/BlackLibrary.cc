@@ -34,9 +34,30 @@ BlackLibrary::BlackLibrary(const njson &config) :
     dist0_(0, 15),
     dist1_(8, 11),
     database_parser_mutex_(),
+    debug_target_(false),
     done_(true)
 {
-    BlackLibraryCommon::InitRotatingLogger("black_library", "/mnt/black-library/log/", false);
+    njson nconfig = config["config"];
+
+    std::string logger_path = BlackLibraryCommon::DefaultLogPath;
+    bool logger_level = BlackLibraryCommon::DefaultLogLevel;
+
+    if (nconfig.contains("logger_path"))
+    {
+        logger_path = nconfig["logger_path"];
+    }
+
+    if (nconfig.contains("main_app_debug_log"))
+    {
+        logger_level = nconfig["main_app_debug_log"];
+    }
+
+    if (nconfig.contains("url_puller_debug"))
+    {
+        debug_target_ = nconfig["url_puller_debug"];
+    }
+
+    BlackLibraryCommon::InitRotatingLogger("black_library", logger_path, logger_level);
 
     BlackLibraryCommon::LogInfo("black_library", "Initializing BlackLibrary application");
 
@@ -62,7 +83,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
                     return;
                 }
 
-                BlackLibraryDB::ErrorEntry entry = { uuid, progress_num };
+                BlackLibraryDB::DBErrorEntry entry = { uuid, progress_num };
 
                 blacklibrary_db_.CreateErrorEntry(entry);
             }
@@ -236,8 +257,8 @@ int BlackLibrary::PullUrls()
 {
     BlackLibraryCommon::LogInfo("black_library", "Pulling Urls from source");
 
-    // puller sanatizes urls, boolean for test doc
-    pull_urls_ = url_puller_->PullUrls(false);
+    // puller sanatizes urls
+    pull_urls_ = url_puller_->PullUrls(debug_target_);
 
     BlackLibraryCommon::LogInfo("black_library", "Pulled {} urls", pull_urls_.size());
 
