@@ -258,7 +258,7 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::vector<BlackLibraryDB::ErrorEntry> error_list;
+    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
     std::string target_entry_type;
 
     if (tokens.size() >= 2)
@@ -303,7 +303,7 @@ void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
 void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::vector<BlackLibraryDB::ErrorEntry> error_list;
+    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
     std::string target_entry_type;
     std::string target_path = DefaultPrintEntryFileName;
     std::stringstream ss;
