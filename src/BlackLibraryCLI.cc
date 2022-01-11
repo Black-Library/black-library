@@ -359,7 +359,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
     std::fstream output_file;
 
-    if (BlackLibraryCommon::FileExists(target_path))
+    if (BlackLibraryCommon::PathExists(target_path))
     {
         BlackLibraryCommon::LogError("black_library_cli", "File already exists for print");
         return;
@@ -418,7 +418,7 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
         target_path = tokens[2];
     }
 
-    if (!BlackLibraryCommon::FileExists(target_path))
+    if (!BlackLibraryCommon::PathExists(target_path))
     {
         BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for save", target_path);
         std::cout << target_path << " file does not exist" << std::endl;
