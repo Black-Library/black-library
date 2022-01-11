@@ -65,41 +65,6 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
-    parser_manager_.RegisterProgressNumberCallback(
-        [this](const std::string &uuid, size_t progress_num, bool error)
-        {
-            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
-            {
-                BlackLibraryCommon::LogWarn("black_library", "Progress number staging entry with UUID: {} does not exist", uuid);
-                return;
-            }
-
-            if (error)
-            {
-                if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
-                {
-                    BlackLibraryCommon::LogWarn("black_library", "Error entry with UUID: {} progress_num: {}", uuid, progress_num);
-                    return;
-                }
-
-                BlackLibraryDB::DBErrorEntry entry = { uuid, progress_num };
-
-                blacklibrary_db_.CreateErrorEntry(entry);
-            }
-
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
-
-            if (staging_entry.series_length < progress_num)
-                staging_entry.series_length = progress_num;
-
-            if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
-            {
-                BlackLibraryCommon::LogError("black_library", "Staging entry with UUID: {} failed to be updated", staging_entry.uuid);
-                return;
-            }
-        }
-    );
     parser_manager_.RegisterDatabaseStatusCallback(
         [this](BlackLibraryParsers::ParserJobResult result)
         {
@@ -136,6 +101,43 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
         }
     );
+    parser_manager_.RegisterProgressNumberCallback(
+        [this](const std::string &uuid, size_t progress_num, bool error)
+        {
+            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
+            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
+            {
+                BlackLibraryCommon::LogWarn("black_library", "Progress number staging entry with UUID: {} does not exist", uuid);
+                return;
+            }
+
+            if (error)
+            {
+                if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
+                {
+                    BlackLibraryCommon::LogWarn("black_library", "Error entry with UUID: {} progress_num: {}", uuid, progress_num);
+                    return;
+                }
+
+                BlackLibraryDB::DBErrorEntry entry = { uuid, progress_num };
+
+                blacklibrary_db_.CreateErrorEntry(entry);
+            }
+
+            auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
+
+            if (staging_entry.series_length < progress_num)
+                staging_entry.series_length = progress_num;
+
+            if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
+            {
+                BlackLibraryCommon::LogError("black_library", "Staging entry with UUID: {} failed to be updated", staging_entry.uuid);
+                return;
+            }
+        }
+    );
+    // parser_manager_.RegisterVersionReadCallback();
+    // parser_manager_.RegisterVersionUpdateCallback();
 
     done_ = false;
 
