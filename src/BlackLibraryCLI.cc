@@ -325,7 +325,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
     else if (target_entry_type == "staging")
         entry_list = blacklibrary_db_.GetStagingEntryList();
     else if (target_entry_type == "help")
-        std::cout << "save [black, error, staging]" << std::endl;
+        std::cout << "print (to file) [black, error, staging]" << std::endl;
     else
     {
         auto staging_entries = blacklibrary_db_.GetStagingEntryList();
@@ -409,7 +409,7 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
     }
     else
     {
-        std::cout << "save [type] [path]" << std::endl;
+        std::cout << "save (from file) [type] [path]" << std::endl;
         return;
     }
 
