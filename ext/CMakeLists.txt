@@ -3,10 +3,11 @@ add_subdirectory(black-library-common)
 add_subdirectory(black-library-db)
 add_subdirectory(black-library-parsers)
 add_subdirectory(scraper-sanatizer)
-# add_subdirectory(spdlog)
+
+message(STATUS "BUILD_GUI: ${BUILD_GUI}")
 
 if (BUILD_GUI)
-    message("BUILD_GUI ON")
+    message(STATUS "Building GUI")
     include(GNUInstallDirs)
 
     # set root to be expected imgui location
@@ -44,5 +45,5 @@ if (BUILD_GUI)
     set_target_properties(dearimguiadapter PROPERTIES INSTALL_RPATH
         "$LD_LIBRARY_PATH;${CMAKE_INSTALL_PREFIX}/lib")
 else()
-    message("BUILD_GUI OFF")
+    message(STATUS "BUILD_GUI OFF")
 endif()
