@@ -10,6 +10,7 @@
 
 #include <LogOperations.h>
 #include <TimeOperations.h>
+#include <VersionOperations.h>
 
 #include <BlackLibrary.h>
 #include <WgetUrlPuller.h>
@@ -139,10 +140,10 @@ BlackLibrary::BlackLibrary(const njson &config) :
     parser_manager_.RegisterVersionReadCallback(
         [&](const std::string &uuid, size_t index_num)
         {
-            std::string checksum;
+            std::string checksum = BlackLibraryCommon::EmptyMD5Version;
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
-                BlackLibraryCommon::LogError("black_library", "Read version UUID: {} index_num: {} failed MD5 sum does not exist", uuid, index_num);
+                BlackLibraryCommon::LogDebug("black_library", "Read version UUID: {} index_num: {} failed MD5 sum does not exist", uuid, index_num);
                 return checksum;
             }
 
@@ -153,9 +154,9 @@ BlackLibrary::BlackLibrary(const njson &config) :
         }
     );
     parser_manager_.RegisterVersionUpdateCallback(
-        [&](const std::string &uuid, size_t index_num, const std::string &md5_sum)
+        [&](const std::string &uuid, size_t index_num, const std::string &md5_sum, uint64_t version_num)
         {
-            BlackLibraryDB::DBMd5Sum md5 = { uuid, index_num, md5_sum };
+            BlackLibraryDB::DBMd5Sum md5 = { uuid, index_num, md5_sum, version_num };
 
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
@@ -199,21 +200,22 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
 int BlackLibrary::Run()
 {
-    int seconds_counter = 0;
+    auto now_time = std::chrono::steady_clock::now();
+    auto run_deadline = now_time;
 
     while (!done_)
     {
-        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+        now_time = std::chrono::steady_clock::now();
+        const auto deadline = now_time + std::chrono::milliseconds(1000);
 
-        if (seconds_counter >= BLACKLIBRARY_FREQUENCY)
-            seconds_counter = 0;
-
-        if (seconds_counter == 0)
+        if ((run_deadline - now_time).count() < 0)
         {
             RunOnce();
+            run_deadline = now_time + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
+            auto info_time = std::chrono::system_clock::now() + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
+            const std::string iso_info_time = BlackLibraryCommon::GetISOTimeString(std::chrono::system_clock::to_time_t(info_time));
+            BlackLibraryCommon::LogInfo("black_library", "Next scheduled run at {}", iso_info_time);
         }
-
-        ++seconds_counter;
 
         if (done_)
             break;
