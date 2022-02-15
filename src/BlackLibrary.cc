@@ -153,6 +153,21 @@ BlackLibrary::BlackLibrary(const njson &config) :
             return checksum;
         }
     );
+    parser_manager_.RegisterVersionReadNumCallback(
+        [&](const std::string &uuid, size_t index_num)
+        {
+            uint16_t version_num = 0;
+            if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
+            {
+                BlackLibraryCommon::LogDebug("black_library", "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
+                return version_num;
+            }
+
+            version_num = blacklibrary_db_.GetVersionFromMd5(uuid, index_num);
+
+            return version_num;
+        }
+    );
     parser_manager_.RegisterVersionUpdateCallback(
         [&](const std::string &uuid, size_t index_num, const std::string &md5_sum, uint64_t version_num)
         {
