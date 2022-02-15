@@ -9,6 +9,7 @@
 #include <FileOperations.h>
 #include <LogOperations.h>
 #include <StringOperations.h>
+#include <VersionOperations.h>
 
 #include <BlackLibraryCLI.h>
 
@@ -17,7 +18,8 @@ namespace black_library {
 namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
-static constexpr const char DefaultPrintEntryFileName[] = "black_library_print_entries";
+static constexpr const char DefaultExportEntryFileName[] = "black_library_export_entries";
+static constexpr const char DefaultExportChecksumFileName[] = "black_library_export_checksums";
 
 template <typename T>
 inline size_t DBColumnIDCast(T const &id)
@@ -255,77 +257,90 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 
 }
 
-void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
+void BlackLibraryCLI::Export(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
-    std::string target_entry_type;
+    std::string target_type;
 
     if (tokens.size() >= 2)
     {
-        target_entry_type = tokens[1];
+        target_type = tokens[1];
     }
 
-    if (target_entry_type == "black")
-        entry_list = blacklibrary_db_.GetBlackEntryList();
-    else if (target_entry_type == "error")
-        error_list = blacklibrary_db_.GetErrorEntryList();
-    else if (target_entry_type == "staging")
-        entry_list = blacklibrary_db_.GetStagingEntryList();
-    else if (target_entry_type == "help")
-        std::cout << "list [black, error, staging]" << std::endl;
+    if (target_type == "black")
+        ExportEntries(tokens, "black");
+    else if (target_type == "checksum")
+        ExportChecksums(tokens);
+    else if (target_type == "error")
+        ExportEntries(tokens, "error");
+    else if (target_type == "staging")
+        ExportEntries(tokens, "staging");
     else
-    {
-        auto staging_entries = blacklibrary_db_.GetStagingEntryList();
-        auto black_entires = blacklibrary_db_.GetBlackEntryList();
-        entry_list.reserve(staging_entries.size() + black_entires.size());
-        entry_list.insert(entry_list.end(), staging_entries.begin(), staging_entries.end());
-        entry_list.insert(entry_list.end(), black_entires.begin(), black_entires.end());
-
-        error_list = blacklibrary_db_.GetErrorEntryList();
-    }
-
-    std::cout << "Entries" << std::endl;
-
-    for (const auto & entry : entry_list)
-    {
-        std::cout << entry << std::endl;
-    }
-
-    std::cout << "Errors" << std::endl;
-
-    for (const auto & entry : error_list)
-    {
-        std::cout << entry << std::endl;
-    }
+        std::cout << "export [black, checksum, error, staging]" << std::endl;
 }
 
-void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
+void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
-    std::string target_entry_type;
-    std::string target_path = DefaultPrintEntryFileName;
+    std::vector<BlackLibraryDB::DBMd5Sum> checksum_list;
+    std::string target_path = DefaultExportChecksumFileName;
     std::stringstream ss;
-
-    if (tokens.size() >= 2)
-    {
-        target_entry_type = tokens[1];
-    }
 
     if (tokens.size() >= 3)
     {
         target_path = tokens[2];
     }
 
-    if (target_entry_type == "black")
+    checksum_list = blacklibrary_db_.GetChecksumList();
+
+    for (const auto & checksum : checksum_list)
+    {
+        ss << checksum.uuid << ',';
+        ss << checksum.index_num << ',';
+        ss << checksum.md5_sum << ',';
+        ss << checksum.version_num;
+        ss << '\n';
+    }
+
+    std::fstream output_file;
+
+    if (BlackLibraryCommon::PathExists(target_path))
+    {
+        BlackLibraryCommon::LogError("black_library_cli", "File already exists for export");
+        return;
+    }
+
+    output_file.open(target_path, std::fstream::out | std::fstream::trunc);
+
+    if (!output_file.is_open())
+    {
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for export", target_path);
+        return;
+    }
+
+    output_file << ss.str();
+
+    output_file.close();
+}
+
+void BlackLibraryCLI::ExportEntries(const std::vector<std::string> &tokens, const std::string &type)
+{
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
+    std::string target_path = DefaultExportEntryFileName;
+    std::stringstream ss;
+
+    if (tokens.size() >= 3)
+    {
+        target_path = tokens[2];
+    }
+
+    if (type == "black")
         entry_list = blacklibrary_db_.GetBlackEntryList();
-    else if (target_entry_type == "error")
+    else if (type == "error")
         error_list = blacklibrary_db_.GetErrorEntryList();
-    else if (target_entry_type == "staging")
+    else if (type == "staging")
         entry_list = blacklibrary_db_.GetStagingEntryList();
-    else if (target_entry_type == "help")
-        std::cout << "print (to file) [black, error, staging]" << std::endl;
+    else if (type == "help")
+        std::cout << "export [black, error, staging] path" << std::endl;
     else
     {
         auto staging_entries = blacklibrary_db_.GetStagingEntryList();
@@ -361,7 +376,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
     if (BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "File already exists for print");
+        BlackLibraryCommon::LogError("black_library_cli", "File already exists for export");
         return;
     }
 
@@ -369,7 +384,7 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
 
     if (!output_file.is_open())
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for print", target_path);
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for export", target_path);
         return;
     }
 
@@ -378,40 +393,31 @@ void BlackLibraryCLI::PrintEntries(const std::vector<std::string> &tokens)
     output_file.close();
 }
 
-void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
+void BlackLibraryCLI::Import(const std::vector<std::string> &tokens)
 {
-    std::stringstream ss;
-
-    ss << "Usage: [bind, delete, help, list, print (to file), save (from file), size, sizeall]";
-
-    // TODO make some kind of command mapping/register
-
-    std::cout << ss.str() << std::endl;
-    std::cout << "Input: " << std::endl; 
-
-    for (size_t i = 0; i < tokens.size(); ++i)
-    {
-        std::cout << tokens[i] << ' ';
-    }
-
-    std::cout << std::endl;
-}
-
-void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
-{
-    std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::string target_entry_type;
-    std::string target_path = DefaultPrintEntryFileName;
+    std::string target_type;
 
     if (tokens.size() >= 2)
     {
-        target_entry_type = tokens[1];   
+        target_type = tokens[1];
     }
+
+    if (target_type == "black")
+        ImportEntries(tokens, "black");
+    else if (target_type == "checksum")
+        ImportChecksums(tokens);
+    else if (target_type == "error")
+        ImportEntries(tokens, "error");
+    else if (target_type == "staging")
+        ImportEntries(tokens, "staging");
     else
-    {
-        std::cout << "save (from file) [type] [path]" << std::endl;
-        return;
-    }
+        std::cout << "import [black, checksum, error, staging] path" << std::endl;
+}
+
+void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
+{
+    std::vector<BlackLibraryDB::DBMd5Sum> checksum_list;
+    std::string target_path = DefaultExportEntryFileName;
 
     if (tokens.size() >= 3)
     {
@@ -420,8 +426,75 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 
     if (!BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for save", target_path);
-        std::cout << target_path << " file does not exist" << std::endl;
+        BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for import", target_path);
+        return;
+    }
+
+    std::ifstream input_file;
+    std::string input_file_line;
+    std::vector<std::string> checksum_lines;
+
+    if (!input_file.is_open())
+    {
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for import", target_path);
+        return;
+    }
+
+    while (getline(input_file, input_file_line))
+    {
+        checksum_lines.emplace_back(input_file_line);
+    }
+
+    input_file.close();
+
+    for (const auto & checksum_line : checksum_lines)
+    {
+        std::istringstream is(checksum_line);
+        std::vector<std::string> tokens;
+        std::string token;
+        while (getline(is, token, ','))
+        {
+            tokens.emplace_back(token);
+        }
+
+        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBMd5SumColumnID::_NUM_DB_MD5SUM_COLUMN_ID))
+        {
+            BlackLibraryCommon::LogWarn("black_library_cli", "Failed to read: {}", checksum_line);
+            continue;
+        }
+
+        BlackLibraryDB::DBMd5Sum checksum = {
+            tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::uuid)],
+            static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::index_num)])),
+            tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::md5_sum)],
+            static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::version_num)]))
+        };
+
+        if (blacklibrary_db_.DoesMd5SumExist(checksum.uuid, checksum.index_num))
+        {
+            blacklibrary_db_.UpdateMd5Sum(checksum);
+        }
+        else
+        {
+            blacklibrary_db_.CreateMd5Sum(checksum);
+        }
+    }
+}
+
+void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, const std::string &type)
+{
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::string target_entry_type;
+    std::string target_path = DefaultExportEntryFileName;
+
+    if (tokens.size() >= 3)
+    {
+        target_path = tokens[2];
+    }
+
+    if (!BlackLibraryCommon::PathExists(target_path))
+    {
+        BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for import", target_path);
         return;
     }
 
@@ -433,13 +506,20 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
 
     if (!input_file.is_open())
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for save", target_path);
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for import", target_path);
         return;
     }
 
     while (getline(input_file, input_file_line))
     {
         entry_lines.emplace_back(input_file_line);
+    }
+
+    input_file.close();
+
+    if (type != "black")
+    {
+        BlackLibraryCommon::LogWarn("black_library_cli", "Only black entry import supported");
     }
 
     for (const auto & entry_line : entry_lines)
@@ -487,6 +567,95 @@ void BlackLibraryCLI::SaveEntries(const std::vector<std::string> &tokens)
     }
 }
 
+void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
+{
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
+    std::string target_entry_type;
+
+    if (tokens.size() >= 2)
+    {
+        target_entry_type = tokens[1];
+    }
+
+    if (target_entry_type == "black")
+        entry_list = blacklibrary_db_.GetBlackEntryList();
+    else if (target_entry_type == "error")
+        error_list = blacklibrary_db_.GetErrorEntryList();
+    else if (target_entry_type == "staging")
+        entry_list = blacklibrary_db_.GetStagingEntryList();
+    else if (target_entry_type == "help")
+        std::cout << "list [black, error, staging]" << std::endl;
+    else
+    {
+        auto staging_entries = blacklibrary_db_.GetStagingEntryList();
+        auto black_entires = blacklibrary_db_.GetBlackEntryList();
+        entry_list.reserve(staging_entries.size() + black_entires.size());
+        entry_list.insert(entry_list.end(), staging_entries.begin(), staging_entries.end());
+        entry_list.insert(entry_list.end(), black_entires.begin(), black_entires.end());
+
+        error_list = blacklibrary_db_.GetErrorEntryList();
+    }
+
+    std::cout << "Entries" << std::endl;
+
+    for (const auto & entry : entry_list)
+    {
+        std::cout << entry << std::endl;
+    }
+
+    std::cout << "Errors" << std::endl;
+
+    for (const auto & entry : error_list)
+    {
+        std::cout << entry << std::endl;
+    }
+}
+
+void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
+{
+    std::stringstream ss;
+
+    ss << "Usage: [bind, delete, export, help, import, list, size, sizeall, versionall]";
+
+    // TODO make some kind of command mapping/register
+
+    std::cout << ss.str() << std::endl;
+    std::cout << "Input: " << std::endl; 
+
+    for (size_t i = 0; i < tokens.size(); ++i)
+    {
+        std::cout << tokens[i] << ' ';
+    }
+
+    std::cout << std::endl;
+}
+
+void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
+{
+    (void) tokens;
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+
+    entry_list = blacklibrary_db_.GetBlackEntryList();
+
+    for (auto &entry : entry_list)
+    {
+        // series_length is uint16_t
+        for (uint16_t i = 0; i < entry.series_length - 1; ++i)
+        {
+            if (blacklibrary_db_.DoesMd5SumExist(entry.uuid, i))
+                continue;
+
+            BlackLibraryDB::DBMd5Sum checksum;
+
+            checksum.uuid = entry.uuid;
+            checksum.index_num = i;
+            checksum.md5_sum = BlackLibraryCommon::EmptyMD5Version; // TODO check the section index and version number from file name
+            checksum.version_num = 0; // TODO read in files and check their current version numbers
+        }
+    }
+}
+
 void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
 {
     std::string command = tokens[0];
@@ -503,21 +672,21 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     {
         DeleteEntry(tokens);
     }
+    else if (command == "export")
+    {
+        Export(tokens);
+    }
     else if (command == "help")
     {
         PrintUsage(tokens);
     }
+        else if (command == "import")
+    {
+        Import(tokens);
+    }
     else if (command == "list")
     {
         ListEntries(tokens);
-    }
-    else if (command == "print")
-    {
-        PrintEntries(tokens);
-    }
-    else if (command == "save")
-    {
-        SaveEntries(tokens);
     }
     else if (command == "size")
     {
@@ -526,6 +695,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "sizeall")
     {
         ChangeSizeAll(tokens);
+    }
+    else if (command == "versionall")
+    {
+        VersionAll(tokens);
     }
     else
     {

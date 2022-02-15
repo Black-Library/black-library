@@ -29,10 +29,15 @@ private:
     void ChangeSize(const std::vector<std::string> &tokens);
     void ChangeSizeAll(const std::vector<std::string> &tokens);
     void DeleteEntry(const std::vector<std::string> &tokens);
+    void Export(const std::vector<std::string> &tokens);
+    void ExportChecksums(const std::vector<std::string> &tokens);
+    void ExportEntries(const std::vector<std::string> &tokens, const std::string &type);
+    void Import(const std::vector<std::string> &tokens);
+    void ImportChecksums(const std::vector<std::string> &tokens);
+    void ImportEntries(const std::vector<std::string> &tokens, const std::string &type);
     void ListEntries(const std::vector<std::string> &tokens);
-    void PrintEntries(const std::vector<std::string> &tokens);
     void PrintUsage(const std::vector<std::string> &tokens);
-    void SaveEntries(const std::vector<std::string> &tokens);
+    void VersionAll(const std::vector<std::string> &tokens);
 
     void ProcessInput(const std::vector<std::string> &tokens);
 
