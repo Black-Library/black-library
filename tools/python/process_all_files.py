@@ -11,6 +11,7 @@
 import argparse
 import json
 import os
+from pathlib import Path
 
 parser = argparse.ArgumentParser(description="Script that touches every section file")
 parser.add_argument("-i", "--input_fields", required=True, help="json file with inputs")
@@ -51,6 +52,11 @@ def main():
         print("Processing {0}".format(dir))
         file_list = create_file_list(dir)
         print("Found {} files".format(len(file_list)))
+        for file in file_list:
+            print("Processing {0}".format(file))
+            new_filename = file.replace(".html", "_VER000.html")
+            print("Processing {0}".format(os.path.basename(new_filename)))
+            os.rename(file, new_filename)
 
     return
 
