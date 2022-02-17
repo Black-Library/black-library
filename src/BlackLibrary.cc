@@ -181,14 +181,10 @@ BlackLibrary::BlackLibrary(const njson &config) :
                     return;
                 }
             }
-            else if (blacklibrary_db_.UpdateMd5Sum(md5))
+
+            if (blacklibrary_db_.UpdateMd5Sum(md5))
             {
                 BlackLibraryCommon::LogError("black_library", "Update version UUID: {} index_num: {} md5_sum: {} failed", uuid, index_num, md5_sum);
-                return;
-            }
-            else
-            {
-                BlackLibraryCommon::LogError("black_library", "Unspecified version UUID: {} index_num: {} md5_sum: {} update failed", uuid, index_num, md5_sum);
                 return;
             }
         }

@@ -567,10 +567,8 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
     }
 }
 
-void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
+void BlackLibraryCLI::List(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
     std::string target_entry_type;
 
     if (tokens.size() >= 2)
@@ -579,12 +577,41 @@ void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens)
     }
 
     if (target_entry_type == "black")
-        entry_list = blacklibrary_db_.GetBlackEntryList();
+        ListEntries(tokens, "black");
+    else if (target_entry_type == "checksum")
+        ListChecksums(tokens);
     else if (target_entry_type == "error")
-        error_list = blacklibrary_db_.GetErrorEntryList();
+        ListEntries(tokens, "error");
     else if (target_entry_type == "staging")
+        ListEntries(tokens, "staging");
+    else
+        std::cout << "list [black, error, staging]" << std::endl;
+}
+
+void BlackLibraryCLI::ListChecksums(const std::vector<std::string> &tokens)
+{
+    (void) tokens;
+    auto checksum_list = blacklibrary_db_.GetChecksumList();
+
+    for (const auto & checksum : checksum_list)
+    {
+        std::cout << checksum << std::endl;
+    }
+}
+
+void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens, const std::string &type)
+{
+    (void) tokens;
+    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::vector<BlackLibraryDB::DBErrorEntry> error_list;
+
+    if (type == "black")
+        entry_list = blacklibrary_db_.GetBlackEntryList();
+    else if (type == "error")
+        error_list = blacklibrary_db_.GetErrorEntryList();
+    else if (type == "staging")
         entry_list = blacklibrary_db_.GetStagingEntryList();
-    else if (target_entry_type == "help")
+    else if (type == "help")
         std::cout << "list [black, error, staging]" << std::endl;
     else
     {
@@ -686,7 +713,7 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     }
     else if (command == "list")
     {
-        ListEntries(tokens);
+        List(tokens);
     }
     else if (command == "size")
     {
