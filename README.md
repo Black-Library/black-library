@@ -54,3 +54,7 @@ supported commands are listed under the `help` command
 We will (loosely) follow the google cpp style guide for this project
 
 https://google.github.io/styleguide/cppguide.html
+
+## Related projects by others
+https://github.com/Flameish/Novel-Grabber
+https://github.com/krissgjeng/webnovel-dl
