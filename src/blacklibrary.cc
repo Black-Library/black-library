@@ -72,7 +72,7 @@ void SigHandler(int sig)
         blacklibrary->Stop();
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     struct options opts;
 

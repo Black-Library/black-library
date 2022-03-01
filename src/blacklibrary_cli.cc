@@ -68,7 +68,7 @@ static int ParseOptions(int argc, char **argv, struct options *opts)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     struct options opts;
 
