@@ -158,7 +158,8 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBEntry> entry_list;
+    std::vector<BlackLibraryDB::DBEntry> blackentry_list;
+    std::vector<BlackLibraryDB::DBEntry> stagingentry_list;
     std::string target_source;
     size_t desired_size;
     time_t desired_after_date;
@@ -171,7 +172,7 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
     }
     else
     {
-        std::cout << "sizeall [new_size] [seconds since epoch desired after date]" << std::endl;
+        std::cout << "sizeall [new_size] [seconds since epoch desired after date] [source]" << std::endl;
         return;
     }
 
@@ -180,9 +181,9 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
         target_source = tokens[3];
     }
 
-    entry_list = blacklibrary_db_.GetBlackEntryList();
+    blackentry_list = blacklibrary_db_.GetBlackEntryList();
 
-    for (auto &entry : entry_list)
+    for (auto &entry : blackentry_list)
     {
         // std::cout << entry.uuid << " update date: " << entry.update_date << " after_date: " << desired_after_date << " - " << (entry.update_date > desired_after_date) << " - " << desired_size << std::endl;
         // change size if they come after the provided date
@@ -200,6 +201,28 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
             BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", entry.uuid, desired_size);
         }
     }
+
+    stagingentry_list = blacklibrary_db_.GetStagingEntryList();
+    // TODO: match urls to source url in the cases where new staging entry are needing resizing
+    // for (auto &entry : stagingentry_list)
+    // {
+    //     // std::cout << entry.uuid << " update date: " << entry.update_date << " after_date: " << desired_after_date << " - " << (entry.update_date > desired_after_date) << " - " << desired_size << std::endl;
+    //     // change size if they come after the provided date
+
+    //     if (entry.update_date > desired_after_date && entry.url == target_source)
+    //     {
+    //         entry.series_length = desired_size;
+    //         entry.last_url = entry.url;
+
+    //         if (blacklibrary_db_.UpdateStagingEntry(entry))
+    //         {
+    //             BlackLibraryCommon::LogError("black_library_cli", "Failed to update staging entry with UUID: {} size: {}", entry.uuid, desired_size);
+    //             continue;
+    //         }
+
+    //         BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", entry.uuid, desired_size);
+    //     }
+    // }
 }
 
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
