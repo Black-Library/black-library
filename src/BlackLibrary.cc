@@ -471,10 +471,27 @@ int BlackLibrary::ParserErrorEntries()
 int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result)
 {
     // TODO staging should check against black for these
+    BlackLibraryCommon::LogDebug("black_library", "Update database with {}", result);
+    // if (entry.title.empty() && !result.metadata.title.empty())
+    //     entry.title = result.metadata.title;
+    // if (entry.nickname.empty() && !result.metadata.nickname.empty())
+    //     entry.nickname = result.metadata.nickname;
+    // if (entry.source.empty() && !result.metadata.source.empty())
+    //     entry.source = result.metadata.source;
+    // if (entry.series.empty() && !result.metadata.series.empty())
+    //     entry.series = result.metadata.series;
+    // if (entry.author.empty() && !result.metadata.author.empty())
+    //     entry.author = result.metadata.author;
+
     if (!result.is_error_job)
     {
-        entry.last_url = result.metadata.last_url;
+        entry.title = result.metadata.title;
+        entry.nickname = result.metadata.nickname;
+        entry.source = result.metadata.source;
+        entry.series = result.metadata.series;
         entry.author = result.metadata.author;
+
+        entry.last_url = result.metadata.last_url;
     }
     else
     {
@@ -482,6 +499,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
         entry.nickname = result.metadata.nickname;
         entry.source = result.metadata.source;
         entry.series = result.metadata.series;
+        entry.author = result.metadata.author;
     }
 
     if (entry.update_date < result.metadata.update_date)
