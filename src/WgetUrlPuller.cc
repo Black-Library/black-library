@@ -38,7 +38,7 @@ std::vector<std::string> WgetUrlPuller::PullUrls(bool debug_target) const
 
     const auto command = ss.str();
 
-    BlackLibraryCommon::LogDebug("black_library", "Pulling Urls using Wget with command: {}", command);
+    BlackLibraryCommon::LogDebug("black_library", "WgetUrlPuller pulling Urls using Wget with command: {}", command);
 
     if (clearenv() != 0)
     {
@@ -50,12 +50,19 @@ std::vector<std::string> WgetUrlPuller::PullUrls(bool debug_target) const
     int ret = system(command.c_str());
 
     if (ret < 0)
+    {
+        BlackLibraryCommon::LogError("black_library", "WgetUrlPuller failed wget system call");
         return urls;
+    }
+
+    BlackLibraryCommon::LogDebug("black_library", "WgetUrlPuller wget system return value: {}", ret);
+
 
     file_stream.open(file_name);
 
     if (!file_stream.is_open())
     {
+        BlackLibraryCommon::LogError("black_library", "WgetUrlPuller failed to open file stream");
         file_stream.close();
         return urls;
     }

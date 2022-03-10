@@ -211,17 +211,31 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
 int BlackLibrary::Run()
 {
-    auto now_time = std::chrono::steady_clock::now();
+    // use system_clock instead of steady_clock for systems that suspend on inactivity
+    auto now_time = std::chrono::system_clock::now();
     auto run_deadline = now_time;
 
     while (!done_)
     {
-        now_time = std::chrono::steady_clock::now();
+        now_time = std::chrono::system_clock::now();
         const auto deadline = now_time + std::chrono::milliseconds(1000);
 
         if ((run_deadline - now_time).count() < 0)
         {
-            RunOnce();
+            uint8_t retries = 5;
+
+            while (retries > 0)
+            {
+                if (!RunOnce())
+                    break;
+
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                --retries;
+
+                BlackLibraryCommon::LogWarn("black_library", "Failed run once, {} retries remaining", retries);
+            }
+
             run_deadline = now_time + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
             auto info_time = std::chrono::system_clock::now() + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
             const std::string iso_info_time = BlackLibraryCommon::GetISOTimeString(std::chrono::system_clock::to_time_t(info_time));
@@ -274,7 +288,6 @@ int BlackLibrary::RunOnce()
         return -1;
     }
 
-
     if (UpdateStaging())
     {
         BlackLibraryCommon::LogError("black_library", "Updating staging table failed");
@@ -300,6 +313,9 @@ int BlackLibrary::Stop()
         manager_thread_.join();
 
     BlackLibraryCommon::LogInfo("black_library", "Stopping BlackLibrary");
+
+    // clean up memory allocated by xml
+    xmlCleanupParser();
 
     // shutdown logging manually just in case termination flush fails
     spdlog::shutdown();
