@@ -8,6 +8,7 @@
 #include <atomic>
 #include <vector>
 
+#include <ConfigOperations.h>
 #include <BlackLibraryBinder.h>
 #include <BlackLibraryDB.h>
 
