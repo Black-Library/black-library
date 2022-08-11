@@ -2,6 +2,7 @@ add_subdirectory(black-library-binder)
 add_subdirectory(black-library-common)
 add_subdirectory(black-library-db)
 add_subdirectory(black-library-parsers)
+# add_subdirectory(cpp-httplib)
 add_subdirectory(scraper-sanatizer)
 
 message(STATUS "BUILD_GUI: ${BUILD_GUI}")
