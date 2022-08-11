@@ -112,7 +112,7 @@ BlackLibraryGUI::BlackLibraryGUI(const njson &config) :
     force_sort_black_(false),
     force_sort_staging_(false)
 {
-    njson nconfig = config["config"];
+    njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
     std::string bind_dir = "/mnt/black-library/output/";
 

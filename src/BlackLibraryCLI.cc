@@ -32,7 +32,7 @@ BlackLibraryCLI::BlackLibraryCLI(const njson &config) :
     blacklibrary_binder_(config),
     done_(false)
 {
-    njson nconfig = config["config"];
+    njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
     std::string logger_path = BlackLibraryCommon::DefaultLogPath;
 

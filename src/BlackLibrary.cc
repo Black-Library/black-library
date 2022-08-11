@@ -38,7 +38,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
     debug_target_(false),
     done_(true)
 {
-    njson nconfig = config["config"];
+    njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
     std::string logger_path = BlackLibraryCommon::DefaultLogPath;
     bool logger_level = BlackLibraryCommon::DefaultLogLevel;
