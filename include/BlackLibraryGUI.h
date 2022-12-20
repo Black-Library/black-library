@@ -58,6 +58,7 @@ struct ApplicationLog
 
     void    Draw(bool* p_open = NULL)
     {
+        (void) p_open;
         bool clear = ImGui::Button("Clear");
         ImGui::SameLine();
         bool copy = ImGui::Button("Copy");
