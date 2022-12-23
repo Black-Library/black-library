@@ -22,5 +22,6 @@ endif()
 
 add_subdirectory(ext)
 add_subdirectory(src)
+add_subdirectory(test)
 
 add_app_docker_targets()
