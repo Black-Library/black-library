@@ -1,0 +1,2 @@
+#define Parsers_VERSION_MAJOR @Parsers_VERSION_MAJOR
+#define Parsers_VERSION_MINOR @Parsers_VERSION_MINOR
