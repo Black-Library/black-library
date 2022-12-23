@@ -112,7 +112,7 @@ bool BlackLibraryBinder::Bind(const std::string &uuid, const std::string &name)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    std::string target_path = storage_path_ + uuid;
+    std::string target_path = storage_path_ + "/" + uuid;
     BlackLibraryCommon::LogInfo("binder", "Bind target: {}", target_path);
 
     if (!BlackLibraryCommon::PathExists(target_path))
