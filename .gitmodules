@@ -1,15 +1,19 @@
-[submodule "ext/black-library-parsers"]
-	path = ext/black-library-parsers
-	url = git@github.com:Black-Library/black-library-parsers.git
-[submodule "ext/scraper-sanatizer"]
-	path = ext/scraper-sanatizer
-	url = git@github.com:benjaminchang23/scraper-sanatizer.git
-[submodule "ext/black-library-common"]
-	path = ext/black-library-common
-	url = git@github.com:Black-Library/black-library-common.git
-[submodule "ext/imgui"]
-	path = ext/imgui
-	url = https://github.com/ocornut/imgui
+[submodule "ext/catch2"]
+	path = ext/catch2
+	url = https://github.com/catchorg/Catch2.git
 [submodule "ext/cpp-httplib"]
 	path = ext/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib
+[submodule "ext/imgui"]
+	path = ext/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "ext/json"]
+	path = ext/json
+	url = https://github.com/nlohmann/json.git
+[submodule "ext/scraper-sanatizer"]
+	path = ext/scraper-sanatizer
+	url = git@github.com:benjaminchang23/scraper-sanatizer.git
+[submodule "ext/spdlog"]
+	path = ext/spdlog
+	url = git@github.com:gabime/spdlog.git
+
