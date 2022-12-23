@@ -10,9 +10,6 @@
 [submodule "ext/black-library-common"]
 	path = ext/black-library-common
 	url = git@github.com:Black-Library/black-library-common.git
-[submodule "ext/black-library-binder"]
-	path = ext/black-library-binder
-	url = git@github.com:Black-Library/black-library-binder.git
 [submodule "ext/imgui"]
 	path = ext/imgui
 	url = https://github.com/ocornut/imgui
