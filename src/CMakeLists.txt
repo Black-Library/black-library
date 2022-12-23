@@ -1,6 +1,7 @@
 add_subdirectory(binder)
 add_subdirectory(db)
 add_subdirectory(parsers)
+add_subdirectory(util)
 
 add_library(blacklibrary BlackLibrary.cc WgetUrlPuller.cc)
 add_library(blacklibrarycli BlackLibraryCLI.cc)

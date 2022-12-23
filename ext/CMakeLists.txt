@@ -1,7 +1,10 @@
-add_subdirectory(black-library-common)
-# add_subdirectory(cpp-httplib)
-add_subdirectory(scraper-sanatizer)
+# catch2
+add_subdirectory(catch2)
 
+# cpp-httplib
+# add_subdirectory(cpp-httplib)
+
+#imgui
 message(STATUS "BUILD_GUI: ${BUILD_GUI}")
 
 if (BUILD_GUI)
@@ -45,3 +48,17 @@ if (BUILD_GUI)
 else()
     message(STATUS "BUILD_GUI OFF")
 endif()
+
+# nlohmann json
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(json)
+
+# scraper-sanatizer
+add_subdirectory(scraper-sanatizer)
+
+# spdlog
+set(SPDLOG_BUILD_SHARED ON CACHE INTERNAL "Build spdlog shared library")
+set(SPDLOG_INSTALL ON CACHE INTERNAL "Install spdlog")
+message(STATUS "SPDLOG_BUILD_SHARED: ${SPDLOG_BUILD_SHARED}")
+message(STATUS "SPDLOG_INSTALL: ${SPDLOG_INSTALL}")
+add_subdirectory(spdlog)
