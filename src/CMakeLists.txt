@@ -1,3 +1,5 @@
+add_subdirectory(binder)
+
 add_library(blacklibrary BlackLibrary.cc WgetUrlPuller.cc)
 add_library(blacklibrarycli BlackLibraryCLI.cc)
 target_link_libraries(blacklibrary blacklibrarydb blacklibraryparsers ScraperSanatizer)
