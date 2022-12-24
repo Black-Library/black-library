@@ -102,6 +102,19 @@ ParseSectionInfo ParserWP::ParseSection()
     xmlNodePtr length_node = NULL;
     size_t length = 0;
 
+    // Remove social media links
+    const auto social_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "div",
+        pattern_seek_t::XML_ATTRIBUTE, "id=jp-post-flair");
+    if (!social_seek.found)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Failed social media seek for UUID: {}", uuid_);
+        xmlFreeDoc(section_doc_tree);
+        return output;
+    }
+
+    xmlUnlinkNode(social_seek.seek_node);
+    xmlFreeNode(social_seek.seek_node);
+
     // Get main Section
     const auto p_body_main_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "main",
         pattern_seek_t::XML_ATTRIBUTE, "id=main");
