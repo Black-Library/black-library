@@ -106,7 +106,8 @@ struct SourceInformationMember : std::unary_function<const std::string, bool>
         {
             is_member = true;
         }
-        else if (StartsWithString(url, GenerateUrlFromSourceUrl(WP::source_url)))
+        // Wordpress url exists somewhere in the given url
+        else if (ContainsString(url, WP::source_url))
         {
             is_member = true;
         }
