@@ -144,10 +144,10 @@ ParseSectionInfo ParserXF::ParseSection()
         return output;
     }
 
-    current_node = section_post_seek.seek_node;
+    current_node = section_post_seek.seek_node->children;
 
     // get title
-    const auto section_title = GetSectionTitle(current_node->children);
+    const auto section_title = GetSectionTitle(current_node);
     if (section_title.empty())
     {
         BlackLibraryCommon::LogError(parser_name_, "Failed to get section title");
@@ -156,10 +156,10 @@ ParseSectionInfo ParserXF::ParseSection()
     }
 
     // get next url
-    next_url_ = GetNextUrl(current_node->children);
+    next_url_ = GetNextUrl(current_node);
 
     // get last update date
-    last_update_date_ = GetUpdateDate(current_node->children);
+    last_update_date_ = GetUpdateDate(current_node);
 
     // skip saving content if before target start index
     BlackLibraryCommon::LogDebug(parser_name_, "working index: {} start index: {}", working_index, target_start_index_);

@@ -39,7 +39,7 @@ void ParserWP::FindMetaData(xmlNodePtr root_node)
     if (!body_seek.found)
     {
 
-        BlackLibraryCommon::LogWarn(parser_name_, "Failed body seek for UUID: {}", uuid_);
+        BlackLibraryCommon::LogWarn(parser_name_, "Failed metadata body seek for UUID: {}", uuid_);
         return;
     }
     current_node = body_seek.seek_node;
@@ -51,7 +51,7 @@ void ParserWP::FindMetaData(xmlNodePtr root_node)
         BlackLibraryCommon::LogError(parser_name_, "Failed author span seek for UUID: {}", uuid_);
         return;
     }
-    current_node = span_seek.seek_node;
+    current_node = span_seek.seek_node->children;
 
     const auto author_seek = SeekToNodeByName(current_node, "a");
     if (!author_seek.found)
@@ -115,7 +115,7 @@ ParseSectionInfo ParserWP::ParseSection()
     current_node = p_body_main_seek.seek_node;
 
     // get title
-    const auto section_title = GetSectionTitle(current_node->children);
+    const auto section_title = GetSectionTitle(current_node);
     if (section_title.empty())
     {
         BlackLibraryCommon::LogError(parser_name_, "Failed to get section title");
@@ -124,14 +124,14 @@ ParseSectionInfo ParserWP::ParseSection()
     }
 
     // get next url
-    next_url_ = GetNextUrl(current_node->children);
+    next_url_ = GetNextUrl(current_node);
 
     // get last update date
-    last_update_date_ = GetUpdateDate(current_node->children);
+    last_update_date_ = GetUpdateDate(current_node);
 
     // skip saving content if before target start index
     BlackLibraryCommon::LogDebug(parser_name_, "working index: {} start index: {}", working_index, target_start_index_);
-    if (working_index <= target_start_index_)
+    if (working_index < target_start_index_)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "Target start index: {} - current index: {} skipping file save", target_start_index_, working_index);
         output.has_error = false;
@@ -241,23 +241,14 @@ std::string ParserWP::GetNextUrl(xmlNodePtr root_node)
 {
     xmlNodePtr current_node = NULL;
 
-    ParserXmlNodeSeek body_seek = SeekToNodeByName(root_node, "body");
-    if (!body_seek.found)
-    {
-
-        BlackLibraryCommon::LogError(parser_name_, "Failed body seek for UUID: {}", uuid_);
-        return "";
-    }
-    current_node = body_seek.seek_node;
-
-    const auto div_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "div",
+    const auto div_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "div",
         pattern_seek_t::XML_ATTRIBUTE, "class=nav-next");
     if (!div_seek.found)
     {
         BlackLibraryCommon::LogError(parser_name_, "Failed get next div seek for UUID: {}", uuid_);
         return "";
     }
-    current_node = div_seek.seek_node;
+    current_node = div_seek.seek_node->children;
 
     const auto a_seek = SeekToNodeByName(current_node, "a");
     if (!a_seek.found)
@@ -281,16 +272,7 @@ std::string ParserWP::GetSectionTitle(xmlNodePtr root_node)
 {
     xmlNodePtr current_node = NULL;
 
-    ParserXmlNodeSeek body_seek = SeekToNodeByName(root_node, "body");
-    if (!body_seek.found)
-    {
-
-        BlackLibraryCommon::LogError(parser_name_, "Failed body seek for UUID: {}", uuid_);
-        return "";
-    }
-    current_node = body_seek.seek_node;
-
-    const auto title_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "h1",
+    const auto title_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "h1",
         pattern_seek_t::XML_ATTRIBUTE, "class=entry-title");
     if (!title_seek.found)
     {
@@ -313,16 +295,7 @@ time_t ParserWP::GetUpdateDate(xmlNodePtr root_node)
 {
     xmlNodePtr current_node = NULL;
 
-    ParserXmlNodeSeek body_seek = SeekToNodeByName(root_node, "body");
-    if (!body_seek.found)
-    {
-
-        BlackLibraryCommon::LogError(parser_name_, "Failed body seek for UUID: {}", uuid_);
-        return 0;
-    }
-    current_node = body_seek.seek_node;
-
-    const auto time_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "time",
+    const auto time_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "time",
         pattern_seek_t::XML_ATTRIBUTE, "class=updated");
     if (!time_seek.found)
     {
