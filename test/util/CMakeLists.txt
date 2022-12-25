@@ -2,6 +2,7 @@ set(SOURCES_TESTS
     config_test.cc
     file_test.cc
     log_test.cc
+    source_test.cc
     string_test.cc
     time_test.cc
     )
@@ -14,11 +15,11 @@ foreach( name ${TARGETS_LIST} )
 endforeach()
 
 foreach( name ${TARGETS_LIST} )
-    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibrarycommon)
+    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibrarycommon )
     include_directories( ${PROJECT_SOURCE_DIR}/test/util )
-    set_property(TARGET ${name} PROPERTY CXX_STANDARD 14)
-    set_property(TARGET ${name} PROPERTY CXX_EXTENSIONS OFF)
-    set_property(TARGET ${name} PROPERTY INSTALL_RPATH "$LD_LIBRARY_PATH;${CMAKE_INSTALL_PREFIX}/lib")
+    set_property( TARGET ${name} PROPERTY CXX_STANDARD 14 )
+    set_property( TARGET ${name} PROPERTY CXX_EXTENSIONS OFF )
+    set_property( TARGET ${name} PROPERTY INSTALL_RPATH "$LD_LIBRARY_PATH;${CMAKE_INSTALL_PREFIX}/lib" )
 endforeach()
 
 foreach( name ${TARGETS_LIST} )

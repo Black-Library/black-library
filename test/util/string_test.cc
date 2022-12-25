@@ -76,7 +76,6 @@ TEST_CASE( "SubstringAfterString generic tests (pass)", "[single-file]" )
 {
     REQUIRE( SubstringAfterString("", "") == "" );
     REQUIRE( SubstringAfterString("", "") == "" );
-
 }
 
 TEST_CASE( "TrimWhitespace generic tests (pass)", "[single-file]" )

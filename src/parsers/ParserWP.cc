@@ -116,16 +116,16 @@ ParseSectionInfo ParserWP::ParseSection()
     xmlFreeNode(social_seek.seek_node);
 
     // Get main Section
-    const auto p_body_main_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "main",
-        pattern_seek_t::XML_ATTRIBUTE, "id=main");
-    if (!p_body_main_seek.found)
+    const auto id_primary_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "div",
+        pattern_seek_t::XML_ATTRIBUTE, "id=primary");
+    if (!id_primary_seek.found)
     {
         BlackLibraryCommon::LogError(parser_name_, "Failed p-body-main seek for UUID: {}", uuid_);
         xmlFreeDoc(section_doc_tree);
         return output;
     }
 
-    current_node = p_body_main_seek.seek_node;
+    current_node = id_primary_seek.seek_node;
 
     // get title
     const auto section_title = GetSectionTitle(current_node);
