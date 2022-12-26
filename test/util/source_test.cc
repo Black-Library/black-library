@@ -15,7 +15,7 @@ namespace common {
 TEST_CASE( "GenerateUrlFromSourceUrl generic tests (pass)", "[single-file]" )
 {
     REQUIRE( GenerateUrlFromSourceUrl("") == "https://" );
-    REQUIRE( GenerateUrlFromSourceUrl(ERROR::source_url) == "https://" );
+    REQUIRE( GenerateUrlFromSourceUrl(ERROR::source_url) == "https://error-source-url" );
     REQUIRE( GenerateUrlFromSourceUrl(AO3::source_url) == "https://archiveofourown.org" );
     REQUIRE( GenerateUrlFromSourceUrl(FFN::source_url) == "https://www.fanfiction.net" );
     REQUIRE( GenerateUrlFromSourceUrl(RR::source_url) == "https://www.royalroad.com" );
@@ -24,8 +24,26 @@ TEST_CASE( "GenerateUrlFromSourceUrl generic tests (pass)", "[single-file]" )
     REQUIRE( GenerateUrlFromSourceUrl(YT::source_url) == "https://youtube.com" );
 }
 
-TEST_CASE( "SourceInformationMember generic tests (pass)", "[single-file]" )
+TEST_CASE( "IsSourceInformationMember generic tests (pass)", "[single-file]" )
 {
+    REQUIRE( IsSourceInformationMember("") == false );
+    REQUIRE( IsSourceInformationMember("https://") == false );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(ERROR::source_url)) == false );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(AO3::source_url)) == true );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(FFN::source_url)) == true );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(SBF::source_url)) == true );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(SVF::source_url)) == true );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(RR::source_url)) == true );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(WP::source_url)) == true );
+    REQUIRE( IsSourceInformationMember(GenerateUrlFromSourceUrl(YT::source_url)) == true );
+
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(AO3::source_url)) == false );
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(FFN::source_url)) == false );
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(SBF::source_url)) == false );
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(SVF::source_url)) == false );
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(RR::source_url)) == false );
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(WP::source_url)) == false );
+    REQUIRE( IsSourceInformationMember("#" + GenerateUrlFromSourceUrl(YT::source_url)) == false );
 }
 
 } // namespace common

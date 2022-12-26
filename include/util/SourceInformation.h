@@ -71,54 +71,8 @@ namespace YT {
     static constexpr char source_url[] = "youtube.com";
 } // namespace YT
 
-namespace {
-
-std::string GenerateUrlFromSourceUrl(const char *source_url)
-{
-    return std::string("https://") + source_url;
-}
-
-}
-
-struct SourceInformationMember : std::unary_function<const std::string, bool>
-{
-    bool operator()(const std::string &url) const
-    {
-        bool is_member = false;
-
-        if (StartsWithString(url, GenerateUrlFromSourceUrl(AO3::source_url)))
-        {
-            is_member = true;
-        }
-        else if (StartsWithString(url, GenerateUrlFromSourceUrl(FFN::source_url)))
-        {
-            is_member = true;
-        }
-        else if (StartsWithString(url, GenerateUrlFromSourceUrl(SBF::source_url)))
-        {
-            is_member = true;
-        }
-        else if (StartsWithString(url, GenerateUrlFromSourceUrl(SVF::source_url)))
-        {
-            is_member = true;
-        }
-        else if (StartsWithString(url, GenerateUrlFromSourceUrl(RR::source_url)))
-        {
-            is_member = true;
-        }
-        // Wordpress url exists somewhere in the given url
-        else if ( !StartsWithString(url, "#") && ContainsString(url, WP::source_url) )
-        {
-            is_member = true;
-        }
-        else if (StartsWithString(url, GenerateUrlFromSourceUrl(YT::source_url)))
-        {
-            is_member = true;
-        }
-
-        return is_member;
-    }
-};
+std::string GenerateUrlFromSourceUrl(const char *source_url);
+bool IsSourceInformationMember(const std::string &url);
 
 } // namespace common
 } // namespace core

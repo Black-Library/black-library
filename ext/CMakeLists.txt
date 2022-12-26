@@ -1,5 +1,18 @@
 # catch2
 add_subdirectory(catch2)
+install(
+    TARGETS
+        Catch2
+        Catch2WithMain
+    EXPORT
+        Catch2Targets
+    LIBRARY DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION
+        ${CMAKE_INSTALL_BINDIR}
+)
 
 # cpp-httplib
 # add_subdirectory(cpp-httplib)

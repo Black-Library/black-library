@@ -102,7 +102,7 @@ ParseSectionInfo ParserYT::ParseSection()
     ParseSectionInfo output;
     const auto index_entry = index_entries_[index_];
 
-    const auto index_entry_url = "https://www." + source_url_ + index_entry.data_url;
+    const auto index_entry_url = "https://" + source_url_ + index_entry.data_url;
     std::cout << GetParserName(parser_type_) << " ParseSection: " << GetParserBehaviorName(parser_behavior_) << " - parse url: " << index_entry_url << " - " << index_entry.name << std::endl;
 
     std::stringstream ss;

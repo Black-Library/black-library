@@ -120,7 +120,7 @@ ParseSectionInfo ParserWP::ParseSection()
         pattern_seek_t::XML_ATTRIBUTE, "id=primary");
     if (!id_primary_seek.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed p-body-main seek for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed id primary seek for UUID: {}", uuid_);
         xmlFreeDoc(section_doc_tree);
         return output;
     }
@@ -140,7 +140,7 @@ ParseSectionInfo ParserWP::ParseSection()
     next_url_ = GetNextUrl(current_node);
 
     // get last update date
-    last_update_date_ = GetUpdateDate(current_node);
+    last_update_date_ = GetUpdateDate(root_node);
 
     // skip saving content if before target start index
     BlackLibraryCommon::LogDebug(parser_name_, "working index: {} start index: {}", working_index, target_start_index_);
@@ -308,19 +308,19 @@ time_t ParserWP::GetUpdateDate(xmlNodePtr root_node)
 {
     xmlNodePtr current_node = NULL;
 
-    const auto time_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "time",
-        pattern_seek_t::XML_ATTRIBUTE, "class=updated");
+    const auto time_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "meta",
+        pattern_seek_t::XML_ATTRIBUTE, "property=article:modified_time");
     if (!time_seek.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed update time seek for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed meta modified time seek for UUID: {}", uuid_);
         return 0;
     }
     current_node = time_seek.seek_node;
 
-    const auto time_content_result = GetXmlAttributeContentByName(current_node, "datetime");
+    const auto time_content_result = GetXmlAttributeContentByName(current_node, "content");
     if (!time_content_result.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed to get time content for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed to get modified time content for UUID: {}", uuid_);
         return 0;
 
     }

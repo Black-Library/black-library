@@ -342,8 +342,8 @@ int BlackLibrary::VerifyUrls()
 {
     BlackLibraryCommon::LogInfo("black_library", "Verifying Urls");
 
-    // make sure they contain a url pattern on the protected list
-    pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), std::not1(BlackLibraryCommon::SourceInformationMember())), pull_urls_.end());
+    // remove if url not on the protected list
+    pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), [](const std::string &str){ return !BlackLibraryCommon::IsSourceInformationMember(str); }), pull_urls_.end());
 
     BlackLibraryCommon::LogInfo("black_library", "After source information check {} urls", pull_urls_.size());
 
