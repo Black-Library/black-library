@@ -115,6 +115,9 @@ ParseSectionInfo ParserWP::ParseSection()
     xmlUnlinkNode(social_seek.seek_node);
     xmlFreeNode(social_seek.seek_node);
 
+    // Get title
+    title_ = GetWorkTitle(current_node);
+
     // Get main Section
     const auto id_primary_seek = SeekToNodeByPattern(current_node, pattern_seek_t::XML_NAME, "div",
         pattern_seek_t::XML_ATTRIBUTE, "id=primary");
@@ -242,6 +245,11 @@ ParseSectionInfo ParserWP::ParseSection()
 
 std::string ParserWP::PreprocessTargetUrl(const ParserJob &parser_job)
 {
+    if (parser_job.url == parser_job.last_url || parser_job.last_url.empty())
+    {
+        return parser_job.url;
+    }
+
     return parser_job.last_url;
 }
 
@@ -258,8 +266,9 @@ std::string ParserWP::GetNextUrl(xmlNodePtr root_node)
         pattern_seek_t::XML_ATTRIBUTE, "class=nav-next");
     if (!div_seek.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed get next div seek for UUID: {}", uuid_);
-        return "";
+        BlackLibraryCommon::LogDebug(parser_name_, "Failed get next div seek or reached end of linked list for UUID: {}", uuid_);
+        reached_end_ = true;
+        return next_url_;
     }
     current_node = div_seek.seek_node->children;
 
@@ -315,6 +324,7 @@ time_t ParserWP::GetUpdateDate(xmlNodePtr root_node)
         BlackLibraryCommon::LogError(parser_name_, "Failed meta modified time seek for UUID: {}", uuid_);
         return 0;
     }
+
     current_node = time_seek.seek_node;
 
     const auto time_content_result = GetXmlAttributeContentByName(current_node, "content");
@@ -322,8 +332,8 @@ time_t ParserWP::GetUpdateDate(xmlNodePtr root_node)
     {
         BlackLibraryCommon::LogError(parser_name_, "Failed to get modified time content for UUID: {}", uuid_);
         return 0;
-
     }
+
     struct tm tm;
 
     if (strptime(time_content_result.result.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) == NULL)
@@ -334,6 +344,30 @@ time_t ParserWP::GetUpdateDate(xmlNodePtr root_node)
 
     tm.tm_isdst = -1;
     return mktime(&tm);
+}
+
+std::string ParserWP::GetWorkTitle(xmlNodePtr root_node)
+{
+    title = GetParserName(parser_t::WP_PARSER) + "_title";
+
+    const auto title_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "meta",
+        pattern_seek_t::XML_ATTRIBUTE, "property=og:site_name");
+    if (!title_seek.found)
+    {
+        BlackLibraryCommon::LogWarn(parser_name_, "Failed meta title seek for UUID: {}", uuid_);
+        return title;
+    }
+
+    current_node = title_seek.seek_node;
+
+    const auto title_content_result = GetXmlAttributeContentByName(current_node, "content");
+    if (!title_content_result.found)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Failed to get title content for UUID: {}", uuid_);
+        return title;
+    }
+
+    return title_content_result.result;
 }
 
 } // namespace WP
