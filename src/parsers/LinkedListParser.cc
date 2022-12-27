@@ -75,6 +75,9 @@ bool LinkedListParser::ReachedEnd()
 
 void LinkedListParser::SaveLastUrl(ParserResult &parser_result)
 {
+    if (next_url_.empty())
+        BlackLibraryCommon::LogError(parser_name_, "save last url empty: {}", uuid_);
+
     parser_result.metadata.last_url = next_url_;
 }
 
