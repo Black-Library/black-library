@@ -28,25 +28,25 @@ njson GenerateDBTestConfig()
 
 DBEntry GenerateTestBlackEntry()
 {
-    DBEntry black_entry;
+    DBEntry work_entry;
 
-    black_entry.uuid = "55ee59ad-2feb-4196-960b-3226c65c80d5";
-    black_entry.title = "black-title";
-    black_entry.author = "black-author";
-    black_entry.nickname = "black-nickname";
-    black_entry.source = "black-source";
-    black_entry.url = "black-url";
-    black_entry.last_url = "black-last-url";
-    black_entry.series = "black-series";
-    black_entry.series_length = 10;
-    black_entry.version = 20;
-    black_entry.media_path = "black-media-path";
-    black_entry.birth_date = 30;
-    black_entry.check_date = 40;
-    black_entry.update_date = 50;
-    black_entry.user_contributed = 4004;
+    work_entry.uuid = "55ee59ad-2feb-4196-960b-3226c65c80d5";
+    work_entry.title = "black-title";
+    work_entry.author = "black-author";
+    work_entry.nickname = "black-nickname";
+    work_entry.source = "black-source";
+    work_entry.url = "black-url";
+    work_entry.last_url = "black-last-url";
+    work_entry.series = "black-series";
+    work_entry.series_length = 10;
+    work_entry.version = 20;
+    work_entry.media_path = "black-media-path";
+    work_entry.birth_date = 30;
+    work_entry.check_date = 40;
+    work_entry.update_date = 50;
+    work_entry.user_contributed = 4004;
 
-    return black_entry;
+    return work_entry;
 }
 
 DBEntry GenerateTestStagingEntry()

@@ -37,26 +37,26 @@ TEST_CASE( "Test setup black library db (pass)", "[single-file]" )
 TEST_CASE( "Test CRUD for empty entries black library (pass)", "[single-file]" )
 {
     DBEntry staging_entry;
-    DBEntry black_entry;
+    DBEntry work_entry;
     DBErrorEntry error_entry;
 
     njson config = GenerateDBTestConfig();
     BlackLibraryDB blacklibrary_db(config);
 
     REQUIRE( blacklibrary_db.CreateStagingEntry(staging_entry) == -1 );
-    REQUIRE( blacklibrary_db.CreateBlackEntry(black_entry) == -1 );
+    REQUIRE( blacklibrary_db.CreateBlackEntry(work_entry) == -1 );
     REQUIRE( blacklibrary_db.CreateErrorEntry(error_entry) == -1 );
 
     DBEntry staging_read = blacklibrary_db.ReadStagingEntry(staging_entry.uuid);
-    DBEntry black_read = blacklibrary_db.ReadBlackEntry(black_entry.uuid);
+    DBEntry black_read = blacklibrary_db.ReadBlackEntry(work_entry.uuid);
     REQUIRE( staging_read.uuid == "" );
     REQUIRE( black_read.uuid == "" );
 
     REQUIRE( blacklibrary_db.UpdateStagingEntry(staging_entry) == -1 );
-    REQUIRE( blacklibrary_db.UpdateBlackEntry(black_entry) == -1 );
+    REQUIRE( blacklibrary_db.UpdateBlackEntry(work_entry) == -1 );
 
     REQUIRE( blacklibrary_db.DeleteStagingEntry(staging_entry.uuid) == -1 );
-    REQUIRE( blacklibrary_db.DeleteBlackEntry(black_entry.uuid) == -1 );
+    REQUIRE( blacklibrary_db.DeleteBlackEntry(work_entry.uuid) == -1 );
     REQUIRE( blacklibrary_db.DeleteErrorEntry(error_entry.uuid, error_entry.progress_num) == -1 );
     BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
@@ -64,42 +64,42 @@ TEST_CASE( "Test CRUD for empty entries black library (pass)", "[single-file]" )
 TEST_CASE( "Test CRUD for staging, black, and error entry tables black library (pass)", "[single-file]" )
 {
     DBEntry staging_entry = GenerateTestStagingEntry();
-    DBEntry black_entry = GenerateTestBlackEntry();
+    DBEntry work_entry = GenerateTestBlackEntry();
     DBErrorEntry error_entry = GenerateTestErrorEntry();
 
     njson config = GenerateDBTestConfig();
     BlackLibraryDB blacklibrary_db(config);
 
     REQUIRE( blacklibrary_db.CreateStagingEntry(staging_entry) == 0 );
-    REQUIRE( blacklibrary_db.CreateBlackEntry(black_entry) == 0 );
+    REQUIRE( blacklibrary_db.CreateBlackEntry(work_entry) == 0 );
     REQUIRE( blacklibrary_db.CreateErrorEntry(error_entry) == 0 );
     REQUIRE( blacklibrary_db.DoesStagingEntryUrlExist(staging_entry.url) == true );
     REQUIRE( blacklibrary_db.DoesStagingEntryUUIDExist(staging_entry.uuid) == true );
-    REQUIRE( blacklibrary_db.DoesBlackEntryUrlExist(black_entry.url) == true );
-    REQUIRE( blacklibrary_db.DoesBlackEntryUUIDExist(black_entry.uuid) == true );
+    REQUIRE( blacklibrary_db.DoesBlackEntryUrlExist(work_entry.url) == true );
+    REQUIRE( blacklibrary_db.DoesBlackEntryUUIDExist(work_entry.uuid) == true );
     REQUIRE( blacklibrary_db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num) == true );
 
     DBEntry staging_read = blacklibrary_db.ReadStagingEntry(staging_entry.uuid);
-    DBEntry black_read = blacklibrary_db.ReadBlackEntry(black_entry.uuid);
+    DBEntry black_read = blacklibrary_db.ReadBlackEntry(work_entry.uuid);
     REQUIRE( staging_read.uuid == staging_entry.uuid );
-    REQUIRE( black_read.uuid == black_entry.uuid );
+    REQUIRE( black_read.uuid == work_entry.uuid );
 
     staging_entry.author = "renamed-author";
-    black_entry.author = "renamed-author";
+    work_entry.author = "renamed-author";
     REQUIRE( blacklibrary_db.UpdateStagingEntry(staging_entry) == 0 );
-    REQUIRE( blacklibrary_db.UpdateBlackEntry(black_entry) == 0 );
+    REQUIRE( blacklibrary_db.UpdateBlackEntry(work_entry) == 0 );
     DBEntry staging_update = blacklibrary_db.ReadStagingEntry(staging_entry.uuid);
-    DBEntry black_update = blacklibrary_db.ReadBlackEntry(black_entry.uuid);
+    DBEntry black_update = blacklibrary_db.ReadBlackEntry(work_entry.uuid);
     REQUIRE( staging_update.author == staging_entry.author );
-    REQUIRE( black_update.author == black_entry.author );
+    REQUIRE( black_update.author == work_entry.author );
 
     REQUIRE( blacklibrary_db.DeleteStagingEntry(staging_entry.uuid) == 0 );
-    REQUIRE( blacklibrary_db.DeleteBlackEntry(black_entry.uuid) == 0 );
+    REQUIRE( blacklibrary_db.DeleteBlackEntry(work_entry.uuid) == 0 );
     REQUIRE( blacklibrary_db.DeleteErrorEntry(error_entry.uuid, error_entry.progress_num) == 0 );
     REQUIRE( blacklibrary_db.DoesStagingEntryUrlExist(staging_entry.url) == false );
     REQUIRE( blacklibrary_db.DoesStagingEntryUUIDExist(staging_entry.uuid) == false );
-    REQUIRE( blacklibrary_db.DoesBlackEntryUrlExist(black_entry.url) == false );
-    REQUIRE( blacklibrary_db.DoesBlackEntryUUIDExist(black_entry.uuid) == false );
+    REQUIRE( blacklibrary_db.DoesBlackEntryUrlExist(work_entry.url) == false );
+    REQUIRE( blacklibrary_db.DoesBlackEntryUUIDExist(work_entry.uuid) == false );
     REQUIRE( blacklibrary_db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num) == false );
 }
 

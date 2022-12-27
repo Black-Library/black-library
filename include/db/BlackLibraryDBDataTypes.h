@@ -70,8 +70,7 @@ struct DBSource {
 };
 
 typedef enum {
-    BLACK_ENTRY,
-    STAGING_ENTRY,
+    WORK_ENTRY,
     ERROR_ENTRY,
     _NUM_ENTRY_TYPES
 } entry_table_t;

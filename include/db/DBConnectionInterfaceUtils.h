@@ -17,10 +17,8 @@ std::string GetEntryTypeString(entry_table_rep_t type)
 {
     switch (type)
     {
-    case BLACK_ENTRY:
-        return "black_entry";
-    case STAGING_ENTRY:
-        return "staging_entry";
+    case WORK_ENTRY:
+        return "work_entry";
     case ERROR_ENTRY:
         return "error_entry";
     default:

@@ -403,7 +403,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
     if (ImGui::BeginTable("table_black_entries", 11, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
     {
         // Declare columns
-        SetupTableColumns(BlackLibraryDB::BLACK_ENTRY);
+        SetupTableColumns(BlackLibraryDB::WORK_ENTRY);
 
         // Sort our data if sort specs have been changed!
         if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
@@ -425,7 +425,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
             {
                 // Display a filtered database entry
                 if (filter_.PassFilter(black_entries_[row_n].title.c_str()) || filter_.PassFilter(black_entries_[row_n].author.c_str()))
-                    ShowEntry(black_entries_[row_n], BlackLibraryDB::BLACK_ENTRY);
+                    ShowEntry(black_entries_[row_n], BlackLibraryDB::WORK_ENTRY);
             }
         }
         else
@@ -436,7 +436,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; ++row_n)
             {
-                ShowEntry(black_entries_[row_n], BlackLibraryDB::BLACK_ENTRY);
+                ShowEntry(black_entries_[row_n], BlackLibraryDB::WORK_ENTRY);
             }
         }
         ImGui::EndTable();
@@ -505,7 +505,7 @@ void BlackLibraryGUI::ShowLog()
 
 void BlackLibraryGUI::SetupTableColumns(BlackLibraryDB::entry_table_rep_t type)
 {
-    if (type == BlackLibraryDB::BLACK_ENTRY)
+    if (type == BlackLibraryDB::WORK_ENTRY)
         ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
     ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
     ImGui::TableSetupColumn("Title",            ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
@@ -525,7 +525,7 @@ void BlackLibraryGUI::ShowEntry(const BlackLibraryDB::DBEntry &entry, BlackLibra
 {
     ImGui::PushID(entry.uuid.c_str());
     ImGui::TableNextRow();
-    if (type == BlackLibraryDB::BLACK_ENTRY)
+    if (type == BlackLibraryDB::WORK_ENTRY)
     {
         ImGui::TableNextColumn();
         if (ImGui::SmallButton("Copy"))

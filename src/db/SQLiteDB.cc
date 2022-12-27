@@ -27,52 +27,42 @@ static constexpr const char CreateMediaSubtypeTable[]             = "CREATE TABL
 static constexpr const char CreateBookGenreTable[]                = "CREATE TABLE IF NOT EXISTS book_genre(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateDocumentTagTable[]              = "CREATE TABLE IF NOT EXISTS document_tag(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateSourceTable[]                   = "CREATE TABLE IF NOT EXISTS source(name TEXT NOT NULL PRIMARY KEY, media_type TEXT, media_subtype TEXT, FOREIGN KEY(media_type) REFERENCES media_type(name) FOREIGN KEY(media_subtype) REFERENCES media_subtype(name))";
-static constexpr const char CreateStagingEntryTable[]             = "CREATE TABLE IF NOT EXISTS staging_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
-static constexpr const char CreateBlackEntryTable[]               = "CREATE TABLE IF NOT EXISTS black_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
-static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), version_num INTERGER, PRIMARY KEY (UUID, index_num)";
-static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) PRIMARY KEY NOT NULL, refresh_date INTERGER)";
-static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, progress_num INTEGER)";
+static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
+static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) PRIMARY KEY NOT NULL, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 
 static constexpr const char CreateUserStatement[]                 = "INSERT INTO user(UID, permission_level, name) VALUES (:UID, :permission_level, :name)";
 static constexpr const char CreateMediaTypeStatement[]            = "INSERT INTO media_type(name) VALUES (:name)";
 static constexpr const char CreateMediaSubtypeStatement[]         = "INSERT INTO media_subtype(name, media_type_name) VALUES (:name, :media_type_name)";
 static constexpr const char CreateSourceStatement[]               = "INSERT INTO source(name, media_type, media_subtype) VALUES (:name, :media_type, :media_subtype)";
-static constexpr const char CreateStagingEntryStatement[]         = "INSERT INTO staging_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed)";
-static constexpr const char CreateBlackEntryStatement[]           = "INSERT INTO black_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed)";
+static constexpr const char CreateWorkEntryStatement[]            = "INSERT INTO work_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed)";
 static constexpr const char CreateMd5SumStatement[]               = "INSERT INTO md5_sum(UUID, index_num, md5_sum, version_num) VALUES (:UUID, :index_num, :md5_sum, :version_num)";
 static constexpr const char CreateRefreshStatement[]              = "INSERT INTO refresh(UUID, refresh_date) VALUES (:UUID, :refresh_date)";
 static constexpr const char CreateErrorEntryStatement[]           = "INSERT INTO error_entry(UUID, progress_num) VALUES (:UUID, :progress_num)";
 
-static constexpr const char ReadStagingEntryStatement[]           = "SELECT * FROM staging_entry WHERE UUID = :UUID";
-static constexpr const char ReadStagingEntryUrlStatement[]        = "SELECT * FROM staging_entry WHERE url = :url";
-static constexpr const char ReadStagingEntryUUIDStatement[]       = "SELECT * FROM staging_entry WHERE UUID = :UUID";
-static constexpr const char ReadBlackEntryStatement[]             = "SELECT * FROM black_entry WHERE UUID = :UUID";
-static constexpr const char ReadBlackEntryUrlStatement[]          = "SELECT * FROM black_entry WHERE url = :url";
-static constexpr const char ReadBlackEntryUUIDStatement[]         = "SELECT * FROM black_entry WHERE UUID = :UUID";
+static constexpr const char ReadWorkEntryStatement[]              = "SELECT * FROM work_entry WHERE UUID = :UUID";
+static constexpr const char ReadWorkEntryUrlStatement[]           = "SELECT * FROM work_entry WHERE url = :url";
+static constexpr const char ReadWorkEntryUUIDStatement[]          = "SELECT * FROM work_entry WHERE UUID = :UUID";
 static constexpr const char ReadMd5SumStatement[]                 = "SELECT * FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
 static constexpr const char ReadRefreshStatement[]                = "SELECT * FROM refresh WHERE UUID = :UUID";
 static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
-static constexpr const char UpdateStagingEntryStatement[]         = "UPDATE staging_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed WHERE UUID = :UUID";
-static constexpr const char UpdateBlackEntryStatement[]           = "UPDATE black_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed WHERE UUID = :UUID";
+static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed WHERE UUID = :UUID";
 static constexpr const char UpdateMd5SumStatement[]               = "UPDATE md5_sum SET md5_sum = :md5_sum, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
 
-static constexpr const char DeleteStagingEntryStatement[]         = "DELETE FROM staging_entry WHERE UUID = :UUID";
-static constexpr const char DeleteBlackEntryStatement[]           = "DELETE FROM black_entry WHERE UUID = :UUID";
+static constexpr const char DeleteWorkEntryStatement[]            = "DELETE FROM work_entry WHERE UUID = :UUID";
 static constexpr const char DeleteMd5SumStatement[]               = "DELETE FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
 static constexpr const char DeleteRefreshStatement[]              = "DELETE FROM refresh WHERE UUID = :UUID";
 static constexpr const char DeleteErrorEntryStatement[]           = "DELETE FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
-static constexpr const char GetStagingEntriesStatement[]          = "SELECT * FROM staging_entry";
-static constexpr const char GetBlackEntriesStatement[]            = "SELECT * FROM black_entry";
+static constexpr const char GetBlackEntriesStatement[]            = "SELECT * FROM work_entry";
 static constexpr const char GetMd5sumsStatement[]                 = "SELECT * FROM md5_sum";
 static constexpr const char GetErrorEntriesStatement[]            = "SELECT * FROM error_entry";
 
 static constexpr const char DoesMinRefreshExistStatement[]        = "SELECT CASE WHEN EXISTS(SELECT 1 FROM refresh) THEN 1 ELSE 0 END";
-static constexpr const char GetStagingEntryUUIDFromUrlStatement[] = "SELECT UUID FROM staging_entry WHERE url = :url";
-static constexpr const char GetBlackEntryUUIDFromUrlStatement[]   = "SELECT UUID FROM black_entry WHERE url = :url";
-static constexpr const char GetStagingEntryUrlFromUUIDStatement[] = "SELECT url, last_url FROM staging_entry WHERE UUID = :UUID";
-static constexpr const char GetBlackEntryUrlFromUUIDStatement[]   = "SELECT url, last_url FROM black_entry WHERE UUID = :UUID";
+static constexpr const char GetWorkEntryUUIDFromUrlStatement[]    = "SELECT UUID FROM work_entry WHERE url = :url";
+static constexpr const char GetWorkEntryUrlFromUUIDStatement[]    = "SELECT url, last_url FROM work_entry WHERE UUID = :UUID";
 static constexpr const char GetMd5SumFromUUIDAndIndexStatement[]  = "SELECT md5_sum FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
 static constexpr const char GetRefreshFromMinDateStatement[]      = "SELECT * FROM refresh WHERE refresh_date=(SELECT MIN(refresh_date) FROM refresh)";
 
@@ -81,42 +71,33 @@ typedef enum {
     CREATE_MEDIA_TYPE_STATEMENT,
     CREATE_MEDIA_SUBTYPE_STATEMENT,
     CREATE_SOURCE_STATEMENT,
-    CREATE_STAGING_ENTRY_STATEMENT,
-    CREATE_BLACK_ENTRY_STATEMENT,
+    CREATE_WORK_ENTRY_STATEMENT,
     CREATE_MD5_SUM_STATEMENT,
     CREATE_REFRESH_STATEMENT,
     CREATE_ERROR_ENTRY_STATEMENT,
 
-    READ_STAGING_ENTRY_STATEMENT,
-    READ_STAGING_ENTRY_URL_STATEMENT,
-    READ_STAGING_ENTRY_UUID_STATEMENT,
-    READ_BLACK_ENTRY_STATEMENT,
-    READ_BLACK_ENTRY_URL_STATEMENT,
-    READ_BLACK_ENTRY_UUID_STATEMENT,
+    READ_WORK_ENTRY_STATEMENT,
+    READ_WORK_ENTRY_URL_STATEMENT,
+    READ_WORK_ENTRY_UUID_STATEMENT,
     READ_MD5_SUM_STATEMENT,
     READ_REFRESH_STATEMENT,
     READ_ERROR_ENTRY_STATEMENT,
 
-    UPDATE_STAGING_ENTRY_STATEMENT,
-    UPDATE_BLACK_ENTRY_STATEMENT,
+    UPDATE_WORK_ENTRY_STATEMENT,
     UPDATE_MD5_SUM_STATEMENT,
 
-    DELETE_STAGING_ENTRY_STATEMENT,
-    DELETE_BLACK_ENTRY_STATEMENT,
+    DELETE_WORK_ENTRY_STATEMENT,
     DELETE_MD5_SUM_STATEMENT,
     DELETE_REFRESH_STATEMENT,
     DELETE_ERROR_ENTRY_STATEMENT,
 
-    GET_STAGING_ENTRIES_STATEMENT,
     GET_BLACK_ENTRIES_STATEMENT,
     GET_CHECKSUMS_STATEMENT,
     GET_ERROR_ENTRIES_STATEMENT,
 
     DOES_MIN_REFRESH_EXIST_STATEMENT,
-    GET_STAGING_ENTRY_UUID_FROM_URL_STATEMENT,
-    GET_STAGING_ENTRY_URL_FROM_UUID_STATEMENT,
-    GET_BLACK_ENTRY_UUID_FROM_URL_STATEMENT,
-    GET_BLACK_ENTRY_URL_FROM_UUID_STATEMENT,
+    GET_WORK_ENTRY_UUID_FROM_URL_STATEMENT,
+    GET_WORK_ENTRY_URL_FROM_UUID_STATEMENT,
     GET_MD5_SUM_FROM_UUID_AND_INDEX_STATEMENT,
     GET_REFRESH_FROM_MIN_DATE_STATEMENT,
 
@@ -205,23 +186,10 @@ std::vector<DBEntry> SQLiteDB::ListEntries(entry_table_rep_t entry_type) const
     if (CheckInitialized())
         return entries;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = GET_BLACK_ENTRIES_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = GET_STAGING_ENTRIES_STATEMENT;
-            break;
-        default:
-            return entries;
-    }
-
     if (BeginTransaction())
         return entries;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[GET_BLACK_ENTRIES_STATEMENT];
 
     LogTraceStatement(stmt);
 
@@ -479,23 +447,10 @@ int SQLiteDB::CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
     if (CheckInitialized())
         return -1;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = CREATE_BLACK_ENTRY_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = CREATE_STAGING_ENTRY_STATEMENT;
-            break;
-        default:
-            return -1;
-    }
-
     if (BeginTransaction())
         return -1;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[CREATE_WORK_ENTRY_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", entry.uuid))
@@ -559,23 +514,10 @@ DBEntry SQLiteDB::ReadEntry(const std::string &uuid, entry_table_rep_t entry_typ
     if (CheckInitialized())
         return entry;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = READ_BLACK_ENTRY_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = READ_STAGING_ENTRY_STATEMENT;
-            break;
-        default:
-            return entry;
-    }
-
     if (BeginTransaction())
         return entry;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[READ_WORK_ENTRY_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
@@ -625,23 +567,10 @@ int SQLiteDB::UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
     if (CheckInitialized())
         return -1;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = UPDATE_BLACK_ENTRY_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = UPDATE_STAGING_ENTRY_STATEMENT;
-            break;
-        default:
-            return -1;
-    }
-
     if (BeginTransaction())
         return -1;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[UPDATE_WORK_ENTRY_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", entry.uuid))
@@ -703,23 +632,10 @@ int SQLiteDB::DeleteEntry(const std::string &uuid, entry_table_rep_t entry_type)
     if (CheckInitialized())
         return -1;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = DELETE_BLACK_ENTRY_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = DELETE_STAGING_ENTRY_STATEMENT;
-            break;
-        default:
-            return -1;
-    }
-
     if (BeginTransaction())
         return -1;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[DELETE_WORK_ENTRY_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
@@ -1125,26 +1041,13 @@ DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url, entry_table_rep
         return check;
     }
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = READ_BLACK_ENTRY_URL_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = READ_STAGING_ENTRY_URL_STATEMENT;
-            break;
-        default:
-            return check;
-    }
-
     if (BeginTransaction())
     {
         check.error = sqlite3_errcode(database_conn_);
         return check;
     }
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[READ_WORK_ENTRY_URL_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "url", url))
@@ -1201,26 +1104,13 @@ DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid, entry_table_r
         return check;
     }
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = READ_BLACK_ENTRY_UUID_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = READ_STAGING_ENTRY_UUID_STATEMENT;
-            break;
-        default:
-            return check;
-    }
-
     if (BeginTransaction())
     {
         check.error = sqlite3_errcode(database_conn_);
         return check;
     }
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[READ_WORK_ENTRY_UUID_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
@@ -1511,24 +1401,10 @@ DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url, entry_table
     if (CheckInitialized())
         return res;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = GET_BLACK_ENTRY_UUID_FROM_URL_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = GET_STAGING_ENTRY_UUID_FROM_URL_STATEMENT;
-            break;
-        default:
-            res.error = true;
-            return res;
-    }
-
     if (BeginTransaction())
         return res;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[GET_WORK_ENTRY_UUID_FROM_URL_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "url", url))
@@ -1570,25 +1446,10 @@ DBStringResult SQLiteDB::GetEntryUrlFromUUID(const std::string &uuid, entry_tabl
     if (CheckInitialized())
         return res;
 
-    int statement_id;
-    switch (entry_type)
-    {
-        case BLACK_ENTRY:
-            statement_id = GET_BLACK_ENTRY_URL_FROM_UUID_STATEMENT;
-            break;
-        case STAGING_ENTRY:
-            statement_id = GET_STAGING_ENTRY_URL_FROM_UUID_STATEMENT;
-            break;
-        default:
-            EndTransaction();
-            res.error = true;
-            return res;
-    }
-
     if (BeginTransaction())
         return res;
 
-    sqlite3_stmt *stmt = prepared_statements_[statement_id];
+    sqlite3_stmt *stmt = prepared_statements_[GET_WORK_ENTRY_URL_FROM_UUID_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
@@ -1722,8 +1583,7 @@ int SQLiteDB::GenerateTables()
     res += GenerateTable(CreateBookGenreTable);
     res += GenerateTable(CreateDocumentTagTable);
     res += GenerateTable(CreateSourceTable);
-    res += GenerateTable(CreateStagingEntryTable);
-    res += GenerateTable(CreateBlackEntryTable);
+    res += GenerateTable(CreateWorkEntryTable);
     res += GenerateTable(CreateMd5SumTable);
     res += GenerateTable(CreateRefreshTable);
     res += GenerateTable(CreateErrorEntryTable);
@@ -1835,42 +1695,33 @@ int SQLiteDB::PrepareStatements()
     res += PrepareStatement(CreateMediaTypeStatement, CREATE_MEDIA_TYPE_STATEMENT);
     res += PrepareStatement(CreateMediaSubtypeStatement, CREATE_MEDIA_SUBTYPE_STATEMENT);
     res += PrepareStatement(CreateSourceStatement, CREATE_SOURCE_STATEMENT);
-    res += PrepareStatement(CreateStagingEntryStatement, CREATE_STAGING_ENTRY_STATEMENT);
-    res += PrepareStatement(CreateBlackEntryStatement, CREATE_BLACK_ENTRY_STATEMENT);
+    res += PrepareStatement(CreateWorkEntryStatement, CREATE_WORK_ENTRY_STATEMENT);
     res += PrepareStatement(CreateMd5SumStatement, CREATE_MD5_SUM_STATEMENT);
     res += PrepareStatement(CreateRefreshStatement, CREATE_REFRESH_STATEMENT);
     res += PrepareStatement(CreateErrorEntryStatement, CREATE_ERROR_ENTRY_STATEMENT);
 
-    res += PrepareStatement(ReadStagingEntryStatement, READ_STAGING_ENTRY_STATEMENT);
-    res += PrepareStatement(ReadStagingEntryUrlStatement, READ_STAGING_ENTRY_URL_STATEMENT);
-    res += PrepareStatement(ReadStagingEntryUUIDStatement, READ_STAGING_ENTRY_UUID_STATEMENT);
-    res += PrepareStatement(ReadBlackEntryStatement, READ_BLACK_ENTRY_STATEMENT);
-    res += PrepareStatement(ReadBlackEntryUrlStatement, READ_BLACK_ENTRY_URL_STATEMENT);
-    res += PrepareStatement(ReadBlackEntryUUIDStatement, READ_BLACK_ENTRY_UUID_STATEMENT);
+    res += PrepareStatement(ReadWorkEntryStatement, READ_WORK_ENTRY_STATEMENT);
+    res += PrepareStatement(ReadWorkEntryUrlStatement, READ_WORK_ENTRY_URL_STATEMENT);
+    res += PrepareStatement(ReadWorkEntryUUIDStatement, READ_WORK_ENTRY_UUID_STATEMENT);
     res += PrepareStatement(ReadMd5SumStatement, READ_MD5_SUM_STATEMENT);
     res += PrepareStatement(ReadRefreshStatement, READ_REFRESH_STATEMENT);
     res += PrepareStatement(ReadErrorEntryStatement, READ_ERROR_ENTRY_STATEMENT);
 
-    res += PrepareStatement(UpdateStagingEntryStatement, UPDATE_STAGING_ENTRY_STATEMENT);
-    res += PrepareStatement(UpdateBlackEntryStatement, UPDATE_BLACK_ENTRY_STATEMENT);
+    res += PrepareStatement(UpdateWorkEntryStatement, UPDATE_WORK_ENTRY_STATEMENT);
     res += PrepareStatement(UpdateMd5SumStatement, UPDATE_MD5_SUM_STATEMENT);
 
-    res += PrepareStatement(DeleteStagingEntryStatement, DELETE_STAGING_ENTRY_STATEMENT);
-    res += PrepareStatement(DeleteBlackEntryStatement, DELETE_BLACK_ENTRY_STATEMENT);
+    res += PrepareStatement(DeleteWorkEntryStatement, DELETE_WORK_ENTRY_STATEMENT);
     res += PrepareStatement(DeleteMd5SumStatement, DELETE_MD5_SUM_STATEMENT);
     res += PrepareStatement(DeleteRefreshStatement, DELETE_REFRESH_STATEMENT);
     res += PrepareStatement(DeleteErrorEntryStatement, DELETE_ERROR_ENTRY_STATEMENT);
 
-    res += PrepareStatement(GetStagingEntriesStatement, GET_STAGING_ENTRIES_STATEMENT);
     res += PrepareStatement(GetBlackEntriesStatement, GET_BLACK_ENTRIES_STATEMENT);
     res += PrepareStatement(GetMd5sumsStatement, GET_CHECKSUMS_STATEMENT);
     res += PrepareStatement(GetErrorEntriesStatement, GET_ERROR_ENTRIES_STATEMENT);
 
     res += PrepareStatement(DoesMinRefreshExistStatement, DOES_MIN_REFRESH_EXIST_STATEMENT);
-    res += PrepareStatement(GetStagingEntryUUIDFromUrlStatement, GET_STAGING_ENTRY_UUID_FROM_URL_STATEMENT);
-    res += PrepareStatement(GetStagingEntryUrlFromUUIDStatement, GET_STAGING_ENTRY_URL_FROM_UUID_STATEMENT);
-    res += PrepareStatement(GetBlackEntryUUIDFromUrlStatement, GET_BLACK_ENTRY_UUID_FROM_URL_STATEMENT);
-    res += PrepareStatement(GetBlackEntryUrlFromUUIDStatement, GET_BLACK_ENTRY_URL_FROM_UUID_STATEMENT);
+    res += PrepareStatement(GetWorkEntryUUIDFromUrlStatement, GET_WORK_ENTRY_UUID_FROM_URL_STATEMENT);
+    res += PrepareStatement(GetWorkEntryUrlFromUUIDStatement, GET_WORK_ENTRY_URL_FROM_UUID_STATEMENT);
     res += PrepareStatement(GetMd5SumFromUUIDAndIndexStatement, GET_MD5_SUM_FROM_UUID_AND_INDEX_STATEMENT);
     res += PrepareStatement(GetRefreshFromMinDateStatement, GET_REFRESH_FROM_MIN_DATE_STATEMENT);
 

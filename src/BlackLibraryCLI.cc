@@ -125,12 +125,12 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
         return;
     }
 
-    auto black_entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
+    auto work_entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
 
-    black_entry.series_length = desired_size;
-    black_entry.last_url = black_entry.url;
+    work_entry.series_length = desired_size;
+    work_entry.last_url = work_entry.url;
 
-    if (blacklibrary_db_.UpdateBlackEntry(black_entry))
+    if (blacklibrary_db_.UpdateBlackEntry(work_entry))
     {
         BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", target_uuid, desired_size);
         return;
