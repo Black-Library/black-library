@@ -32,6 +32,7 @@ protected:
     std::string GetNextUrl(xmlNodePtr root_node);
     std::string GetSectionTitle(xmlNodePtr root_node);
     time_t GetUpdateDate(xmlNodePtr root_node);
+    std::string GetWorkTitle(xmlNodePtr root_node);
 };
 
 } // namespace WP
