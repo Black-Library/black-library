@@ -146,7 +146,7 @@ ParseSectionInfo ParserXF::ParseSection()
 
     current_node = section_post_seek.seek_node->children;
 
-    // get title
+    // get section title
     const auto section_title = GetSectionTitle(current_node);
     if (section_title.empty())
     {
