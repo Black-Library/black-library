@@ -23,7 +23,7 @@ public:
     explicit SQLiteDB(const std::string &database_url);
     ~SQLiteDB();
 
-    std::vector<DBEntry> ListEntries(entry_table_rep_t entry_type) const;
+    std::vector<DBEntry> ListEntries() const;
     std::vector<DBMd5Sum> ListChecksums() const;
     std::vector<DBErrorEntry> ListErrorEntries() const;
 
@@ -32,10 +32,10 @@ public:
     int CreateMediaSubtype(const std::string &media_subtype_name, const std::string &media_type_name) const;
     int CreateSource(const DBSource &source) const;
 
-    int CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) const override;
-    DBEntry ReadEntry(const std::string &uuid, entry_table_rep_t entry_type) const override;
-    int UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) const override;
-    int DeleteEntry(const std::string &uuid, entry_table_rep_t entry_type) const override;
+    int CreateEntry(const DBEntry &entry) const override;
+    DBEntry ReadEntry(const std::string &uuid) const override;
+    int UpdateEntry(const DBEntry &entry) const override;
+    int DeleteEntry(const std::string &uuid) const override;
 
     int CreateMd5Sum(const DBMd5Sum &md5) const override;
     DBMd5Sum ReadMd5Sum(const std::string &uuid, size_t index_num) const override;
@@ -49,15 +49,15 @@ public:
     int CreateErrorEntry(const DBErrorEntry &entry) const override;
     int DeleteErrorEntry(const std::string &uuid, size_t progress_num) const override;
 
-    DBBoolResult DoesEntryUrlExist(const std::string &url, entry_table_rep_t entry_type) const override;
-    DBBoolResult DoesEntryUUIDExist(const std::string &uuid, entry_table_rep_t entry_type) const override;
+    DBBoolResult DoesEntryUrlExist(const std::string &url) const override;
+    DBBoolResult DoesEntryUUIDExist(const std::string &uuid) const override;
     DBBoolResult DoesMd5SumExist(const std::string &uuid, size_t index_num) const override;
     DBBoolResult DoesRefreshExist(const std::string &uuid) const override;
     DBBoolResult DoesMinRefreshExist() const override;
     DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const override;
 
-    DBStringResult GetEntryUUIDFromUrl(const std::string &url, entry_table_rep_t entry_type) const override;
-    DBStringResult GetEntryUrlFromUUID(const std::string &uuid, entry_table_rep_t entry_type) const override;
+    DBStringResult GetEntryUUIDFromUrl(const std::string &url) const override;
+    DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const override;
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num) const override;
 
@@ -74,7 +74,7 @@ private:
     int SetupDefaultSourceTable();
 
     int PrepareStatements();
-    int SetupDefaultBlackLibraryUsers();
+    int SetupDefaultLibraryUsers();
 
     int BeginTransaction() const;
     int CheckInitialized() const;

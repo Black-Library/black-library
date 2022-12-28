@@ -27,7 +27,7 @@ static constexpr const char CreateMediaSubtypeTable[]             = "CREATE TABL
 static constexpr const char CreateBookGenreTable[]                = "CREATE TABLE IF NOT EXISTS book_genre(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateDocumentTagTable[]              = "CREATE TABLE IF NOT EXISTS document_tag(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateSourceTable[]                   = "CREATE TABLE IF NOT EXISTS source(name TEXT NOT NULL PRIMARY KEY, media_type TEXT, media_subtype TEXT, FOREIGN KEY(media_type) REFERENCES media_type(name) FOREIGN KEY(media_subtype) REFERENCES media_subtype(name))";
-static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
+static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, processing INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
 static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) PRIMARY KEY NOT NULL, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
@@ -36,7 +36,7 @@ static constexpr const char CreateUserStatement[]                 = "INSERT INTO
 static constexpr const char CreateMediaTypeStatement[]            = "INSERT INTO media_type(name) VALUES (:name)";
 static constexpr const char CreateMediaSubtypeStatement[]         = "INSERT INTO media_subtype(name, media_type_name) VALUES (:name, :media_type_name)";
 static constexpr const char CreateSourceStatement[]               = "INSERT INTO source(name, media_type, media_subtype) VALUES (:name, :media_type, :media_subtype)";
-static constexpr const char CreateWorkEntryStatement[]            = "INSERT INTO work_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed)";
+static constexpr const char CreateWorkEntryStatement[]            = "INSERT INTO work_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed, processing) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed, processing)";
 static constexpr const char CreateMd5SumStatement[]               = "INSERT INTO md5_sum(UUID, index_num, md5_sum, version_num) VALUES (:UUID, :index_num, :md5_sum, :version_num)";
 static constexpr const char CreateRefreshStatement[]              = "INSERT INTO refresh(UUID, refresh_date) VALUES (:UUID, :refresh_date)";
 static constexpr const char CreateErrorEntryStatement[]           = "INSERT INTO error_entry(UUID, progress_num) VALUES (:UUID, :progress_num)";
@@ -48,7 +48,7 @@ static constexpr const char ReadMd5SumStatement[]                 = "SELECT * FR
 static constexpr const char ReadRefreshStatement[]                = "SELECT * FROM refresh WHERE UUID = :UUID";
 static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
-static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed WHERE UUID = :UUID";
+static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed, processing = :processing WHERE UUID = :UUID";
 static constexpr const char UpdateMd5SumStatement[]               = "UPDATE md5_sum SET md5_sum = :md5_sum, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
 
 static constexpr const char DeleteWorkEntryStatement[]            = "DELETE FROM work_entry WHERE UUID = :UUID";
@@ -56,7 +56,7 @@ static constexpr const char DeleteMd5SumStatement[]               = "DELETE FROM
 static constexpr const char DeleteRefreshStatement[]              = "DELETE FROM refresh WHERE UUID = :UUID";
 static constexpr const char DeleteErrorEntryStatement[]           = "DELETE FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
-static constexpr const char GetBlackEntriesStatement[]            = "SELECT * FROM work_entry";
+static constexpr const char GetWorkEntriesStatement[]             = "SELECT * FROM work_entry";
 static constexpr const char GetMd5sumsStatement[]                 = "SELECT * FROM md5_sum";
 static constexpr const char GetErrorEntriesStatement[]            = "SELECT * FROM error_entry";
 
@@ -91,7 +91,7 @@ typedef enum {
     DELETE_REFRESH_STATEMENT,
     DELETE_ERROR_ENTRY_STATEMENT,
 
-    GET_BLACK_ENTRIES_STATEMENT,
+    GET_WORK_ENTRIES_STATEMENT,
     GET_CHECKSUMS_STATEMENT,
     GET_ERROR_ENTRIES_STATEMENT,
 
@@ -150,7 +150,7 @@ SQLiteDB::SQLiteDB(const std::string &database_url) :
 
     if (first_time_setup)
     {
-        if (SetupDefaultBlackLibraryUsers())
+        if (SetupDefaultLibraryUsers())
         {
             BlackLibraryCommon::LogError("db", "Failed to setup default black library users");
             return;
@@ -177,9 +177,9 @@ SQLiteDB::~SQLiteDB()
     }
 }
 
-std::vector<DBEntry> SQLiteDB::ListEntries(entry_table_rep_t entry_type) const
+std::vector<DBEntry> SQLiteDB::ListEntries() const
 {
-    BlackLibraryCommon::LogDebug("db", "List {} entries", GetEntryTypeString(entry_type));
+    BlackLibraryCommon::LogDebug("db", "List entries");
 
     std::vector<DBEntry> entries;
 
@@ -189,7 +189,7 @@ std::vector<DBEntry> SQLiteDB::ListEntries(entry_table_rep_t entry_type) const
     if (BeginTransaction())
         return entries;
 
-    sqlite3_stmt *stmt = prepared_statements_[GET_BLACK_ENTRIES_STATEMENT];
+    sqlite3_stmt *stmt = prepared_statements_[GET_WORK_ENTRIES_STATEMENT];
 
     LogTraceStatement(stmt);
 
@@ -198,21 +198,22 @@ std::vector<DBEntry> SQLiteDB::ListEntries(entry_table_rep_t entry_type) const
     {
         DBEntry entry;
 
-        entry.uuid = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-        entry.title = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-        entry.author = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-        entry.nickname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
-        entry.source = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
-        entry.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
-        entry.last_url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
-        entry.series = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
-        entry.series_length = sqlite3_column_int(stmt, 8);
-        entry.version = sqlite3_column_int(stmt, 9);
-        entry.media_path = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10)));
-        entry.birth_date = sqlite3_column_int(stmt, 11);
-        entry.check_date = sqlite3_column_int(stmt, 12);
-        entry.update_date = sqlite3_column_int(stmt, 13);
-        entry.user_contributed = sqlite3_column_int(stmt, 14);
+        entry.uuid = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::uuid))));
+        entry.title = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::title))));
+        entry.author = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::author))));
+        entry.nickname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::nickname))));
+        entry.source = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::source))));
+        entry.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::url))));
+        entry.last_url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::last_url))));
+        entry.series = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::series))));
+        entry.series_length = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::series_length));
+        entry.version = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::version));
+        entry.media_path = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::media_path))));
+        entry.birth_date = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::birth_date));
+        entry.check_date = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::check_date));
+        entry.update_date = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::update_date));
+        entry.user_contributed = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::user_contributed));
+        entry.processing = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::processing));
 
         entries.emplace_back(entry);
     }
@@ -440,9 +441,9 @@ int SQLiteDB::CreateSource(const DBSource &source) const
     return 0;
 }
 
-int SQLiteDB::CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) const
+int SQLiteDB::CreateEntry(const DBEntry &entry) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create {} entry with UUID: {}", GetEntryTypeString(entry_type), entry.uuid);
+    BlackLibraryCommon::LogDebug("db", "Create entry with UUID: {}", entry.uuid);
 
     if (CheckInitialized())
         return -1;
@@ -483,6 +484,8 @@ int SQLiteDB::CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
         return -1;
     if (BindInt(stmt, "user_contributed", entry.user_contributed))
         return -1;
+    if (BindInt(stmt, "processing", entry.processing))
+        return -1;
 
     LogTraceStatement(stmt);
 
@@ -491,7 +494,7 @@ int SQLiteDB::CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create {} entry failed: {}", GetEntryTypeString(entry_type), sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError("db", "Create entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -505,9 +508,9 @@ int SQLiteDB::CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
     return 0;
 }
 
-DBEntry SQLiteDB::ReadEntry(const std::string &uuid, entry_table_rep_t entry_type) const
+DBEntry SQLiteDB::ReadEntry(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Read {} entry with UUID: {}", GetEntryTypeString(entry_type), uuid);
+    BlackLibraryCommon::LogDebug("db", "Read entry with UUID: {}", uuid);
 
     DBEntry entry;
 
@@ -530,27 +533,28 @@ DBEntry SQLiteDB::ReadEntry(const std::string &uuid, entry_table_rep_t entry_typ
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError("db", "Read {} entry failed: {}", GetEntryTypeString(entry_type), sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError("db", "Read entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return entry;
     }
 
-    entry.uuid = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-    entry.title = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-    entry.author = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-    entry.nickname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
-    entry.source = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
-    entry.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
-    entry.last_url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
-    entry.series = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
-    entry.series_length = sqlite3_column_int(stmt, 8);
-    entry.version = sqlite3_column_int(stmt, 9);
-    entry.media_path = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10)));
-    entry.birth_date = sqlite3_column_int(stmt, 11);
-    entry.check_date = sqlite3_column_int(stmt, 12);
-    entry.update_date = sqlite3_column_int(stmt, 13);
-    entry.user_contributed = sqlite3_column_int(stmt, 14);
+    entry.uuid = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::uuid))));
+    entry.title = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::title))));
+    entry.author = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::author))));
+    entry.nickname = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::nickname))));
+    entry.source = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::source))));
+    entry.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::url))));
+    entry.last_url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::last_url))));
+    entry.series = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::series))));
+    entry.series_length = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::series_length));
+    entry.version = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::version));
+    entry.media_path = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(DBEntryColumnID::media_path))));
+    entry.birth_date = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::birth_date));
+    entry.check_date = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::check_date));
+    entry.update_date = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::update_date));
+    entry.user_contributed = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::user_contributed));
+    entry.processing = sqlite3_column_int(stmt, static_cast<unsigned int>(DBEntryColumnID::processing));
 
     ResetStatement(stmt);
 
@@ -560,9 +564,9 @@ DBEntry SQLiteDB::ReadEntry(const std::string &uuid, entry_table_rep_t entry_typ
     return entry;
 }
 
-int SQLiteDB::UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) const
+int SQLiteDB::UpdateEntry(const DBEntry &entry) const
 {
-    BlackLibraryCommon::LogDebug("db", "Update {} entry with UUID: {}", GetEntryTypeString(entry_type), entry.uuid);
+    BlackLibraryCommon::LogDebug("db", "Update entry with UUID: {}", entry.uuid);
 
     if (CheckInitialized())
         return -1;
@@ -603,6 +607,8 @@ int SQLiteDB::UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
         return -1;
     if (BindInt(stmt, "user_contributed", entry.user_contributed))
         return -1;
+    if (BindInt(stmt, "processing", entry.processing))
+        return -1;
 
     LogTraceStatement(stmt);
 
@@ -611,7 +617,7 @@ int SQLiteDB::UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Update {} entry failed: {}", GetEntryTypeString(entry_type), sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError("db", "Update entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -625,9 +631,9 @@ int SQLiteDB::UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) co
     return 0;
 }
 
-int SQLiteDB::DeleteEntry(const std::string &uuid, entry_table_rep_t entry_type) const
+int SQLiteDB::DeleteEntry(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Delete {} entry with UUID: {}", GetEntryTypeString(entry_type), uuid);
+    BlackLibraryCommon::LogDebug("db", "Delete entry with UUID: {}", uuid);
 
     if (CheckInitialized())
         return -1;
@@ -648,7 +654,7 @@ int SQLiteDB::DeleteEntry(const std::string &uuid, entry_table_rep_t entry_type)
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Delete {} entry failed: {}", GetEntryTypeString(entry_type), sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError("db", "Delete entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -1029,9 +1035,9 @@ int SQLiteDB::DeleteErrorEntry(const std::string &uuid, size_t progress_num) con
     return 0;
 }
 
-DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url, entry_table_rep_t entry_type) const
+DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check {} entries for url: {}", GetEntryTypeString(entry_type), url);
+    BlackLibraryCommon::LogDebug("db", "Check entries for url: {}", url);
 
     DBBoolResult check;
 
@@ -1063,7 +1069,7 @@ DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url, entry_table_rep
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "Entry {} url: {} does not exist", GetEntryTypeString(entry_type), url);
+        BlackLibraryCommon::LogDebug("db", "Entry url: {} does not exist", url);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1086,9 +1092,9 @@ DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url, entry_table_rep
     return check;
 }
 
-DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid, entry_table_rep_t entry_type) const
+DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check {} entries for UUID: {}", GetEntryTypeString(entry_type), uuid);
+    BlackLibraryCommon::LogDebug("db", "Check entries for UUID: {}", uuid);
 
     DBBoolResult check;
 
@@ -1126,7 +1132,7 @@ DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid, entry_table_r
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "Entry {} UUID: {} does not exist",  GetEntryTypeString(entry_type), uuid);
+        BlackLibraryCommon::LogDebug("db", "Entry UUID: {} does not exist", uuid);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1392,7 +1398,7 @@ DBBoolResult SQLiteDB::DoesMinRefreshExist() const
     return check;
 }
 
-DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url, entry_table_rep_t entry_type) const
+DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url) const
 {
     BlackLibraryCommon::LogDebug("db", "Get UUID from url: {}", url);
 
@@ -1437,7 +1443,7 @@ DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url, entry_table
     return res;
 }
 
-DBStringResult SQLiteDB::GetEntryUrlFromUUID(const std::string &uuid, entry_table_rep_t entry_type) const
+DBStringResult SQLiteDB::GetEntryUrlFromUUID(const std::string &uuid) const
 {
     BlackLibraryCommon::LogDebug("db", "Get url from UUID: {}", uuid);
 
@@ -1642,6 +1648,7 @@ int SQLiteDB::SetupDefaultSourceTable()
     DBSource rr_source;
     DBSource sbf_source;
     DBSource svf_source;
+    DBSource wp_source;
     DBSource yt_source;
 
     ao3_source.name = BlackLibraryCommon::AO3::source_name;
@@ -1664,6 +1671,10 @@ int SQLiteDB::SetupDefaultSourceTable()
     svf_source.media_type = DBEntryMediaType::Document;
     svf_source.subtype = DBEntryMediaSubtype::WEBNOVEL;
 
+    wp_source.name = BlackLibraryCommon::WP::source_name;
+    wp_source.media_type = DBEntryMediaType::Document;
+    wp_source.subtype = DBEntryMediaSubtype::BLOG;
+
     yt_source.name = BlackLibraryCommon::YT::source_name;
     yt_source.media_type = DBEntryMediaType::Video;
     yt_source.subtype = DBEntryMediaSubtype::YOUTUBE;
@@ -1677,6 +1688,8 @@ int SQLiteDB::SetupDefaultSourceTable()
     if (CreateSource(sbf_source))
         return -1;
     if (CreateSource(svf_source))
+        return -1;
+    if (CreateSource(wp_source))
         return -1;
     if (CreateSource(yt_source))
         return -1;
@@ -1715,7 +1728,7 @@ int SQLiteDB::PrepareStatements()
     res += PrepareStatement(DeleteRefreshStatement, DELETE_REFRESH_STATEMENT);
     res += PrepareStatement(DeleteErrorEntryStatement, DELETE_ERROR_ENTRY_STATEMENT);
 
-    res += PrepareStatement(GetBlackEntriesStatement, GET_BLACK_ENTRIES_STATEMENT);
+    res += PrepareStatement(GetWorkEntriesStatement, GET_WORK_ENTRIES_STATEMENT);
     res += PrepareStatement(GetMd5sumsStatement, GET_CHECKSUMS_STATEMENT);
     res += PrepareStatement(GetErrorEntriesStatement, GET_ERROR_ENTRIES_STATEMENT);
 
@@ -1728,7 +1741,7 @@ int SQLiteDB::PrepareStatements()
     return res;
 }
 
-int SQLiteDB::SetupDefaultBlackLibraryUsers()
+int SQLiteDB::SetupDefaultLibraryUsers()
 {
     DBUser black_library_admin;
     DBUser black_library_librarian;

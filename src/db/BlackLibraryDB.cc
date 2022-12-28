@@ -51,20 +51,11 @@ BlackLibraryDB::~BlackLibraryDB()
 {
 }
 
-std::vector<DBEntry> BlackLibraryDB::GetStagingEntryList()
+std::vector<DBEntry> BlackLibraryDB::GetWorkEntryList()
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    auto entry_list = database_connection_interface_->ListEntries(STAGING_ENTRY);
-
-    return entry_list;
-}
-
-std::vector<DBEntry> BlackLibraryDB::GetBlackEntryList()
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    auto entry_list = database_connection_interface_->ListEntries(WORK_ENTRY);
+    auto entry_list = database_connection_interface_->ListEntries();
 
     return entry_list;
 }
@@ -87,76 +78,11 @@ std::vector<DBErrorEntry> BlackLibraryDB::GetErrorEntryList()
     return entry_list;
 }
 
-int BlackLibraryDB::CreateStagingEntry(const DBEntry &entry)
+int BlackLibraryDB::CreateWorkEntry(const DBEntry &entry)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    if (entry.uuid.empty() || database_connection_interface_->CreateEntry(entry, STAGING_ENTRY))
-    {
-        BlackLibraryCommon::LogError("db", "Failed to create staging entry with UUID: {}", entry.uuid);
-        return -1;
-    }
-
-    return 0;
-}
-
-DBEntry BlackLibraryDB::ReadStagingEntry(const std::string &uuid)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    DBEntry entry;
-
-    if (uuid.empty())
-    {
-        BlackLibraryCommon::LogError("db", "Failed to read staging entry with empty UUID");
-        return entry;
-    }
-    entry = database_connection_interface_->ReadEntry(uuid, STAGING_ENTRY);
-    if (entry.uuid.empty())
-    {
-        BlackLibraryCommon::LogError("db", "Failed to read staging entry with UUID: {}", uuid);
-        return entry;
-    }
-
-    return entry;
-}
-
-int BlackLibraryDB::UpdateStagingEntry(const DBEntry &entry)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    if (entry.uuid.empty() || database_connection_interface_->UpdateEntry(entry, STAGING_ENTRY))
-    {
-        BlackLibraryCommon::LogError("db", "Failed to update staging entry with UUID: {}", entry.uuid);
-        return -1;
-    }
-
-    return 0;
-}
-
-int BlackLibraryDB::DeleteStagingEntry(const std::string &uuid)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    if (uuid.empty())
-    {
-        BlackLibraryCommon::LogError("db", "Failed to delete staging entry with empty UUID");
-        return -1;
-    }
-    if (database_connection_interface_->DeleteEntry(uuid, STAGING_ENTRY))
-    {
-        BlackLibraryCommon::LogError("db", "Failed to delete staging entry with UUID: {}", uuid);
-        return -1;
-    }
-
-    return 0;
-}
-
-int BlackLibraryDB::CreateBlackEntry(const DBEntry &entry)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    if (entry.uuid.empty() || database_connection_interface_->CreateEntry(entry, WORK_ENTRY))
+    if (entry.uuid.empty() || database_connection_interface_->CreateEntry(entry))
     {
         BlackLibraryCommon::LogError("db", "Failed to create black entry with UUID: {}", entry.uuid);
         return -1;
@@ -165,7 +91,7 @@ int BlackLibraryDB::CreateBlackEntry(const DBEntry &entry)
     return 0;
 }
 
-DBEntry BlackLibraryDB::ReadBlackEntry(const std::string &uuid)
+DBEntry BlackLibraryDB::ReadWorkEntry(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -176,7 +102,7 @@ DBEntry BlackLibraryDB::ReadBlackEntry(const std::string &uuid)
         BlackLibraryCommon::LogError("db", "Failed to read black entry with empty UUID");
         return entry;
     }
-    entry = database_connection_interface_->ReadEntry(uuid, WORK_ENTRY);
+    entry = database_connection_interface_->ReadEntry(uuid);
     if (entry.uuid.empty())
     {
         BlackLibraryCommon::LogError("db", "Failed to read black entry with UUID: {}", uuid);
@@ -186,11 +112,11 @@ DBEntry BlackLibraryDB::ReadBlackEntry(const std::string &uuid)
     return entry;
 }
 
-int BlackLibraryDB::UpdateBlackEntry(const DBEntry &entry)
+int BlackLibraryDB::UpdateWorkEntry(const DBEntry &entry)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    if (entry.uuid.empty() || database_connection_interface_->UpdateEntry(entry, WORK_ENTRY))
+    if (entry.uuid.empty() || database_connection_interface_->UpdateEntry(entry))
     {
         BlackLibraryCommon::LogError("db", "Failed to update black entry with UUID: {}", entry.uuid);
         return -1;
@@ -199,7 +125,7 @@ int BlackLibraryDB::UpdateBlackEntry(const DBEntry &entry)
     return 0;
 }
 
-int BlackLibraryDB::DeleteBlackEntry(const std::string &uuid)
+int BlackLibraryDB::DeleteWorkEntry(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -208,7 +134,7 @@ int BlackLibraryDB::DeleteBlackEntry(const std::string &uuid)
         BlackLibraryCommon::LogError("db", "Failed to delete black entry with empty UUID");
         return -1;
     }
-    if (database_connection_interface_->DeleteEntry(uuid, WORK_ENTRY))
+    if (database_connection_interface_->DeleteEntry(uuid))
     {
         BlackLibraryCommon::LogError("db", "Failed to delete black entry with UUID: {}", uuid);
         return -1;
@@ -379,12 +305,11 @@ int BlackLibraryDB::DeleteErrorEntry(const std::string &uuid, size_t progress_nu
     return 0;
 }
 
-
-bool BlackLibraryDB::DoesStagingEntryUrlExist(const std::string &url)
+bool BlackLibraryDB::DoesWorkEntryUrlExist(const std::string &url)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    DBBoolResult check = database_connection_interface_->DoesEntryUrlExist(url, STAGING_ENTRY);
+    DBBoolResult check = database_connection_interface_->DoesEntryUrlExist(url);
     
     if (check.error != 0)
     {
@@ -395,41 +320,11 @@ bool BlackLibraryDB::DoesStagingEntryUrlExist(const std::string &url)
     return check.result;
 }
 
-bool BlackLibraryDB::DoesBlackEntryUrlExist(const std::string &url)
+bool BlackLibraryDB::DoesWorkEntryUUIDExist(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    DBBoolResult check = database_connection_interface_->DoesEntryUrlExist(url, WORK_ENTRY);
-    
-    if (check.error != 0)
-    {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
-        return false;
-    }
-
-    return check.result;
-}
-
-bool BlackLibraryDB::DoesStagingEntryUUIDExist(const std::string &uuid)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    DBBoolResult check = database_connection_interface_->DoesEntryUUIDExist(uuid, STAGING_ENTRY);
-    
-    if (check.error != 0)
-    {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
-        return false;
-    }
-
-    return check.result;
-}
-
-bool BlackLibraryDB::DoesBlackEntryUUIDExist(const std::string &uuid)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    DBBoolResult check = database_connection_interface_->DoesEntryUUIDExist(uuid, WORK_ENTRY);
+    DBBoolResult check = database_connection_interface_->DoesEntryUUIDExist(uuid);
     
     if (check.error != 0)
     {
@@ -500,40 +395,22 @@ bool BlackLibraryDB::DoesErrorEntryExist(const std::string &uuid, size_t progres
     return check.result;
 }
 
-DBStringResult BlackLibraryDB::GetStagingEntryUUIDFromUrl(const std::string &url)
+DBStringResult BlackLibraryDB::GetWorkEntryUUIDFromUrl(const std::string &url)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    DBStringResult res = database_connection_interface_->GetEntryUUIDFromUrl(url, STAGING_ENTRY);
-    if (res.error)
-        BlackLibraryCommon::LogError("db", "Failed to get staging UUID from url: {}", url);
-
-    return res;
-}
-
-DBStringResult BlackLibraryDB::GetStagingEntryUrlFromUUID(const std::string &uuid)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    return database_connection_interface_->GetEntryUrlFromUUID(uuid, STAGING_ENTRY);
-}
-
-DBStringResult BlackLibraryDB::GetBlackEntryUUIDFromUrl(const std::string &url)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    DBStringResult res = database_connection_interface_->GetEntryUUIDFromUrl(url, WORK_ENTRY);
+    DBStringResult res = database_connection_interface_->GetEntryUUIDFromUrl(url);
     if (res.error)
         BlackLibraryCommon::LogError("db", "Failed to get black UUID from url: {}", url);
 
     return res;
 }
 
-DBStringResult BlackLibraryDB::GetBlackEntryUrlFromUUID(const std::string &uuid)
+DBStringResult BlackLibraryDB::GetWorkEntryUrlFromUUID(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    return database_connection_interface_->GetEntryUrlFromUUID(uuid, WORK_ENTRY);
+    return database_connection_interface_->GetEntryUrlFromUUID(uuid);
 }
 
 DBRefresh BlackLibraryDB::GetRefreshFromMinDate()

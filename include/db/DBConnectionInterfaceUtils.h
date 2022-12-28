@@ -13,19 +13,6 @@ namespace core {
 
 namespace db {
 
-std::string GetEntryTypeString(entry_table_rep_t type)
-{
-    switch (type)
-    {
-    case WORK_ENTRY:
-        return "work_entry";
-    case ERROR_ENTRY:
-        return "error_entry";
-    default:
-        return "unknown_entry_type";
-    }
-}
-
 std::string GetMediaTypeString(DBEntryMediaType media_type)
 {
     switch (media_type)

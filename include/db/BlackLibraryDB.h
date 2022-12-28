@@ -25,21 +25,15 @@ public:
     ~BlackLibraryDB();
 
     // front-end
-    std::vector<DBEntry> GetStagingEntryList();
-    std::vector<DBEntry> GetBlackEntryList();
+    std::vector<DBEntry> GetWorkEntryList();
     std::vector<DBMd5Sum> GetChecksumList();
     std::vector<DBErrorEntry> GetErrorEntryList();
 
     // back-end
-    int CreateStagingEntry(const DBEntry &entry);
-    DBEntry ReadStagingEntry(const std::string &uuid);
-    int UpdateStagingEntry(const DBEntry &entry);
-    int DeleteStagingEntry(const std::string &uuid);
-
-    int CreateBlackEntry(const DBEntry &entry);
-    DBEntry ReadBlackEntry(const std::string &uuid);
-    int UpdateBlackEntry(const DBEntry &entry);
-    int DeleteBlackEntry(const std::string &uuid);
+    int CreateWorkEntry(const DBEntry &entry);
+    DBEntry ReadWorkEntry(const std::string &uuid);
+    int UpdateWorkEntry(const DBEntry &entry);
+    int DeleteWorkEntry(const std::string &uuid);
 
     int CreateMd5Sum(const DBMd5Sum &md5);
     DBMd5Sum ReadMd5Sum(const std::string &uuid, size_t index_num);
@@ -53,21 +47,16 @@ public:
     int CreateErrorEntry(const DBErrorEntry &entry);
     int DeleteErrorEntry(const std::string &uuid, size_t progress_num);
 
-    bool DoesStagingEntryUrlExist(const std::string &url);
-    bool DoesBlackEntryUrlExist(const std::string &url);
+    bool DoesWorkEntryUrlExist(const std::string &url);
     bool DoesMd5SumExist(const std::string &uuid, size_t index_num);
     bool DoesRefreshExist(const std::string &uuid);
     bool DoesMinRefreshExist();
     bool DoesErrorEntryExist(const std::string &uuid, size_t progress_num);
 
-    bool DoesStagingEntryUUIDExist(const std::string &uuid);
-    bool DoesBlackEntryUUIDExist(const std::string &uuid);
+    bool DoesWorkEntryUUIDExist(const std::string &uuid);
 
-    DBStringResult GetStagingEntryUUIDFromUrl(const std::string &url);
-    DBStringResult GetStagingEntryUrlFromUUID(const std::string &uuid);
-
-    DBStringResult GetBlackEntryUUIDFromUrl(const std::string &url);
-    DBStringResult GetBlackEntryUrlFromUUID(const std::string &uuid);
+    DBStringResult GetWorkEntryUUIDFromUrl(const std::string &url);
+    DBStringResult GetWorkEntryUrlFromUUID(const std::string &uuid);
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num);
 

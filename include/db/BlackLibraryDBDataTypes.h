@@ -93,6 +93,7 @@ struct DBEntry {
     time_t check_date = 0;
     time_t update_date = 0;
     UID_rep_t user_contributed = 6;
+    bool processing = true;
 };
 
 inline std::ostream& operator<< (std::ostream &out, const DBEntry &entry)
@@ -111,7 +112,8 @@ inline std::ostream& operator<< (std::ostream &out, const DBEntry &entry)
     out << "birth_date: " << entry.birth_date << " ";
     out << "check_date: " << entry.check_date << " ";
     out << "update_date: " << entry.update_date << " ";
-    out << "user_contributed: " << entry.user_contributed;
+    out << "user_contributed: " << entry.user_contributed << "";
+    out << "processing: " << entry.processing;
 
     return out;
 }
@@ -133,6 +135,7 @@ enum class DBEntryColumnID : uint8_t
     check_date,
     update_date,
     user_contributed,
+    processing,
 
     _NUM_DB_ENTRY_COLUMN_ID
 };

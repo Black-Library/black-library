@@ -22,14 +22,14 @@ class DBConnectionInterface
 public:
     virtual ~DBConnectionInterface() {}
 
-    virtual std::vector<DBEntry> ListEntries(entry_table_rep_t entry_type) const = 0;
+    virtual std::vector<DBEntry> ListEntries() const = 0;
     virtual std::vector<DBMd5Sum> ListChecksums() const = 0;
     virtual std::vector<DBErrorEntry> ListErrorEntries() const = 0;
 
-    virtual int CreateEntry(const DBEntry &entry, entry_table_rep_t entry_type) const = 0;
-    virtual DBEntry ReadEntry(const std::string &uuid, entry_table_rep_t entry_type) const = 0;
-    virtual int UpdateEntry(const DBEntry &entry, entry_table_rep_t entry_type) const = 0;
-    virtual int DeleteEntry(const std::string &uuid, entry_table_rep_t entry_type) const = 0;
+    virtual int CreateEntry(const DBEntry &entry) const = 0;
+    virtual DBEntry ReadEntry(const std::string &uuid) const = 0;
+    virtual int UpdateEntry(const DBEntry &entry) const = 0;
+    virtual int DeleteEntry(const std::string &uuid) const = 0;
 
     virtual int CreateMd5Sum(const DBMd5Sum &md5) const = 0;
     virtual DBMd5Sum ReadMd5Sum(const std::string &uuid, size_t index_num) const = 0;
@@ -43,15 +43,15 @@ public:
     virtual int CreateErrorEntry(const DBErrorEntry &entry) const = 0;
     virtual int DeleteErrorEntry(const std::string &uuid, size_t progress_num) const = 0;
 
-    virtual DBBoolResult DoesEntryUrlExist(const std::string &url, entry_table_rep_t entry_type) const = 0;
-    virtual DBBoolResult DoesEntryUUIDExist(const std::string &uuid, entry_table_rep_t entry_type) const = 0;
+    virtual DBBoolResult DoesEntryUrlExist(const std::string &url) const = 0;
+    virtual DBBoolResult DoesEntryUUIDExist(const std::string &uuid) const = 0;
     virtual DBBoolResult DoesMd5SumExist(const std::string &uuid, size_t index_num) const = 0;
     virtual DBBoolResult DoesRefreshExist(const std::string &uuid) const = 0;
     virtual DBBoolResult DoesMinRefreshExist() const = 0;
     virtual DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const = 0;
 
-    virtual DBStringResult GetEntryUUIDFromUrl(const std::string &url, entry_table_rep_t entry_type) const = 0;
-    virtual DBStringResult GetEntryUrlFromUUID(const std::string &uuid, entry_table_rep_t entry_type) const = 0;
+    virtual DBStringResult GetEntryUUIDFromUrl(const std::string &url) const = 0;
+    virtual DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const = 0;
 
     virtual uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num) const = 0;
 

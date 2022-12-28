@@ -38,42 +38,29 @@ TEST_CASE( "Test create database sqlite already exists (pass)", "[single-file]" 
 
 TEST_CASE( "Test CRUD for entries sqlite (pass)", "[single-file]" )
 {
-    DBEntry staging_entry = GenerateTestStagingEntry();
     DBEntry work_entry = GenerateTestBlackEntry();
     DBErrorEntry error_entry = GenerateTestErrorEntry();
 
     SQLiteDB db(DefaultTestDBPath);
 
-    REQUIRE( db.CreateEntry(staging_entry, STAGING_ENTRY) == 0 );
-    REQUIRE( db.CreateEntry(work_entry, WORK_ENTRY) == 0 );
+    REQUIRE( db.CreateEntry(work_entry) == 0 );
     REQUIRE( db.CreateErrorEntry(error_entry) == 0 );
-    REQUIRE( db.DoesEntryUrlExist(staging_entry.url, STAGING_ENTRY).result == true );
-    REQUIRE( db.DoesEntryUUIDExist(staging_entry.uuid, STAGING_ENTRY).result == true );
-    REQUIRE( db.DoesEntryUrlExist(work_entry.url, WORK_ENTRY).result == true );
-    REQUIRE( db.DoesEntryUUIDExist(work_entry.uuid, WORK_ENTRY).result == true );
+    REQUIRE( db.DoesEntryUrlExist(work_entry.url).result == true );
+    REQUIRE( db.DoesEntryUUIDExist(work_entry.uuid).result == true );
     REQUIRE( db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num).result == true );
 
-    DBEntry staging_read = db.ReadEntry(staging_entry.uuid, STAGING_ENTRY);
-    DBEntry black_read = db.ReadEntry(work_entry.uuid, WORK_ENTRY);
-    REQUIRE( staging_read.uuid == staging_entry.uuid );
-    REQUIRE( black_read.uuid == work_entry.uuid );
+    DBEntry work_read = db.ReadEntry(work_entry.uuid);
+    REQUIRE( work_read.uuid == work_entry.uuid );
 
-    staging_entry.author = "renamed-author";
     work_entry.author = "renamed-author";
-    REQUIRE( db.UpdateEntry(staging_entry, STAGING_ENTRY) == 0 );
-    REQUIRE( db.UpdateEntry(work_entry, WORK_ENTRY) == 0 );
-    DBEntry staging_update = db.ReadEntry(staging_entry.uuid, STAGING_ENTRY);
-    DBEntry black_update = db.ReadEntry(work_entry.uuid, WORK_ENTRY);
-    REQUIRE( staging_update.author == staging_entry.author );
-    REQUIRE( black_update.author == staging_entry.author );
+    REQUIRE( db.UpdateEntry(work_entry) == 0 );
+    DBEntry work_update = db.ReadEntry(work_entry.uuid);
+    REQUIRE( work_update.author == work_entry.author );
 
-    REQUIRE( db.DeleteEntry(staging_entry.uuid, STAGING_ENTRY) == 0 );
-    REQUIRE( db.DeleteEntry(work_entry.uuid, WORK_ENTRY) == 0 );
+    REQUIRE( db.DeleteEntry(work_entry.uuid) == 0 );
     REQUIRE( db.DeleteErrorEntry(error_entry.uuid, error_entry.progress_num) == 0 );
-    REQUIRE( db.DoesEntryUrlExist(staging_entry.url, STAGING_ENTRY).result == false );
-    REQUIRE( db.DoesEntryUUIDExist(staging_entry.uuid, STAGING_ENTRY).result == false );
-    REQUIRE( db.DoesEntryUrlExist(work_entry.url, WORK_ENTRY).result == false );
-    REQUIRE( db.DoesEntryUUIDExist(work_entry.uuid, WORK_ENTRY).result == false );
+    REQUIRE( db.DoesEntryUrlExist(work_entry.url).result == false );
+    REQUIRE( db.DoesEntryUUIDExist(work_entry.uuid).result == false );
     REQUIRE( db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num).result == false );
 }
 
