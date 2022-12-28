@@ -104,13 +104,11 @@ void PopStyleCompact()
 BlackLibraryGUI::BlackLibraryGUI(const njson &config) :
     blacklibrary_db_(config),
     blacklibrary_binder_(config),
-    black_entries_(),
-    staging_entries_(),
+    work_entries_(),
     filter_(),
     initialized_(false),
     is_refreshing_(false),
-    force_sort_black_(false),
-    force_sort_staging_(false)
+    force_sort_entries_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
@@ -298,8 +296,6 @@ int BlackLibraryGUI::Run()
         ImGui::Spacing();
         ShowBlackEntryTable();
         ImGui::Spacing();
-        ShowStagingEntryTable();
-        ImGui::Spacing();
         ShowLog();
 
         ImGui::PopItemWidth();
@@ -335,7 +331,7 @@ int BlackLibraryGUI::Stop()
 
 void BlackLibraryGUI::BindEntry(const std::string &uuid)
 {
-    auto entry = blacklibrary_db_.ReadBlackEntry(uuid);
+    auto entry = blacklibrary_db_.ReadWorkEntry(uuid);
 
     blacklibrary_binder_.Bind(uuid, entry.title);
 }
@@ -403,87 +399,43 @@ void BlackLibraryGUI::ShowBlackEntryTable()
     if (ImGui::BeginTable("table_black_entries", 11, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
     {
         // Declare columns
-        SetupTableColumns(BlackLibraryDB::WORK_ENTRY);
+        SetupTableColumns();
 
         // Sort our data if sort specs have been changed!
         if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
         {
-            if (sorts_specs->SpecsDirty || force_sort_black_)
+            if (sorts_specs->SpecsDirty || force_sort_entries_)
             {
                 EntrySort sort_struct;
                 sort_struct.s_current_sort_specs = sorts_specs;
-                if (black_entries_.size() > 1)
-                    std::sort(black_entries_.begin(), black_entries_.end(), sort_struct);
+                if (work_entries_.size() > 1)
+                    std::sort(work_entries_.begin(), work_entries_.end(), sort_struct);
                 sorts_specs->SpecsDirty = false;
-                force_sort_black_ = false;
+                force_sort_entries_ = false;
             }
         }
 
         if (filter_.IsActive())
         {
-            for (size_t row_n = 0; row_n < black_entries_.size(); ++row_n)
+            for (size_t row_n = 0; row_n < work_entries_.size(); ++row_n)
             {
                 // Display a filtered database entry
-                if (filter_.PassFilter(black_entries_[row_n].title.c_str()) || filter_.PassFilter(black_entries_[row_n].author.c_str()))
-                    ShowEntry(black_entries_[row_n], BlackLibraryDB::WORK_ENTRY);
+                if (filter_.PassFilter(work_entries_[row_n].title.c_str()) || filter_.PassFilter(work_entries_[row_n].author.c_str()))
+                    ShowEntry(work_entries_[row_n], BlackLibraryDB::WORK_ENTRY);
             }
         }
         else
         {
         // Use clipper for large list
         ImGuiListClipper clipper;
-        clipper.Begin(black_entries_.size());
+        clipper.Begin(work_entries_.size());
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; ++row_n)
             {
-                ShowEntry(black_entries_[row_n], BlackLibraryDB::WORK_ENTRY);
+                ShowEntry(work_entries_[row_n], BlackLibraryDB::WORK_ENTRY);
             }
         }
         ImGui::EndTable();
-    }
-}
-
-void BlackLibraryGUI::ShowStagingEntryTable()
-{
-    if (ImGui::TreeNode("Staging Entries"))
-    {
-        const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
-
-        // Options
-        static ImGuiTableFlags flags =
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti
-            | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody
-            | ImGuiTableFlags_ScrollY;
-
-        if (ImGui::BeginTable("table_staging_entries", 10, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
-        {
-            // Declare columns
-            SetupTableColumns(BlackLibraryDB::STAGING_ENTRY);
-            
-            // Sort our data if sort specs have been changed!
-            if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs())
-                if (sorts_specs->SpecsDirty || force_sort_staging_)
-                {
-                    EntrySort sort_struct;
-                    sort_struct.s_current_sort_specs = sorts_specs;
-                    if (staging_entries_.size() > 1)
-                        std::sort(staging_entries_.begin(), staging_entries_.end(), sort_struct);
-                    sorts_specs->SpecsDirty = false;
-                    force_sort_staging_ = false;
-                }
-
-            // Use clipper for large list
-            ImGuiListClipper clipper;
-            clipper.Begin(staging_entries_.size());
-            while (clipper.Step())
-                for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; ++row_n)
-                {
-                    // Display a database entry
-                    ShowEntry(staging_entries_[row_n], BlackLibraryDB::STAGING_ENTRY);
-                }
-            ImGui::EndTable();
-        }
-        ImGui::TreePop();
     }
 }
 
@@ -503,10 +455,10 @@ void BlackLibraryGUI::ShowLog()
     }
 }
 
-void BlackLibraryGUI::SetupTableColumns(BlackLibraryDB::entry_table_rep_t type)
+void BlackLibraryGUI::SetupTableColumns()
 {
-    if (type == BlackLibraryDB::WORK_ENTRY)
-        ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
+    // second uuid column for bind button
+    ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
     ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
     ImGui::TableSetupColumn("Title",            ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
     ImGui::TableSetupColumn("Author",           ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author));
@@ -517,6 +469,7 @@ void BlackLibraryGUI::SetupTableColumns(BlackLibraryDB::entry_table_rep_t type)
     ImGui::TableSetupColumn("Last Check Date",  ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
     ImGui::TableSetupColumn("Birth Date",       ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
     ImGui::TableSetupColumn("URL",              ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
+    ImGui::TableSetupColumn("Processing",       ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::processing));
     ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
     ImGui::TableHeadersRow();
 }
@@ -559,12 +512,10 @@ void BlackLibraryGUI::ShowEntry(const BlackLibraryDB::DBEntry &entry, BlackLibra
 
 void BlackLibraryGUI::RefreshDBEntries()
 {
-    black_entries_ = blacklibrary_db_.GetBlackEntryList();
-    staging_entries_ = blacklibrary_db_.GetStagingEntryList();
+    work_entries_ = blacklibrary_db_.GetWorkEntryList();
 
     is_refreshing_ = false;
-    force_sort_black_ = true;
-    force_sort_staging_ = true;
+    force_sort_entries_ = true;
 }
 
 } // namespace black_library

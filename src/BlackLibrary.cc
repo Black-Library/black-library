@@ -34,6 +34,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
     gen_(),
     dist0_(0, 15),
     dist1_(8, 11),
+    logger_name_("black_library"),
     database_parser_mutex_(),
     debug_target_(false),
     done_(true)
@@ -58,9 +59,9 @@ BlackLibrary::BlackLibrary(const njson &config) :
         debug_target_ = nconfig["url_puller_debug"];
     }
 
-    BlackLibraryCommon::InitRotatingLogger("black_library", logger_path, logger_level);
+    BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
 
-    BlackLibraryCommon::LogInfo("black_library", "Initializing BlackLibrary application");
+    BlackLibraryCommon::LogInfo(logger_name_, "Initializing BlackLibrary application");
 
     gen_ = std::mt19937_64(rd_());
 
@@ -72,43 +73,44 @@ BlackLibrary::BlackLibrary(const njson &config) :
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!result.is_error_job)
             {
-                if (!blacklibrary_db_.DoesStagingEntryUUIDExist(result.metadata.uuid))
+                if (!blacklibrary_db_.DoesWorkEntryUUIDExist(result.metadata.uuid))
                 {
-                    BlackLibraryCommon::LogError("black_library", "Status staging entry with UUID: {} does not exist", result.metadata.uuid);
+                    BlackLibraryCommon::LogError(logger_name_, "Status entry with UUID: {} does not exist", result.metadata.uuid);
                     return;
                 }
 
-                auto staging_entry = blacklibrary_db_.ReadStagingEntry(result.metadata.uuid);
+                auto work_entry = blacklibrary_db_.ReadWorkEntry(result.metadata.uuid);
 
-                if (UpdateDatabaseWithResult(staging_entry, result))
+                if (UpdateDatabaseWithResult(work_entry, result))
                 {
-                    BlackLibraryCommon::LogError("black_library", "Failed to update database with result with UUID: {}", result.metadata.uuid);
+                    BlackLibraryCommon::LogError(logger_name_, "Failed to update database with result with UUID: {}", result.metadata.uuid);
                 }
 
                 return;
             }
-
-            if (!blacklibrary_db_.DoesErrorEntryExist(result.metadata.uuid, result.start_number))
+            else
             {
-                BlackLibraryCommon::LogError("black_library", "Error entry with UUID: {} does not exist", result.metadata.uuid);
-                return;
-            }
+                if (!blacklibrary_db_.DoesErrorEntryExist(result.metadata.uuid, result.start_number))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "Error entry with UUID: {} does not exist", result.metadata.uuid);
+                    return;
+                }
 
-            if (blacklibrary_db_.DeleteErrorEntry(result.metadata.uuid, result.start_number))
-            {
-                BlackLibraryCommon::LogError("black_library", "Failed to delete error entry with UUID: {} and progress number: {}", result.metadata.uuid, result.start_number);
-                return;
+                if (blacklibrary_db_.DeleteErrorEntry(result.metadata.uuid, result.start_number))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "Failed to delete error entry with UUID: {} and progress number: {}", result.metadata.uuid, result.start_number);
+                    return;
+                }
             }
-
         }
     );
     parser_manager_.RegisterProgressNumberCallback(
         [&](const std::string &uuid, size_t progress_num, bool error)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesStagingEntryUUIDExist(uuid))
+            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
             {
-                BlackLibraryCommon::LogWarn("black_library", "Progress number staging entry with UUID: {} does not exist", uuid);
+                BlackLibraryCommon::LogWarn(logger_name_, "Progress number entry with UUID: {} does not exist", uuid);
                 return;
             }
 
@@ -116,7 +118,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
             {
                 if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
                 {
-                    BlackLibraryCommon::LogWarn("black_library", "Error entry with UUID: {} progress_num: {}", uuid, progress_num);
+                    BlackLibraryCommon::LogWarn(logger_name_, "Error entry with UUID: {} progress_num: {} already exists", uuid, progress_num);
                     return;
                 }
 
@@ -125,14 +127,14 @@ BlackLibrary::BlackLibrary(const njson &config) :
                 blacklibrary_db_.CreateErrorEntry(entry);
             }
 
-            auto staging_entry = blacklibrary_db_.ReadStagingEntry(uuid);
+            auto work_entry = blacklibrary_db_.ReadWorkEntry(uuid);
 
-            if (staging_entry.series_length < progress_num)
-                staging_entry.series_length = progress_num;
+            if (work_entry.series_length < progress_num)
+                work_entry.series_length = progress_num;
 
-            if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
+            if (blacklibrary_db_.UpdateWorkEntry(work_entry))
             {
-                BlackLibraryCommon::LogError("black_library", "Staging entry with UUID: {} failed to be updated", staging_entry.uuid);
+                BlackLibraryCommon::LogError(logger_name_, "Work entry with UUID: {} failed to be updated", work_entry.uuid);
                 return;
             }
         }
@@ -143,7 +145,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
             std::string checksum = BlackLibraryCommon::EmptyMD5Version;
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
-                BlackLibraryCommon::LogDebug("black_library", "Read version UUID: {} index_num: {} failed MD5 sum does not exist", uuid, index_num);
+                BlackLibraryCommon::LogDebug(logger_name_, "Read version UUID: {} index_num: {} failed MD5 sum does not exist", uuid, index_num);
                 return checksum;
             }
 
@@ -159,7 +161,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
             uint16_t version_num = 0;
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
-                BlackLibraryCommon::LogDebug("black_library", "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
+                BlackLibraryCommon::LogDebug(logger_name_, "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
                 return version_num;
             }
 
@@ -177,14 +179,14 @@ BlackLibrary::BlackLibrary(const njson &config) :
             {
                 if (blacklibrary_db_.CreateMd5Sum(md5))
                 {
-                    BlackLibraryCommon::LogError("black_library", "Create version UUID: {} index_num: {} md5_sum: {} failed", uuid, index_num, md5_sum);
+                    BlackLibraryCommon::LogError(logger_name_, "Create version UUID: {} index_num: {} md5_sum: {} failed", uuid, index_num, md5_sum);
                     return;
                 }
             }
 
             if (blacklibrary_db_.UpdateMd5Sum(md5))
             {
-                BlackLibraryCommon::LogError("black_library", "Update version UUID: {} index_num: {} md5_sum: {} failed", uuid, index_num, md5_sum);
+                BlackLibraryCommon::LogError(logger_name_, "Update version UUID: {} index_num: {} md5_sum: {} failed", uuid, index_num, md5_sum);
                 return;
             }
         }
@@ -233,13 +235,13 @@ int BlackLibrary::Run()
 
                 --retries;
 
-                BlackLibraryCommon::LogWarn("black_library", "Failed run once, {} retries remaining", retries);
+                BlackLibraryCommon::LogWarn(logger_name_, "Failed run once, {} retries remaining", retries);
             }
 
             run_deadline = now_time + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
             auto info_time = std::chrono::system_clock::now() + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
             const std::string iso_info_time = BlackLibraryCommon::GetISOTimeString(std::chrono::system_clock::to_time_t(info_time));
-            BlackLibraryCommon::LogInfo("black_library", "Next scheduled run at {}", iso_info_time);
+            BlackLibraryCommon::LogInfo(logger_name_, "Next scheduled run at {}", iso_info_time);
         }
 
         if (done_)
@@ -256,47 +258,41 @@ int BlackLibrary::RunOnce()
     pull_urls_.clear();
     parse_entries_.clear();
 
-    BlackLibraryCommon::LogInfo("black_library", "Running Black Library application");
+    BlackLibraryCommon::LogInfo(logger_name_, "Running Black Library application");
 
     if (!blacklibrary_db_.IsReady())
     {
-        BlackLibraryCommon::LogError("black_library", "Black Library stalled, database not initalized/ready");
+        BlackLibraryCommon::LogError(logger_name_, "Black Library stalled, database not initalized/ready");
         return -1;
     }
 
     if (!parser_manager_.IsReady())
     {
-        BlackLibraryCommon::LogError("black_library", "Black Library stalled, parser manager not initalized/ready");
+        BlackLibraryCommon::LogError(logger_name_, "Black Library stalled, parser manager not initalized/ready");
         return -1;
     }
 
     if (PullUrls())
     {
-        BlackLibraryCommon::LogError("black_library", "Pulling Urls failed");
+        BlackLibraryCommon::LogError(logger_name_, "Pulling Urls failed");
         return -1;
     }
 
     if (VerifyUrls())
     {
-        BlackLibraryCommon::LogError("black_library", "Verifying Urls failed");
+        BlackLibraryCommon::LogError(logger_name_, "Verifying Urls failed");
         return -1;
     }
 
     if (CompareAndUpdateUrls())
     {
-        BlackLibraryCommon::LogError("black_library", "Comparing and Updating Urls failed");
-        return -1;
-    }
-
-    if (UpdateStaging())
-    {
-        BlackLibraryCommon::LogError("black_library", "Updating staging table failed");
+        BlackLibraryCommon::LogError(logger_name_, "Comparing and Updating Urls failed");
         return -1;
     }
 
     ParseUrls();
 
-    ParserErrorEntries();
+    ParseErrorEntries();
 
     return 0;
 }
@@ -305,14 +301,14 @@ int BlackLibrary::Stop()
 {
     done_ = true;
 
-    BlackLibraryCommon::LogWarn("black_library", "Joining manager thread");
+    BlackLibraryCommon::LogWarn(logger_name_, "Joining manager thread");
 
     curl_global_cleanup();
 
     if (manager_thread_.joinable())
         manager_thread_.join();
 
-    BlackLibraryCommon::LogInfo("black_library", "Stopping BlackLibrary");
+    BlackLibraryCommon::LogInfo(logger_name_, "Stopping BlackLibrary");
 
     // clean up memory allocated by xml
     xmlCleanupParser();
@@ -325,12 +321,12 @@ int BlackLibrary::Stop()
 
 int BlackLibrary::PullUrls()
 {
-    BlackLibraryCommon::LogInfo("black_library", "Pulling Urls from source");
+    BlackLibraryCommon::LogInfo(logger_name_, "Pulling Urls from source");
 
     // puller sanatizes urls
     pull_urls_ = url_puller_->PullUrls(debug_target_);
 
-    BlackLibraryCommon::LogInfo("black_library", "Pulled {} urls", pull_urls_.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "Pulled {} urls", pull_urls_.size());
 
     if (pull_urls_.size() <= 0)
         return -1;
@@ -340,25 +336,25 @@ int BlackLibrary::PullUrls()
 
 int BlackLibrary::VerifyUrls()
 {
-    BlackLibraryCommon::LogInfo("black_library", "Verifying Urls");
+    BlackLibraryCommon::LogInfo(logger_name_, "Verifying Urls");
 
     // remove if url not on the protected list
     pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), [](const std::string &str){ return !BlackLibraryCommon::IsSourceInformationMember(str); }), pull_urls_.end());
 
-    BlackLibraryCommon::LogInfo("black_library", "After source information check {} urls", pull_urls_.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "After source information check {} urls", pull_urls_.size());
 
     // remove duplicate urls, sorting is faster then using a set for low number of duplicates
     std::sort(pull_urls_.begin(), pull_urls_.end());
     pull_urls_.erase(std::unique(pull_urls_.begin(), pull_urls_.end()), pull_urls_.end());
 
-    BlackLibraryCommon::LogInfo("black_library", "Verified {} urls", pull_urls_.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "Verified {} urls", pull_urls_.size());
 
     return 0;
 }
 
 int BlackLibrary::CompareAndUpdateUrls()
 {
-    BlackLibraryCommon::LogInfo("black_library", "Comparing Urls with database");
+    BlackLibraryCommon::LogInfo(logger_name_, "Comparing Urls with database");
 
     parse_entries_.clear();
 
@@ -367,20 +363,14 @@ int BlackLibrary::CompareAndUpdateUrls()
         BlackLibraryDB::DBEntry entry;
         std::string type = "unknown";
 
-        // check staging entries first to continue jobs that were still in progress
-        if (blacklibrary_db_.DoesStagingEntryUrlExist(url))
+        // check entries to continue jobs that were still in progress
+        if (blacklibrary_db_.DoesWorkEntryUrlExist(url))
         {
-            auto res = blacklibrary_db_.GetStagingEntryUUIDFromUrl(url);
+            auto res = blacklibrary_db_.GetWorkEntryUUIDFromUrl(url);
             std::string uuid = res.result;
-            entry = blacklibrary_db_.ReadStagingEntry(uuid);
-            type = "staging";
-        }
-        else if (blacklibrary_db_.DoesBlackEntryUrlExist(url))
-        {
-            auto res = blacklibrary_db_.GetBlackEntryUUIDFromUrl(url);
-            std::string uuid = res.result;
-            entry = blacklibrary_db_.ReadBlackEntry(uuid);
+            entry = blacklibrary_db_.ReadWorkEntry(uuid);
             entry.check_date = BlackLibraryCommon::GetUnixTime();
+            entry.processing = true;
             type = "black";
         }
         else
@@ -394,7 +384,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             type = "new";
         }
 
-        BlackLibraryCommon::LogDebug("black_library", "Type: {} UUID: {} last_url: {} length: {}", type, entry.uuid, entry.last_url, entry.series_length);
+        BlackLibraryCommon::LogDebug(logger_name_, "Type: {} UUID: {} last_url: {} length: {}", type, entry.uuid, entry.last_url, entry.series_length);
 
         parse_entries_.emplace_back(entry);
     }
@@ -402,35 +392,9 @@ int BlackLibrary::CompareAndUpdateUrls()
     return 0;
 }
 
-int BlackLibrary::UpdateStaging()
-{
-    BlackLibraryCommon::LogInfo("black_library", "Update staging table of database with {} entries", parse_entries_.size());
-
-    size_t num_new_entries = 0;
-    size_t num_existing_entries = 0;
-
-    for (auto & entry : parse_entries_)
-    {
-        if (blacklibrary_db_.DoesStagingEntryUUIDExist(entry.uuid))
-        {
-            ++num_existing_entries;
-            continue;
-        }
-        else
-        {
-            blacklibrary_db_.CreateStagingEntry(entry);
-            ++num_new_entries;
-        }
-    }
-
-    BlackLibraryCommon::LogInfo("black_library", "Staging table added {} entries and has {} existing entries", num_new_entries, num_existing_entries);
-
-    return 0;
-}
-
 int BlackLibrary::ParseUrls()
 {
-    BlackLibraryCommon::LogInfo("black_library", "Adding {} jobs to parser manager", parse_entries_.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "Adding {} jobs to parser manager", parse_entries_.size());
 
     for (auto & entry : parse_entries_)
     {
@@ -440,41 +404,34 @@ int BlackLibrary::ParseUrls()
     return 0;
 }
 
-int BlackLibrary::ParserErrorEntries()
+int BlackLibrary::ParseErrorEntries()
 {
     auto error_list = blacklibrary_db_.GetErrorEntryList();
 
-    BlackLibraryCommon::LogInfo("black_library", "Adding {} error jobs to parser manager", error_list.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "Adding {} error jobs to parser manager", error_list.size());
 
     for (const auto & error : error_list)
     {
-        std::string url;
-
-        if (blacklibrary_db_.DoesStagingEntryUUIDExist(error.uuid))
+        if (!blacklibrary_db_.DoesWorkEntryUUIDExist(error.uuid))
         {
-            auto res = blacklibrary_db_.GetStagingEntryUrlFromUUID(error.uuid);
-
-            if (res.error)
-                continue;
-            
-            url = res.result;
+            BlackLibraryCommon::LogWarn(logger_name_, "Work entry does not exist for error UUID: {}", error.uuid);
+            continue;
         }
-        else if (blacklibrary_db_.DoesBlackEntryUUIDExist(error.uuid))
-        {
-            auto res = blacklibrary_db_.GetStagingEntryUrlFromUUID(error.uuid);
 
-            if (res.error)
-                continue;
-            
-            url = res.result;
-            BlackLibraryDB::DBEntry entry = blacklibrary_db_.ReadBlackEntry(error.uuid);
-            if (entry.uuid.empty())
-                continue;
-            blacklibrary_db_.CreateStagingEntry(entry);
-        }
-        else
+        auto res = blacklibrary_db_.GetWorkEntryUrlFromUUID(error.uuid);
+
+        if (res.error)
         {
-            BlackLibraryCommon::LogWarn("black_library", "Failed to match error entry {}");
+            BlackLibraryCommon::LogWarn(logger_name_, "Failed to get work entry from {}", error);
+            continue;
+        }
+        
+        std::string url = res.result;
+        BlackLibraryDB::DBEntry entry = blacklibrary_db_.ReadWorkEntry(error.uuid);
+
+        if (entry.uuid.empty())
+        {
+            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read entry {}", entry);
             continue;
         }
 
@@ -486,80 +443,64 @@ int BlackLibrary::ParserErrorEntries()
 
 int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result)
 {
-    // TODO staging should check against black for these
-    BlackLibraryCommon::LogDebug("black_library", "Update database with {}", result);
-    // if (entry.title.empty() && !result.metadata.title.empty())
-    //     entry.title = result.metadata.title;
-    // if (entry.nickname.empty() && !result.metadata.nickname.empty())
-    //     entry.nickname = result.metadata.nickname;
-    // if (entry.source.empty() && !result.metadata.source.empty())
-    //     entry.source = result.metadata.source;
-    // if (entry.series.empty() && !result.metadata.series.empty())
-    //     entry.series = result.metadata.series;
-    // if (entry.author.empty() && !result.metadata.author.empty())
-    //     entry.author = result.metadata.author;
-
-    if (!result.is_error_job)
-    {
+    // entry.title = result.metadata.title;
+    // entry.nickname = result.metadata.nickname;
+    // entry.source = result.metadata.source;
+    // entry.series = result.metadata.series;
+    // entry.author = result.metadata.author;
+    BlackLibraryCommon::LogDebug(logger_name_, "Update database with {}", result);
+    if (!result.metadata.title.empty())
         entry.title = result.metadata.title;
+    if (!result.metadata.nickname.empty())
         entry.nickname = result.metadata.nickname;
+    if (!result.metadata.source.empty())
         entry.source = result.metadata.source;
+    if (!result.metadata.series.empty())
         entry.series = result.metadata.series;
+    if (!result.metadata.author.empty())
         entry.author = result.metadata.author;
 
+    if (!result.metadata.last_url.empty())
         entry.last_url = result.metadata.last_url;
-    }
     else
-    {
-        entry.title = result.metadata.title;
-        entry.nickname = result.metadata.nickname;
-        entry.source = result.metadata.source;
-        entry.series = result.metadata.series;
-        entry.author = result.metadata.author;
-    }
+        entry.last_url = entry.url;
 
     if (entry.update_date < result.metadata.update_date)
         entry.update_date = result.metadata.update_date;
 
     if (entry.series_length < result.metadata.series_length)
-    {
         entry.series_length = result.metadata.series_length;
+
+    if (!result.metadata.media_path.empty())
+        entry.media_path = result.metadata.media_path;
+
+    // update work entry
+    if (!blacklibrary_db_.DoesWorkEntryUUIDExist(result.metadata.uuid))
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry, UUID: {}", result.metadata.uuid);
+        return -1;
     }
 
-    // if entry already exists, just update, else create new
-    if (blacklibrary_db_.DoesBlackEntryUUIDExist(result.metadata.uuid))
+    // Do not set processing off if still working on uuid
+    if (parser_manager_.StillWorkingOn(result.metadata.uuid))
     {
-        int res = blacklibrary_db_.UpdateBlackEntry(entry);
-
-        if (res)
-            return -1;
+        BlackLibraryCommon::LogInfo(logger_name_, "Still working on job with UUID: {}", result.metadata.uuid);
+        entry.processing = true;
     }
     else
     {
-        entry.media_path = result.metadata.media_path;
-        
-        int res = blacklibrary_db_.CreateBlackEntry(entry);
-
-        if (res)
-            return -1;
+        BlackLibraryCommon::LogInfo(logger_name_, "Finished processing entry with UUID: {}", entry.uuid);
+        entry.processing = false;
     }
 
-    // Do not delete staging entry if still working on uuid
-    if (parser_manager_.StillWorkingOn(result.metadata.uuid))
+    if (!blacklibrary_db_.UpdateWorkEntry(entry))
     {
-        BlackLibraryCommon::LogInfo("black_library", "Still working on job with UUID: {}", result.metadata.uuid);
-        return 0;
-    }
-
-    if (blacklibrary_db_.DeleteStagingEntry(result.metadata.uuid))
-    {
-        BlackLibraryCommon::LogError("black_library", "Failed to delete staging entry with UUID: {}", result.metadata.uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry, UUID: {}", entry.uuid);
         return -1;
     }
 
     return 0;
 }
-
 
 // TODO: pull this into an include file and make it truly a uuid
 // https://stackoverflow.com/questions/24365331/how-can-i-generate-uuid-in-c-without-using-boost-library

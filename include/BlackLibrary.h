@@ -37,9 +37,8 @@ private:
     int PullUrls();
     int VerifyUrls();
     int CompareAndUpdateUrls();
-    int UpdateStaging();
     int ParseUrls();
-    int ParserErrorEntries();
+    int ParseErrorEntries();
 
     int UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const BlackLibraryParsers::ParserJobResult &result);
 
@@ -55,6 +54,7 @@ private:
     std::mt19937_64 gen_;
     std::uniform_int_distribution<> dist0_;
     std::uniform_int_distribution<> dist1_;
+    std::string logger_name_;
     std::mutex database_parser_mutex_;
     bool debug_target_;
 

@@ -92,13 +92,13 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
         return;
     }
 
-    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    if (!blacklibrary_db_.DoesWorkEntryUUIDExist(target_uuid))
     {
         BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for bind", target_uuid);
         return;
     }
 
-    auto entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
+    auto entry = blacklibrary_db_.ReadWorkEntry(target_uuid);
 
     blacklibrary_binder_.Bind(target_uuid, entry.title);
 }
@@ -119,47 +119,29 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
         return;
     }
 
-    if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
+    if (!blacklibrary_db_.DoesWorkEntryUUIDExist(target_uuid))
     {
         BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for size", target_uuid);
         return;
     }
 
-    auto work_entry = blacklibrary_db_.ReadBlackEntry(target_uuid);
+    auto work_entry = blacklibrary_db_.ReadWorkEntry(target_uuid);
 
     work_entry.series_length = desired_size;
     work_entry.last_url = work_entry.url;
 
-    if (blacklibrary_db_.UpdateBlackEntry(work_entry))
+    if (blacklibrary_db_.UpdateWorkEntry(work_entry))
     {
         BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", target_uuid, desired_size);
         return;
     }
 
     BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", target_uuid, desired_size);
-
-    if (!blacklibrary_db_.DoesStagingEntryUUIDExist(target_uuid))
-    {
-        BlackLibraryCommon::LogWarn("black_library_cli", "Staging UUID: {} does not exist for size", target_uuid);
-        return;
-    }
-
-    auto staging_entry = blacklibrary_db_.ReadStagingEntry(target_uuid);
-
-    staging_entry.series_length = desired_size;
-    staging_entry.last_url = staging_entry.url;
-
-    if (blacklibrary_db_.UpdateStagingEntry(staging_entry))
-    {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to update staging entry with UUID: {} size: {}", target_uuid, desired_size);
-        return;
-    }
 }
 
 void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBEntry> blackentry_list;
-    std::vector<BlackLibraryDB::DBEntry> stagingentry_list;
+    std::vector<BlackLibraryDB::DBEntry> work_entry_list;
     std::string target_source;
     size_t desired_size;
     time_t desired_after_date;
@@ -181,9 +163,9 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
         target_source = tokens[3];
     }
 
-    blackentry_list = blacklibrary_db_.GetBlackEntryList();
+    work_entry_list = blacklibrary_db_.GetWorkEntryList();
 
-    for (auto &entry : blackentry_list)
+    for (auto &entry : work_entry_list)
     {
         // std::cout << entry.uuid << " update date: " << entry.update_date << " after_date: " << desired_after_date << " - " << (entry.update_date > desired_after_date) << " - " << desired_size << std::endl;
         // change size if they come after the provided date
@@ -192,7 +174,7 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
             entry.series_length = desired_size;
             entry.last_url = entry.url;
 
-            if (blacklibrary_db_.UpdateBlackEntry(entry))
+            if (blacklibrary_db_.UpdateWorkEntry(entry))
             {
                 BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", entry.uuid, desired_size);
                 continue;
@@ -201,28 +183,6 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
             BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", entry.uuid, desired_size);
         }
     }
-
-    stagingentry_list = blacklibrary_db_.GetStagingEntryList();
-    // TODO: match urls to source url in the cases where new staging entry are needing resizing
-    // for (auto &entry : stagingentry_list)
-    // {
-    //     // std::cout << entry.uuid << " update date: " << entry.update_date << " after_date: " << desired_after_date << " - " << (entry.update_date > desired_after_date) << " - " << desired_size << std::endl;
-    //     // change size if they come after the provided date
-
-    //     if (entry.update_date > desired_after_date && entry.url == target_source)
-    //     {
-    //         entry.series_length = desired_size;
-    //         entry.last_url = entry.url;
-
-    //         if (blacklibrary_db_.UpdateStagingEntry(entry))
-    //         {
-    //             BlackLibraryCommon::LogError("black_library_cli", "Failed to update staging entry with UUID: {} size: {}", entry.uuid, desired_size);
-    //             continue;
-    //         }
-
-    //         BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", entry.uuid, desired_size);
-    //     }
-    // }
 }
 
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
@@ -236,7 +196,7 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
     }
     else
     {
-        std::cout << "delete [uuid] (table)" << std::endl;
+        std::cout << "delete [uuid]" << std::endl;
         return;
     }
 
@@ -245,39 +205,17 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
         target_entry_type = tokens[2];
     }
 
-    if (target_entry_type == "black")
+    if (!blacklibrary_db_.DoesWorkEntryUUIDExist(target_uuid))
     {
-        if (!blacklibrary_db_.DoesBlackEntryUUIDExist(target_uuid))
-        {
-            BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for delete", target_uuid);
-            return;
-        }
-
-        if (blacklibrary_db_.DeleteBlackEntry(target_uuid))
-        {
-            BlackLibraryCommon::LogError("black_library_cli", "Failed to delete black entry with UUID: {}", target_uuid);
-            return;
-        }
-    }
-    else if (target_entry_type == "staging")
-    {
-        if (!blacklibrary_db_.DoesStagingEntryUUIDExist(target_uuid))
-        {
-            BlackLibraryCommon::LogError("black_library_cli", "Staging entry with UUID: {} does not exist for delete", target_uuid);
-            return;
-        }
-
-        if (blacklibrary_db_.DeleteStagingEntry(target_uuid))
-        {
-            BlackLibraryCommon::LogError("black_library_cli", "Failed to delete staging entry with UUID: {}", target_uuid);
-            return;
-        }
-    }
-    else
-    {
-        BlackLibraryCommon::LogWarn("black_library_cli", "Failed to match entry with UUID: {}", target_uuid);
+        BlackLibraryCommon::LogError("black_library_cli", "Entry with UUID: {} does not exist for delete", target_uuid);
+        return;
     }
 
+    if (blacklibrary_db_.DeleteWorkEntry(target_uuid))
+    {
+        BlackLibraryCommon::LogError("black_library_cli", "Failed to delete entry with UUID: {}", target_uuid);
+        return;
+    }
 }
 
 void BlackLibraryCLI::Export(const std::vector<std::string> &tokens)
@@ -289,16 +227,14 @@ void BlackLibraryCLI::Export(const std::vector<std::string> &tokens)
         target_type = tokens[1];
     }
 
-    if (target_type == "black")
-        ExportEntries(tokens, "black");
+    if (target_type == "work")
+        ExportEntries(tokens, "work");
     else if (target_type == "checksum")
         ExportChecksums(tokens);
     else if (target_type == "error")
         ExportEntries(tokens, "error");
-    else if (target_type == "staging")
-        ExportEntries(tokens, "staging");
     else
-        std::cout << "export [black, checksum, error, staging]" << std::endl;
+        std::cout << "export [checksum, error, work]" << std::endl;
 }
 
 void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
@@ -356,21 +292,17 @@ void BlackLibraryCLI::ExportEntries(const std::vector<std::string> &tokens, cons
         target_path = tokens[2];
     }
 
-    if (type == "black")
-        entry_list = blacklibrary_db_.GetBlackEntryList();
+    if (type == "work")
+        entry_list = blacklibrary_db_.GetWorkEntryList();
     else if (type == "error")
         error_list = blacklibrary_db_.GetErrorEntryList();
-    else if (type == "staging")
-        entry_list = blacklibrary_db_.GetStagingEntryList();
     else if (type == "help")
-        std::cout << "export [black, error, staging] path" << std::endl;
+        std::cout << "export [error, work] path" << std::endl;
     else
     {
-        auto staging_entries = blacklibrary_db_.GetStagingEntryList();
-        auto black_entires = blacklibrary_db_.GetBlackEntryList();
-        entry_list.reserve(staging_entries.size() + black_entires.size());
-        entry_list.insert(entry_list.end(), staging_entries.begin(), staging_entries.end());
-        entry_list.insert(entry_list.end(), black_entires.begin(), black_entires.end());
+        auto work_entries = blacklibrary_db_.GetWorkEntryList();
+        entry_list.reserve(work_entries.size());
+        entry_list.insert(entry_list.end(), work_entries.begin(), work_entries.end());
 
         error_list = blacklibrary_db_.GetErrorEntryList();
     }
@@ -391,7 +323,8 @@ void BlackLibraryCLI::ExportEntries(const std::vector<std::string> &tokens, cons
         ss << entry.birth_date << ',';
         ss << entry.check_date << ',';
         ss << entry.update_date << ',';
-        ss << entry.user_contributed;
+        ss << entry.user_contributed << ',';
+        ss << entry.processing;
         ss << '\n';
     }
 
@@ -425,16 +358,14 @@ void BlackLibraryCLI::Import(const std::vector<std::string> &tokens)
         target_type = tokens[1];
     }
 
-    if (target_type == "black")
-        ImportEntries(tokens, "black");
+    if (target_type == "work")
+        ImportEntries(tokens, "work");
     else if (target_type == "checksum")
         ImportChecksums(tokens);
     else if (target_type == "error")
         ImportEntries(tokens, "error");
-    else if (target_type == "staging")
-        ImportEntries(tokens, "staging");
     else
-        std::cout << "import [black, checksum, error, staging] path" << std::endl;
+        std::cout << "import [checksum, error, work] path" << std::endl;
 }
 
 void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
@@ -579,13 +510,13 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
             static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::user_contributed)]))
         };
 
-        if (blacklibrary_db_.DoesBlackEntryUUIDExist(entry.uuid))
+        if (blacklibrary_db_.DoesWorkEntryUUIDExist(entry.uuid))
         {
-            blacklibrary_db_.UpdateBlackEntry(entry);
+            blacklibrary_db_.UpdateWorkEntry(entry);
         }
         else
         {
-            blacklibrary_db_.CreateBlackEntry(entry);
+            blacklibrary_db_.CreateWorkEntry(entry);
         }
     }
 }
@@ -599,16 +530,14 @@ void BlackLibraryCLI::List(const std::vector<std::string> &tokens)
         target_entry_type = tokens[1];
     }
 
-    if (target_entry_type == "black")
-        ListEntries(tokens, "black");
+    if (target_entry_type == "work")
+        ListEntries(tokens, "work");
     else if (target_entry_type == "checksum")
         ListChecksums(tokens);
     else if (target_entry_type == "error")
         ListEntries(tokens, "error");
-    else if (target_entry_type == "staging")
-        ListEntries(tokens, "staging");
     else
-        std::cout << "list [black, error, staging]" << std::endl;
+        std::cout << "list [work, error, checksum]" << std::endl;
 }
 
 void BlackLibraryCLI::ListChecksums(const std::vector<std::string> &tokens)
@@ -628,21 +557,17 @@ void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens, const 
     std::vector<BlackLibraryDB::DBEntry> entry_list;
     std::vector<BlackLibraryDB::DBErrorEntry> error_list;
 
-    if (type == "black")
-        entry_list = blacklibrary_db_.GetBlackEntryList();
+    if (type == "work")
+        entry_list = blacklibrary_db_.GetWorkEntryList();
     else if (type == "error")
         error_list = blacklibrary_db_.GetErrorEntryList();
-    else if (type == "staging")
-        entry_list = blacklibrary_db_.GetStagingEntryList();
     else if (type == "help")
-        std::cout << "list [black, error, staging]" << std::endl;
+        std::cout << "list [error, work]" << std::endl;
     else
     {
-        auto staging_entries = blacklibrary_db_.GetStagingEntryList();
-        auto black_entires = blacklibrary_db_.GetBlackEntryList();
-        entry_list.reserve(staging_entries.size() + black_entires.size());
-        entry_list.insert(entry_list.end(), staging_entries.begin(), staging_entries.end());
-        entry_list.insert(entry_list.end(), black_entires.begin(), black_entires.end());
+        auto work_entries = blacklibrary_db_.GetWorkEntryList();
+        entry_list.reserve(work_entries.size());
+        entry_list.insert(entry_list.end(), work_entries.begin(), work_entries.end());
 
         error_list = blacklibrary_db_.GetErrorEntryList();
     }
@@ -686,7 +611,7 @@ void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
     (void) tokens;
     std::vector<BlackLibraryDB::DBEntry> entry_list;
 
-    entry_list = blacklibrary_db_.GetBlackEntryList();
+    entry_list = blacklibrary_db_.GetWorkEntryList();
 
     for (auto &entry : entry_list)
     {

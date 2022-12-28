@@ -348,7 +348,9 @@ time_t ParserWP::GetUpdateDate(xmlNodePtr root_node)
 
 std::string ParserWP::GetWorkTitle(xmlNodePtr root_node)
 {
-    title = GetParserName(parser_t::WP_PARSER) + "_title";
+    xmlNodePtr current_node = NULL;
+
+    std::string title = GetParserName(parser_t::WP_PARSER) + "_title";
 
     const auto title_seek = SeekToNodeByPattern(root_node, pattern_seek_t::XML_NAME, "meta",
         pattern_seek_t::XML_ATTRIBUTE, "property=og:site_name");

@@ -183,22 +183,19 @@ private:
     void ShowCopyLocationWindow(bool* p_open);
     void ShowRefreshAndSearch();
     void ShowBlackEntryTable();
-    void ShowStagingEntryTable();
     void ShowLog();
     void ShowEntry(const BlackLibraryDB::DBEntry &entry, BlackLibraryDB::entry_table_rep_t type);
 
-    void SetupTableColumns(BlackLibraryDB::entry_table_rep_t type);
+    void SetupTableColumns();
     void RefreshDBEntries();
 
     BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
     BlackLibraryBinder::BlackLibraryBinder blacklibrary_binder_;
-    std::vector<BlackLibraryDB::DBEntry> black_entries_;
-    std::vector<BlackLibraryDB::DBEntry> staging_entries_;
+    std::vector<BlackLibraryDB::DBEntry> work_entries_;
     ImGuiTextFilter filter_;
     bool initialized_;
     bool is_refreshing_;
-    bool force_sort_black_;
-    bool force_sort_staging_;
+    bool force_sort_entries_;
 };
 
 } // namespace black_library
