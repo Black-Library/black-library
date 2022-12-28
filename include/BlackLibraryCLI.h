@@ -48,6 +48,7 @@ private:
 
     BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
     BlackLibraryBinder::BlackLibraryBinder blacklibrary_binder_;
+    std::string logger_name_;
     std::atomic_bool done_;
 };
 

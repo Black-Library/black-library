@@ -84,7 +84,7 @@ int BlackLibraryDB::CreateWorkEntry(const DBEntry &entry)
 
     if (entry.uuid.empty() || database_connection_interface_->CreateEntry(entry))
     {
-        BlackLibraryCommon::LogError("db", "Failed to create black entry with UUID: {}", entry.uuid);
+        BlackLibraryCommon::LogError("db", "Failed to create entry with UUID: {}", entry.uuid);
         return -1;
     }
 
@@ -99,13 +99,15 @@ DBEntry BlackLibraryDB::ReadWorkEntry(const std::string &uuid)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read black entry with empty UUID");
+        BlackLibraryCommon::LogError("db", "Failed to read entry with empty UUID");
         return entry;
     }
+
     entry = database_connection_interface_->ReadEntry(uuid);
+
     if (entry.uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read black entry with UUID: {}", uuid);
+        BlackLibraryCommon::LogError("db", "Failed to read entry with UUID: {}", uuid);
         return entry;
     }
 
@@ -118,7 +120,7 @@ int BlackLibraryDB::UpdateWorkEntry(const DBEntry &entry)
 
     if (entry.uuid.empty() || database_connection_interface_->UpdateEntry(entry))
     {
-        BlackLibraryCommon::LogError("db", "Failed to update black entry with UUID: {}", entry.uuid);
+        BlackLibraryCommon::LogError("db", "Failed to update entry with UUID: {}", entry.uuid);
         return -1;
     }
 
@@ -131,12 +133,14 @@ int BlackLibraryDB::DeleteWorkEntry(const std::string &uuid)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete black entry with empty UUID");
+        BlackLibraryCommon::LogError("db", "Failed to delete entry with empty UUID");
         return -1;
     }
+
     if (database_connection_interface_->DeleteEntry(uuid))
+
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete black entry with UUID: {}", uuid);
+        BlackLibraryCommon::LogError("db", "Failed to delete entry with UUID: {}", uuid);
         return -1;
     }
 

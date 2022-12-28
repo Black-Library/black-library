@@ -30,6 +30,7 @@ inline size_t DBColumnIDCast(T const &id)
 BlackLibraryCLI::BlackLibraryCLI(const njson &config) :
     blacklibrary_db_(config),
     blacklibrary_binder_(config),
+    logger_name_("black_library_cli"),
     done_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
@@ -41,7 +42,7 @@ BlackLibraryCLI::BlackLibraryCLI(const njson &config) :
         logger_path = nconfig["logger_path"];
     }
 
-    BlackLibraryCommon::InitRotatingLogger("black_library_cli", logger_path, true);
+    BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, true);
 }
 
 int BlackLibraryCLI::Run()
@@ -94,7 +95,7 @@ void BlackLibraryCLI::BindEntry(const std::vector<std::string> &tokens)
 
     if (!blacklibrary_db_.DoesWorkEntryUUIDExist(target_uuid))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for bind", target_uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Black entry with UUID: {} does not exist for bind", target_uuid);
         return;
     }
 
@@ -121,7 +122,7 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
     if (!blacklibrary_db_.DoesWorkEntryUUIDExist(target_uuid))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Black entry with UUID: {} does not exist for size", target_uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Black entry with UUID: {} does not exist for size", target_uuid);
         return;
     }
 
@@ -132,11 +133,11 @@ void BlackLibraryCLI::ChangeSize(const std::vector<std::string> &tokens)
 
     if (blacklibrary_db_.UpdateWorkEntry(work_entry))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", target_uuid, desired_size);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update black entry with UUID: {} size: {}", target_uuid, desired_size);
         return;
     }
 
-    BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", target_uuid, desired_size);
+    BlackLibraryCommon::LogInfo(logger_name_, "Changed size of UUID: {} to {}", target_uuid, desired_size);
 }
 
 void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
@@ -176,11 +177,11 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
 
             if (blacklibrary_db_.UpdateWorkEntry(entry))
             {
-                BlackLibraryCommon::LogError("black_library_cli", "Failed to update black entry with UUID: {} size: {}", entry.uuid, desired_size);
+                BlackLibraryCommon::LogError(logger_name_, "Failed to update black entry with UUID: {} size: {}", entry.uuid, desired_size);
                 continue;
             }
 
-            BlackLibraryCommon::LogInfo("black_library_cli", "Changed size of UUID: {} to {}", entry.uuid, desired_size);
+            BlackLibraryCommon::LogInfo(logger_name_, "Changed size of UUID: {} to {}", entry.uuid, desired_size);
         }
     }
 }
@@ -207,13 +208,13 @@ void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 
     if (!blacklibrary_db_.DoesWorkEntryUUIDExist(target_uuid))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Entry with UUID: {} does not exist for delete", target_uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Entry with UUID: {} does not exist for delete", target_uuid);
         return;
     }
 
     if (blacklibrary_db_.DeleteWorkEntry(target_uuid))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to delete entry with UUID: {}", target_uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete entry with UUID: {}", target_uuid);
         return;
     }
 }
@@ -263,7 +264,7 @@ void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
 
     if (BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "File already exists for export");
+        BlackLibraryCommon::LogError(logger_name_, "File already exists for export");
         return;
     }
 
@@ -271,7 +272,7 @@ void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
 
     if (!output_file.is_open())
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for export", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to open file with path: {} for export", target_path);
         return;
     }
 
@@ -332,7 +333,7 @@ void BlackLibraryCLI::ExportEntries(const std::vector<std::string> &tokens, cons
 
     if (BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "File already exists for export");
+        BlackLibraryCommon::LogError(logger_name_, "File already exists for export");
         return;
     }
 
@@ -340,7 +341,7 @@ void BlackLibraryCLI::ExportEntries(const std::vector<std::string> &tokens, cons
 
     if (!output_file.is_open())
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for export", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to open file with path: {} for export", target_path);
         return;
     }
 
@@ -380,7 +381,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 
     if (!BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for import", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "File does not exist with path: {} for import", target_path);
         return;
     }
 
@@ -390,7 +391,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 
     if (!input_file.is_open())
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for import", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to open file with path: {} for import", target_path);
         return;
     }
 
@@ -413,7 +414,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 
         if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBMd5SumColumnID::_NUM_DB_MD5SUM_COLUMN_ID))
         {
-            BlackLibraryCommon::LogWarn("black_library_cli", "Failed to read: {}", checksum_line);
+            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", checksum_line);
             continue;
         }
 
@@ -448,7 +449,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
 
     if (!BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("black_library_cli", "File does not exist with path: {} for import", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "File does not exist with path: {} for import", target_path);
         return;
     }
 
@@ -460,7 +461,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
 
     if (!input_file.is_open())
     {
-        BlackLibraryCommon::LogError("black_library_cli", "Failed to open file with path: {} for import", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to open file with path: {} for import", target_path);
         return;
     }
 
@@ -473,7 +474,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
 
     if (type != "black")
     {
-        BlackLibraryCommon::LogWarn("black_library_cli", "Only black entry import supported");
+        BlackLibraryCommon::LogWarn(logger_name_, "Only black entry import supported");
     }
 
     for (const auto & entry_line : entry_lines)
@@ -488,7 +489,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
 
         if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID))
         {
-            BlackLibraryCommon::LogWarn("black_library_cli", "Failed to read: {}", entry_line);
+            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", entry_line);
             continue;
         }
 
