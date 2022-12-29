@@ -396,7 +396,7 @@ void BlackLibraryGUI::ShowBlackEntryTable()
 
     ImGui::Text("Black Entries");
 
-    if (ImGui::BeginTable("table_black_entries", 11, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
+    if (ImGui::BeginTable("table_black_entries", 12, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
     {
         // Declare columns
         SetupTableColumns();
@@ -507,6 +507,8 @@ void BlackLibraryGUI::ShowEntry(const BlackLibraryDB::DBEntry &entry, BlackLibra
     ImGui::Text("%s", BlackLibraryCommon::GetGUITimeString(entry.birth_date).c_str());
     ImGui::TableNextColumn();
     ImGui::Text("%s", entry.url.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", entry.processing ? "true": "false");
     ImGui::PopID();
 }
 

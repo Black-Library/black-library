@@ -484,12 +484,12 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
     // Do not set processing off if still working on uuid
     if (parser_manager_.StillWorkingOn(result.metadata.uuid))
     {
-        BlackLibraryCommon::LogInfo(logger_name_, "Still working on job with UUID: {}", result.metadata.uuid);
+        BlackLibraryCommon::LogWarn(logger_name_, "Still working on job with UUID: {}", result.metadata.uuid);
         entry.processing = true;
     }
     else
     {
-        BlackLibraryCommon::LogInfo(logger_name_, "Finished processing entry with UUID: {}", entry.uuid);
+        BlackLibraryCommon::LogDebug(logger_name_, "Finished processing entry with UUID: {}", entry.uuid);
         entry.processing = false;
     }
 

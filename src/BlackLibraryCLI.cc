@@ -481,7 +481,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens)
             tokens.emplace_back(token);
         }
 
-        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID) - 1)
+        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID))
         {
             BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", entry_line);
             continue;
@@ -503,7 +503,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens)
             stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::check_date)]),
             stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::update_date)]),
             static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::user_contributed)])),
-            false
+            false,
         };
 
         if (blacklibrary_db_.DoesWorkEntryUUIDExist(entry.uuid))
