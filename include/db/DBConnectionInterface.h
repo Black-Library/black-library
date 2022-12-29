@@ -50,7 +50,7 @@ public:
     virtual DBBoolResult DoesMinRefreshExist() const = 0;
     virtual DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const = 0;
 
-    virtual std::string GetDBVersion() const = 0;
+    virtual DBStringResult GetDBVersion() const = 0;
     virtual DBStringResult GetEntryUUIDFromUrl(const std::string &url) const = 0;
     virtual DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const = 0;
 

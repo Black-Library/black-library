@@ -1402,15 +1402,15 @@ DBBoolResult SQLiteDB::DoesMinRefreshExist() const
     return check;
 }
 
-std::string SQLiteDB::GetDBVersion() const
+DBStringResult SQLiteDB::GetDBVersion() const
 {
-    std::string version = "";
+    DBStringResult res;
 
     if (CheckInitialized())
-        return version;
+        return res;
 
     if (BeginTransaction())
-        return version;
+        return res;
 
     sqlite3_stmt *stmt = prepared_statements_[GET_DB_VERSION_STATEMENT];
 
@@ -1424,17 +1424,19 @@ std::string SQLiteDB::GetDBVersion() const
         BlackLibraryCommon::LogError(logger_name_, "Get DB version failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
-        return version;
+        return res;
     }
 
-    version = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+    res.result = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 
     ResetStatement(stmt);
 
     if (EndTransaction())
-        return version;
+        return res;
 
-    return version;
+    res.error = false;
+
+    return res;
 }
 
 DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url) const
