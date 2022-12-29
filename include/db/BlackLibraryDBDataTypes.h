@@ -112,7 +112,7 @@ inline std::ostream& operator<< (std::ostream &out, const DBEntry &entry)
     out << "birth_date: " << entry.birth_date << " ";
     out << "check_date: " << entry.check_date << " ";
     out << "update_date: " << entry.update_date << " ";
-    out << "user_contributed: " << entry.user_contributed << "";
+    out << "user_contributed: " << entry.user_contributed << " ";
     out << "processing: " << entry.processing;
 
     return out;

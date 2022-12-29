@@ -360,11 +360,9 @@ void BlackLibraryCLI::Import(const std::vector<std::string> &tokens)
     }
 
     if (target_type == "work")
-        ImportEntries(tokens, "work");
+        ImportEntries(tokens);
     else if (target_type == "checksum")
         ImportChecksums(tokens);
-    else if (target_type == "error")
-        ImportEntries(tokens, "error");
     else
         std::cout << "import [checksum, error, work] path" << std::endl;
 }
@@ -388,6 +386,8 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
     std::ifstream input_file;
     std::string input_file_line;
     std::vector<std::string> checksum_lines;
+
+    input_file.open(target_path, std::fstream::in);
 
     if (!input_file.is_open())
     {
@@ -436,10 +436,9 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
     }
 }
 
-void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, const std::string &type)
+void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
-    std::string target_entry_type;
     std::string target_path = DefaultExportEntryFileName;
 
     if (tokens.size() >= 3)
@@ -472,11 +471,6 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
 
     input_file.close();
 
-    if (type != "black")
-    {
-        BlackLibraryCommon::LogWarn(logger_name_, "Only black entry import supported");
-    }
-
     for (const auto & entry_line : entry_lines)
     {
         std::istringstream is(entry_line);
@@ -487,7 +481,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
             tokens.emplace_back(token);
         }
 
-        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID))
+        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID) - 1)
         {
             BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", entry_line);
             continue;
@@ -508,7 +502,8 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens, cons
             stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::birth_date)]),
             stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::check_date)]),
             stol(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::update_date)]),
-            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::user_contributed)]))
+            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBEntryColumnID::user_contributed)])),
+            false
         };
 
         if (blacklibrary_db_.DoesWorkEntryUUIDExist(entry.uuid))

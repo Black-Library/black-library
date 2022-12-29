@@ -35,7 +35,7 @@ private:
     void ExportEntries(const std::vector<std::string> &tokens, const std::string &type);
     void Import(const std::vector<std::string> &tokens);
     void ImportChecksums(const std::vector<std::string> &tokens);
-    void ImportEntries(const std::vector<std::string> &tokens, const std::string &type);
+    void ImportEntries(const std::vector<std::string> &tokens);
     void List(const std::vector<std::string> &tokens);
     void ListChecksums(const std::vector<std::string> &tokens);
     void ListEntries(const std::vector<std::string> &tokens, const std::string &type);
