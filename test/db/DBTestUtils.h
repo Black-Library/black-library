@@ -22,7 +22,8 @@ njson GenerateDBTestConfig()
     njson j;
     j["config"]["db_path"] = DefaultTestDBPath;
     j["config"]["logger_path"] = "/tmp/";
-    j["config"]["db_debug_log"] = false;
+    j["config"]["db_debug_log"] = true;
+    j["config"]["db_version"] = "1.0";
     return j;
 }
 

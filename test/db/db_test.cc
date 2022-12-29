@@ -140,6 +140,11 @@ TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
     REQUIRE ( blacklibrary_db.DoesMinRefreshExist() == false );
 }
 
+TEST_CASE( "Test teardown tmp db" )
+{
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
+}
+
 } // namespace db
 } // namespace core
 } // namespace black_library

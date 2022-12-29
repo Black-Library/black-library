@@ -27,13 +27,13 @@ TEST_CASE( "Test init sqlite logger (pass)", "[single-file]")
 
 TEST_CASE( "Test setup database sqlite (pass)", "[single-file]" )
 {
-    SQLiteDB db(DefaultTestDBPath);
+    SQLiteDB db(DefaultTestDBPath, "1.0");
     REQUIRE( db.IsReady() == true );
 }
 
 TEST_CASE( "Test create database sqlite already exists (pass)", "[single-file]" )
 {
-    SQLiteDB db(DefaultTestDBPath);
+    SQLiteDB db(DefaultTestDBPath, "1.0");
 }
 
 TEST_CASE( "Test CRUD for entries sqlite (pass)", "[single-file]" )
@@ -41,7 +41,7 @@ TEST_CASE( "Test CRUD for entries sqlite (pass)", "[single-file]" )
     DBEntry work_entry = GenerateTestBlackEntry();
     DBErrorEntry error_entry = GenerateTestErrorEntry();
 
-    SQLiteDB db(DefaultTestDBPath);
+    SQLiteDB db(DefaultTestDBPath, "1.0");
 
     REQUIRE( db.CreateEntry(work_entry) == 0 );
     REQUIRE( db.CreateErrorEntry(error_entry) == 0 );
@@ -66,7 +66,7 @@ TEST_CASE( "Test CRUD for entries sqlite (pass)", "[single-file]" )
 
 TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
 {
-    SQLiteDB db(DefaultTestDBPath);
+    SQLiteDB db(DefaultTestDBPath, "1.0");
 
     DBMd5Sum md5 = GenerateTestMd5Sum();
 
@@ -93,7 +93,7 @@ TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
 
 TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
 {
-    SQLiteDB db(DefaultTestDBPath);
+    SQLiteDB db(DefaultTestDBPath, "1.0");
 
     DBRefresh refresh = GenerateTestRefresh();
 
@@ -116,6 +116,11 @@ TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
 
     REQUIRE ( db.DoesRefreshExist(refresh.uuid).result == false );
     REQUIRE ( db.DoesMinRefreshExist().result == false );
+}
+
+TEST_CASE( "Test teardown tmp db" )
+{
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 } // namespace db

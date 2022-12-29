@@ -23,6 +23,7 @@ BlackLibraryDB::BlackLibraryDB(const njson &config) :
     mutex_()
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
+    std::string db_version = "";
 
     std::string database_url = DefaultDBPath;
     if (nconfig.contains("db_path"))
@@ -42,9 +43,14 @@ BlackLibraryDB::BlackLibraryDB(const njson &config) :
         logger_level = nconfig["db_debug_log"];
     }
 
+    if (nconfig.contains("db_version"))
+    {
+        db_version = nconfig["db_version"];
+    }
+
     BlackLibraryCommon::InitRotatingLogger("db", logger_path, logger_level);
 
-    database_connection_interface_ = std::make_unique<SQLiteDB>(database_url);
+    database_connection_interface_ = std::make_unique<SQLiteDB>(database_url, db_version);
 }
 
 BlackLibraryDB::~BlackLibraryDB()

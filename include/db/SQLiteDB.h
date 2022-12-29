@@ -20,13 +20,14 @@ namespace db {
 class SQLiteDB : public DBConnectionInterface
 {
 public:
-    explicit SQLiteDB(const std::string &database_url);
+    explicit SQLiteDB(const std::string &database_url, const std::string &db_version);
     ~SQLiteDB();
 
     std::vector<DBEntry> ListEntries() const;
     std::vector<DBMd5Sum> ListChecksums() const;
     std::vector<DBErrorEntry> ListErrorEntries() const;
 
+    int CreateDBVersion(const std::string &db_version) const;
     int CreateUser(const DBUser &user) const;
     int CreateMediaType(const std::string &media_type_name) const;
     int CreateMediaSubtype(const std::string &media_subtype_name, const std::string &media_type_name) const;
@@ -73,11 +74,13 @@ private:
     int SetupDefaultEntryTypeTable();
     int SetupDefaultSubtypeTable();
     int SetupDefaultSourceTable();
+    int SetupVersionTable(const std::string &db_version);
 
     int PrepareStatements();
     int SetupDefaultLibraryUsers();
 
     int BeginTransaction() const;
+    int CheckDBVersion(const std::string &db_version) const;
     int CheckInitialized() const;
     int EndTransaction() const;
     int GenerateTable(const std::string &sql);

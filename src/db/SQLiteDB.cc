@@ -21,7 +21,7 @@ namespace db {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
-static constexpr const char CreateVersionTable[]                  = "CREATE TABLE IF NOT EXISTS db_version(version TEXT NOT NULL PRIMARY KEY)";
+static constexpr const char CreateDBVersionTable[]                = "CREATE TABLE IF NOT EXISTS db_version(db_version TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateUserTable[]                     = "CREATE TABLE IF NOT EXISTS user(UID INTEGER PRIMARY KEY, permission_level INTEGER DEFAULT 0 NOT NULL, name TEXT NOT NULL)";
 static constexpr const char CreateMediaTypeTable[]                = "CREATE TABLE IF NOT EXISTS media_type(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateMediaSubtypeTable[]             = "CREATE TABLE IF NOT EXISTS media_subtype(name TEXT NOT NULL PRIMARY KEY, media_type_name TEXT, FOREIGN KEY(media_type_name) REFERENCES media_type(name))";
@@ -33,6 +33,7 @@ static constexpr const char CreateMd5SumTable[]                   = "CREATE TABL
 static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) NOT NULL PRIMARY KEY, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 
+static constexpr const char CreateDBVersionStatement[]            = "INSERT INTO db_version(db_version) VALUES (:db_version)";
 static constexpr const char CreateUserStatement[]                 = "INSERT INTO user(UID, permission_level, name) VALUES (:UID, :permission_level, :name)";
 static constexpr const char CreateMediaTypeStatement[]            = "INSERT INTO media_type(name) VALUES (:name)";
 static constexpr const char CreateMediaSubtypeStatement[]         = "INSERT INTO media_subtype(name, media_type_name) VALUES (:name, :media_type_name)";
@@ -69,6 +70,7 @@ static constexpr const char GetMd5SumFromUUIDAndIndexStatement[]  = "SELECT md5_
 static constexpr const char GetRefreshFromMinDateStatement[]      = "SELECT * FROM refresh WHERE refresh_date=(SELECT MIN(refresh_date) FROM refresh)";
 
 typedef enum {
+    CREATE_DB_VERSION_STATEMENT,
     CREATE_USER_STATEMENT,
     CREATE_MEDIA_TYPE_STATEMENT,
     CREATE_MEDIA_SUBTYPE_STATEMENT,
@@ -107,7 +109,7 @@ typedef enum {
     _NUM_PREPARED_STATEMENTS
 } prepared_statement_id_t;
 
-SQLiteDB::SQLiteDB(const std::string &database_url) :
+SQLiteDB::SQLiteDB(const std::string &database_url, const std::string &db_version) :
     database_conn_(),
     prepared_statements_(),
     logger_name_("db"),
@@ -123,7 +125,7 @@ SQLiteDB::SQLiteDB(const std::string &database_url) :
     bool first_time_setup = false;
     if (!BlackLibraryCommon::PathExists(target_url))
     {
-        BlackLibraryCommon::LogDebug(logger_name_, "{} does not exist, first tiem setup enabled", target_url);
+        BlackLibraryCommon::LogDebug(logger_name_, "{} does not exist, first time setup enabled", target_url);
         first_time_setup = true;
     }
 
@@ -164,6 +166,17 @@ SQLiteDB::SQLiteDB(const std::string &database_url) :
             BlackLibraryCommon::LogError(logger_name_, "Failed to setup default type tables");
             return;
         }
+        if (SetupVersionTable(db_version))
+        {
+            BlackLibraryCommon::LogError(logger_name_, "Failed to setup version table");
+            return;
+        }
+    }
+
+    if (CheckDBVersion(db_version))
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed db version check");
+        return;
     }
 
     initialized_ = true;
@@ -300,6 +313,36 @@ std::vector<DBErrorEntry> SQLiteDB::ListErrorEntries() const
         return entries;
 
     return entries;
+}
+
+int SQLiteDB::CreateDBVersion(const std::string &db_version) const
+{
+    BlackLibraryCommon::LogDebug(logger_name_, "Create db version: {} ", db_version);
+
+    if (BeginTransaction())
+        return -1;
+
+    sqlite3_stmt *stmt = prepared_statements_[CREATE_DB_VERSION_STATEMENT];
+
+    if (BindText(stmt, "db_version", db_version))
+        return -1;
+
+    // run statement
+    int ret = SQLITE_OK;
+
+    ret = sqlite3_step(stmt);
+    if (ret != SQLITE_DONE)
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Create db_version {} failed: {}", db_version, sqlite3_errmsg(database_conn_));
+        return -1;
+    }
+
+    ResetStatement(stmt);
+
+    if (EndTransaction())
+        return -1;
+
+    return 0;
 }
 
 int SQLiteDB::CreateUser(const DBUser &user) const
@@ -1406,9 +1449,6 @@ DBStringResult SQLiteDB::GetDBVersion() const
 {
     DBStringResult res;
 
-    if (CheckInitialized())
-        return res;
-
     if (BeginTransaction())
         return res;
 
@@ -1624,7 +1664,7 @@ int SQLiteDB::GenerateTables()
 
     int res = 0;
 
-    res += GenerateTable(CreateVersionTable);
+    res += GenerateTable(CreateDBVersionTable);
     res += GenerateTable(CreateUserTable);
     res += GenerateTable(CreateMediaTypeTable);
     res += GenerateTable(CreateMediaSubtypeTable);
@@ -1739,6 +1779,16 @@ int SQLiteDB::SetupDefaultSourceTable()
     return 0;
 }
 
+int SQLiteDB::SetupVersionTable(const std::string &db_version)
+{
+    BlackLibraryCommon::LogDebug(logger_name_, "Setting up version table");
+
+    if (CreateDBVersion(db_version))
+        return -1;
+
+    return 0;
+}
+
 int SQLiteDB::PrepareStatements()
 {
     if (!database_conn_)
@@ -1746,6 +1796,7 @@ int SQLiteDB::PrepareStatements()
 
     int res = 0;
 
+    res += PrepareStatement(CreateDBVersionStatement, CREATE_DB_VERSION_STATEMENT);
     res += PrepareStatement(CreateUserStatement, CREATE_USER_STATEMENT);
     res += PrepareStatement(CreateMediaTypeStatement, CREATE_MEDIA_TYPE_STATEMENT);
     res += PrepareStatement(CreateMediaSubtypeStatement, CREATE_MEDIA_SUBTYPE_STATEMENT);
@@ -1834,6 +1885,21 @@ int SQLiteDB::BeginTransaction() const
     if (ret != SQLITE_OK)
     {
         BlackLibraryCommon::LogError(logger_name_, "Begin transaction failed: {} - {}", error_msg, sqlite3_errmsg(database_conn_));
+        return -1;
+    }
+
+    return 0;
+}
+
+int SQLiteDB::CheckDBVersion(const std::string &db_version) const
+{
+    BlackLibraryCommon::LogDebug(logger_name_, "Checking db version");
+
+    auto res = GetDBVersion();
+
+    // if version mismatch, fail
+    if (db_version != res.result)
+    {
         return -1;
     }
 

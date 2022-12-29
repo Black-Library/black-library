@@ -213,6 +213,15 @@ struct DBStringResult {
     int error = 0;
 };
 
+inline std::ostream& operator<< (std::ostream &out, const DBStringResult &res)
+{
+    out << "result: " << res.result << " ";
+    out << "does not exist: " << res.does_not_exist << " ";
+    out << "error: " << res.error;
+
+    return out;
+}
+
 struct DBBoolResult {
     bool result = false;
     bool does_not_exist = false;
