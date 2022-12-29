@@ -56,6 +56,7 @@ public:
     DBBoolResult DoesMinRefreshExist() const override;
     DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const override;
 
+    std::string GetDBVersion() const override;
     DBStringResult GetEntryUUIDFromUrl(const std::string &url) const override;
     DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const override;
 
@@ -90,6 +91,7 @@ private:
 
     sqlite3 *database_conn_;
     std::vector<sqlite3_stmt *> prepared_statements_;
+    std::string logger_name_;
     bool initialized_;
 };
 

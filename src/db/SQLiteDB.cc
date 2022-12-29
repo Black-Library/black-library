@@ -21,16 +21,17 @@ namespace db {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
+static constexpr const char CreateVersionTable[]                  = "CREATE TABLE IF NOT EXISTS db_version(version TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateUserTable[]                     = "CREATE TABLE IF NOT EXISTS user(UID INTEGER PRIMARY KEY, permission_level INTEGER DEFAULT 0 NOT NULL, name TEXT NOT NULL)";
 static constexpr const char CreateMediaTypeTable[]                = "CREATE TABLE IF NOT EXISTS media_type(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateMediaSubtypeTable[]             = "CREATE TABLE IF NOT EXISTS media_subtype(name TEXT NOT NULL PRIMARY KEY, media_type_name TEXT, FOREIGN KEY(media_type_name) REFERENCES media_type(name))";
 static constexpr const char CreateBookGenreTable[]                = "CREATE TABLE IF NOT EXISTS book_genre(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateDocumentTagTable[]              = "CREATE TABLE IF NOT EXISTS document_tag(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateSourceTable[]                   = "CREATE TABLE IF NOT EXISTS source(name TEXT NOT NULL PRIMARY KEY, media_type TEXT, media_subtype TEXT, FOREIGN KEY(media_type) REFERENCES media_type(name) FOREIGN KEY(media_subtype) REFERENCES media_subtype(name))";
-static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, processing INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
+static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, processing INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
 static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
-static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) PRIMARY KEY NOT NULL, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
-static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) PRIMARY KEY NOT NULL, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) NOT NULL PRIMARY KEY, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 
 static constexpr const char CreateUserStatement[]                 = "INSERT INTO user(UID, permission_level, name) VALUES (:UID, :permission_level, :name)";
 static constexpr const char CreateMediaTypeStatement[]            = "INSERT INTO media_type(name) VALUES (:name)";
@@ -56,6 +57,7 @@ static constexpr const char DeleteMd5SumStatement[]               = "DELETE FROM
 static constexpr const char DeleteRefreshStatement[]              = "DELETE FROM refresh WHERE UUID = :UUID";
 static constexpr const char DeleteErrorEntryStatement[]           = "DELETE FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
+static constexpr const char GetDBVersionStatement[]               = "SELECT * FROM db_version";
 static constexpr const char GetWorkEntriesStatement[]             = "SELECT * FROM work_entry";
 static constexpr const char GetMd5sumsStatement[]                 = "SELECT * FROM md5_sum";
 static constexpr const char GetErrorEntriesStatement[]            = "SELECT * FROM error_entry";
@@ -91,6 +93,7 @@ typedef enum {
     DELETE_REFRESH_STATEMENT,
     DELETE_ERROR_ENTRY_STATEMENT,
 
+    GET_DB_VERSION_STATEMENT,
     GET_WORK_ENTRIES_STATEMENT,
     GET_CHECKSUMS_STATEMENT,
     GET_ERROR_ENTRIES_STATEMENT,
@@ -107,19 +110,20 @@ typedef enum {
 SQLiteDB::SQLiteDB(const std::string &database_url) :
     database_conn_(),
     prepared_statements_(),
+    logger_name_("db"),
     initialized_(false)
 {
     std::string target_url = database_url;
     if (target_url.empty())
     {
         target_url = DefaultDBPath;
-        BlackLibraryCommon::LogDebug("db", "Empty database url given, using default: {}", target_url);
+        BlackLibraryCommon::LogDebug(logger_name_, "Empty database url given, using default: {}", target_url);
     }
 
     bool first_time_setup = false;
     if (!BlackLibraryCommon::PathExists(target_url))
     {
-        BlackLibraryCommon::LogDebug("db", "{} does not exist, first tiem setup enabled", target_url);
+        BlackLibraryCommon::LogDebug(logger_name_, "{} does not exist, first tiem setup enabled", target_url);
         first_time_setup = true;
     }
 
@@ -127,24 +131,24 @@ SQLiteDB::SQLiteDB(const std::string &database_url) :
     
     if (res != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Failed to open db at: {} - {}", target_url, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Failed to open db at: {} - {}", target_url, sqlite3_errmsg(database_conn_));
         return;
     }
 
-    BlackLibraryCommon::LogInfo("db", "Open database at: {}", target_url);
+    BlackLibraryCommon::LogInfo(logger_name_, "Open database at: {}", target_url);
 
     if (first_time_setup)
     {
         if (GenerateTables())
         {
-            BlackLibraryCommon::LogError("db", "Failed to generate database tables");
+            BlackLibraryCommon::LogError(logger_name_, "Failed to generate database tables");
             return;
         }
     }
 
     if (PrepareStatements())
     {
-        BlackLibraryCommon::LogError("db", "Failed to setup prepare statements");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to setup prepare statements");
         return;
     }
 
@@ -152,12 +156,12 @@ SQLiteDB::SQLiteDB(const std::string &database_url) :
     {
         if (SetupDefaultLibraryUsers())
         {
-            BlackLibraryCommon::LogError("db", "Failed to setup default black library users");
+            BlackLibraryCommon::LogError(logger_name_, "Failed to setup default black library users");
             return;
         }
         if (SetupDefaultTypeTables())
         {
-            BlackLibraryCommon::LogError("db", "Failed to setup default type tables");
+            BlackLibraryCommon::LogError(logger_name_, "Failed to setup default type tables");
             return;
         }
     }
@@ -179,7 +183,7 @@ SQLiteDB::~SQLiteDB()
 
 std::vector<DBEntry> SQLiteDB::ListEntries() const
 {
-    BlackLibraryCommon::LogDebug("db", "List entries");
+    BlackLibraryCommon::LogDebug(logger_name_, "List entries");
 
     std::vector<DBEntry> entries;
 
@@ -228,7 +232,7 @@ std::vector<DBEntry> SQLiteDB::ListEntries() const
 
 std::vector<DBMd5Sum> SQLiteDB::ListChecksums() const
 {
-    BlackLibraryCommon::LogDebug("db", "List checksums");
+    BlackLibraryCommon::LogDebug(logger_name_, "List checksums");
 
     std::vector<DBMd5Sum> checksums;
 
@@ -265,7 +269,7 @@ std::vector<DBMd5Sum> SQLiteDB::ListChecksums() const
 
 std::vector<DBErrorEntry> SQLiteDB::ListErrorEntries() const
 {
-    BlackLibraryCommon::LogDebug("db", "List error entries");
+    BlackLibraryCommon::LogDebug(logger_name_, "List error entries");
 
     std::vector<DBErrorEntry> entries;
 
@@ -300,7 +304,7 @@ std::vector<DBErrorEntry> SQLiteDB::ListErrorEntries() const
 
 int SQLiteDB::CreateUser(const DBUser &user) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create user: {} with UID: {}", user.name, user.uid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create user: {} with UID: {}", user.name, user.uid);
 
     if (BeginTransaction())
         return -1;
@@ -321,7 +325,7 @@ int SQLiteDB::CreateUser(const DBUser &user) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create user: {} with UID: {} failed: {}", user.name, user.uid, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create user: {} with UID: {} failed: {}", user.name, user.uid, sqlite3_errmsg(database_conn_));
         return -1;
     }
 
@@ -335,7 +339,7 @@ int SQLiteDB::CreateUser(const DBUser &user) const
 
 int SQLiteDB::CreateMediaType(const std::string &media_type_name) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create media type: {}", media_type_name);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create media type: {}", media_type_name);
 
     if (BeginTransaction())
         return -1;
@@ -353,7 +357,7 @@ int SQLiteDB::CreateMediaType(const std::string &media_type_name) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create media type: {} failed: {}", media_type_name, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create media type: {} failed: {}", media_type_name, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -369,7 +373,7 @@ int SQLiteDB::CreateMediaType(const std::string &media_type_name) const
 
 int SQLiteDB::CreateMediaSubtype(const std::string &media_subtype_name, const std::string &media_type_name) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create subtype: {} media: {}", media_subtype_name, media_type_name);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create subtype: {} media: {}", media_subtype_name, media_type_name);
 
     if (BeginTransaction())
         return -1;
@@ -389,7 +393,7 @@ int SQLiteDB::CreateMediaSubtype(const std::string &media_subtype_name, const st
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create subtype: {} - media: {} failed: {}", media_subtype_name, media_type_name, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create subtype: {} - media: {} failed: {}", media_subtype_name, media_type_name, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -405,7 +409,7 @@ int SQLiteDB::CreateMediaSubtype(const std::string &media_subtype_name, const st
 
 int SQLiteDB::CreateSource(const DBSource &source) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create source: {}", source.name);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create source: {}", source.name);
 
     if (BeginTransaction())
         return -1;
@@ -427,7 +431,7 @@ int SQLiteDB::CreateSource(const DBSource &source) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create source: {} failed: {}", source.name, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create source: {} failed: {}", source.name, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -443,7 +447,7 @@ int SQLiteDB::CreateSource(const DBSource &source) const
 
 int SQLiteDB::CreateEntry(const DBEntry &entry) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create entry with UUID: {}", entry.uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create entry with UUID: {}", entry.uuid);
 
     if (CheckInitialized())
         return -1;
@@ -494,7 +498,7 @@ int SQLiteDB::CreateEntry(const DBEntry &entry) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create entry failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -510,7 +514,7 @@ int SQLiteDB::CreateEntry(const DBEntry &entry) const
 
 DBEntry SQLiteDB::ReadEntry(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Read entry with UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Read entry with UUID: {}", uuid);
 
     DBEntry entry;
 
@@ -533,7 +537,7 @@ DBEntry SQLiteDB::ReadEntry(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError("db", "Read entry failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Read entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return entry;
@@ -566,7 +570,7 @@ DBEntry SQLiteDB::ReadEntry(const std::string &uuid) const
 
 int SQLiteDB::UpdateEntry(const DBEntry &entry) const
 {
-    BlackLibraryCommon::LogDebug("db", "Update entry with UUID: {}", entry.uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Update entry with UUID: {}", entry.uuid);
 
     if (CheckInitialized())
         return -1;
@@ -617,7 +621,7 @@ int SQLiteDB::UpdateEntry(const DBEntry &entry) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Update entry failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Update entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -633,7 +637,7 @@ int SQLiteDB::UpdateEntry(const DBEntry &entry) const
 
 int SQLiteDB::DeleteEntry(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Delete entry with UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Delete entry with UUID: {}", uuid);
 
     if (CheckInitialized())
         return -1;
@@ -654,7 +658,7 @@ int SQLiteDB::DeleteEntry(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Delete entry failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Delete entry failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -670,7 +674,7 @@ int SQLiteDB::DeleteEntry(const std::string &uuid) const
 
 int SQLiteDB::CreateMd5Sum(const DBMd5Sum &md5) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
 
     if (CheckInitialized())
         return -1;
@@ -697,7 +701,7 @@ int SQLiteDB::CreateMd5Sum(const DBMd5Sum &md5) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -713,7 +717,7 @@ int SQLiteDB::CreateMd5Sum(const DBMd5Sum &md5) const
 
 DBMd5Sum SQLiteDB::ReadMd5Sum(const std::string &uuid, size_t index_num) const
 {
-    BlackLibraryCommon::LogDebug("db", "Read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
+    BlackLibraryCommon::LogDebug(logger_name_, "Read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
 
     DBMd5Sum md5;
 
@@ -738,7 +742,7 @@ DBMd5Sum SQLiteDB::ReadMd5Sum(const std::string &uuid, size_t index_num) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError("db", "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return md5;
@@ -759,7 +763,7 @@ DBMd5Sum SQLiteDB::ReadMd5Sum(const std::string &uuid, size_t index_num) const
 
 int SQLiteDB::UpdateMd5Sum(const DBMd5Sum &md5) const
 {
-    BlackLibraryCommon::LogDebug("db", "Update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+    BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
 
     if (CheckInitialized())
         return -1;
@@ -786,7 +790,7 @@ int SQLiteDB::UpdateMd5Sum(const DBMd5Sum &md5) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Update MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Update MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -802,7 +806,7 @@ int SQLiteDB::UpdateMd5Sum(const DBMd5Sum &md5) const
 
 int SQLiteDB::DeleteMd5Sum(const std::string &uuid, size_t index_num) const
 {
-    BlackLibraryCommon::LogDebug("db", "Delete MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
+    BlackLibraryCommon::LogDebug(logger_name_, "Delete MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
 
     if (CheckInitialized())
         return -1;
@@ -825,7 +829,7 @@ int SQLiteDB::DeleteMd5Sum(const std::string &uuid, size_t index_num) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Delete MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Delete MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -841,7 +845,7 @@ int SQLiteDB::DeleteMd5Sum(const std::string &uuid, size_t index_num) const
 
 int SQLiteDB::CreateRefresh(const DBRefresh &refresh) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create refresh with UUID: {} refresh_date: {}", refresh.uuid, refresh.refresh_date);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create refresh with UUID: {} refresh_date: {}", refresh.uuid, refresh.refresh_date);
 
     if (CheckInitialized())
         return -1;
@@ -864,7 +868,7 @@ int SQLiteDB::CreateRefresh(const DBRefresh &refresh) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create refresh checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create refresh checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -880,7 +884,7 @@ int SQLiteDB::CreateRefresh(const DBRefresh &refresh) const
 
 DBRefresh SQLiteDB::ReadRefresh(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Read refresh with UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Read refresh with UUID: {}", uuid);
 
     DBRefresh refresh;
 
@@ -903,7 +907,7 @@ DBRefresh SQLiteDB::ReadRefresh(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError("db", "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return refresh;
@@ -922,7 +926,7 @@ DBRefresh SQLiteDB::ReadRefresh(const std::string &uuid) const
 
 int SQLiteDB::DeleteRefresh(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Delete refresh with UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Delete refresh with UUID: {}", uuid);
 
     if (CheckInitialized())
         return -1;
@@ -943,7 +947,7 @@ int SQLiteDB::DeleteRefresh(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Delete refresh failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Delete refresh failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -959,7 +963,7 @@ int SQLiteDB::DeleteRefresh(const std::string &uuid) const
 
 int SQLiteDB::CreateErrorEntry(const DBErrorEntry &entry) const
 {
-    BlackLibraryCommon::LogDebug("db", "Create error entry for UUID: {}", entry.uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Create error entry for UUID: {}", entry.uuid);
 
     if (CheckInitialized())
         return -1;
@@ -982,7 +986,7 @@ int SQLiteDB::CreateErrorEntry(const DBErrorEntry &entry) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Create error entry for UUID: {} failed: {}", entry.uuid, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Create error entry for UUID: {} failed: {}", entry.uuid, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -998,7 +1002,7 @@ int SQLiteDB::CreateErrorEntry(const DBErrorEntry &entry) const
 
 int SQLiteDB::DeleteErrorEntry(const std::string &uuid, size_t progress_num) const
 {
-    BlackLibraryCommon::LogDebug("db", "Delete error entry for UUID: {} and progress number: {}", uuid, progress_num);
+    BlackLibraryCommon::LogDebug(logger_name_, "Delete error entry for UUID: {} and progress number: {}", uuid, progress_num);
 
     if (CheckInitialized())
         return -1;
@@ -1021,7 +1025,7 @@ int SQLiteDB::DeleteErrorEntry(const std::string &uuid, size_t progress_num) con
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_DONE)
     {
-        BlackLibraryCommon::LogError("db", "Delete error entry for UUID: {} and progress number: {} failed: {}", uuid, progress_num, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Delete error entry for UUID: {} and progress number: {} failed: {}", uuid, progress_num, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -1037,7 +1041,7 @@ int SQLiteDB::DeleteErrorEntry(const std::string &uuid, size_t progress_num) con
 
 DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check entries for url: {}", url);
+    BlackLibraryCommon::LogDebug(logger_name_, "Check entries for url: {}", url);
 
     DBBoolResult check;
 
@@ -1069,7 +1073,7 @@ DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "Entry url: {} does not exist", url);
+        BlackLibraryCommon::LogDebug(logger_name_, "Entry url: {} does not exist", url);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1094,7 +1098,7 @@ DBBoolResult SQLiteDB::DoesEntryUrlExist(const std::string &url) const
 
 DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check entries for UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Check entries for UUID: {}", uuid);
 
     DBBoolResult check;
 
@@ -1132,7 +1136,7 @@ DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "Entry UUID: {} does not exist", uuid);
+        BlackLibraryCommon::LogDebug(logger_name_, "Entry UUID: {} does not exist", uuid);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1157,7 +1161,7 @@ DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid) const
 
 DBBoolResult SQLiteDB::DoesMd5SumExist(const std::string &uuid, size_t index_num) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check MD5 checksum for UUID: {}, index_num: {}", uuid, index_num);
+    BlackLibraryCommon::LogDebug(logger_name_, "Check MD5 checksum for UUID: {}, index_num: {}", uuid, index_num);
 
     DBBoolResult check;
 
@@ -1200,7 +1204,7 @@ DBBoolResult SQLiteDB::DoesMd5SumExist(const std::string &uuid, size_t index_num
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "MD5 checksum UUID: {} index_num: {} does not exist", uuid, index_num);
+        BlackLibraryCommon::LogDebug(logger_name_, "MD5 checksum UUID: {} index_num: {} does not exist", uuid, index_num);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1224,7 +1228,7 @@ DBBoolResult SQLiteDB::DoesMd5SumExist(const std::string &uuid, size_t index_num
 
 DBBoolResult SQLiteDB::DoesRefreshExist(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check refresh for UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Check refresh for UUID: {}", uuid);
 
     DBBoolResult check;
 
@@ -1262,7 +1266,7 @@ DBBoolResult SQLiteDB::DoesRefreshExist(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "refresh UUID: {} does not exist", uuid);
+        BlackLibraryCommon::LogDebug(logger_name_, "refresh UUID: {} does not exist", uuid);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1286,7 +1290,7 @@ DBBoolResult SQLiteDB::DoesRefreshExist(const std::string &uuid) const
 
 DBBoolResult SQLiteDB::DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const
 {
-    BlackLibraryCommon::LogDebug("db", "Check error entries for UUID: {}, progress_num: {}", uuid, progress_num);
+    BlackLibraryCommon::LogDebug(logger_name_, "Check error entries for UUID: {}, progress_num: {}", uuid, progress_num);
 
     DBBoolResult check;
 
@@ -1329,7 +1333,7 @@ DBBoolResult SQLiteDB::DoesErrorEntryExist(const std::string &uuid, size_t progr
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "UUID: {} progress_num: {} does not exist", uuid, progress_num);
+        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} progress_num: {} does not exist", uuid, progress_num);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1353,7 +1357,7 @@ DBBoolResult SQLiteDB::DoesErrorEntryExist(const std::string &uuid, size_t progr
 
 DBBoolResult SQLiteDB::DoesMinRefreshExist() const
 {
-    BlackLibraryCommon::LogDebug("db", "Check refresh for min date");
+    BlackLibraryCommon::LogDebug(logger_name_, "Check refresh for min date");
 
     DBBoolResult check;
 
@@ -1378,7 +1382,7 @@ DBBoolResult SQLiteDB::DoesMinRefreshExist() const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "refresh does not exist");
+        BlackLibraryCommon::LogDebug(logger_name_, "refresh does not exist");
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1398,9 +1402,44 @@ DBBoolResult SQLiteDB::DoesMinRefreshExist() const
     return check;
 }
 
+std::string SQLiteDB::GetDBVersion() const
+{
+    std::string version = "";
+
+    if (CheckInitialized())
+        return version;
+
+    if (BeginTransaction())
+        return version;
+
+    sqlite3_stmt *stmt = prepared_statements_[GET_DB_VERSION_STATEMENT];
+
+    LogTraceStatement(stmt);
+
+    // run statement
+    int ret = SQLITE_OK;
+    ret = sqlite3_step(stmt);
+    if (ret != SQLITE_ROW)
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Get DB version failed: {}", sqlite3_errmsg(database_conn_));
+        ResetStatement(stmt);
+        EndTransaction();
+        return version;
+    }
+
+    version = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+
+    ResetStatement(stmt);
+
+    if (EndTransaction())
+        return version;
+
+    return version;
+}
+
 DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url) const
 {
-    BlackLibraryCommon::LogDebug("db", "Get UUID from url: {}", url);
+    BlackLibraryCommon::LogDebug(logger_name_, "Get UUID from url: {}", url);
 
     DBStringResult res;
 
@@ -1423,7 +1462,7 @@ DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "Url: {} does not exist", url);
+        BlackLibraryCommon::LogDebug(logger_name_, "Url: {} does not exist", url);
         ResetStatement(stmt);
         EndTransaction();
         res.does_not_exist = true;
@@ -1445,7 +1484,7 @@ DBStringResult SQLiteDB::GetEntryUUIDFromUrl(const std::string &url) const
 
 DBStringResult SQLiteDB::GetEntryUrlFromUUID(const std::string &uuid) const
 {
-    BlackLibraryCommon::LogDebug("db", "Get url from UUID: {}", uuid);
+    BlackLibraryCommon::LogDebug(logger_name_, "Get url from UUID: {}", uuid);
 
     DBStringResult res;
 
@@ -1468,7 +1507,7 @@ DBStringResult SQLiteDB::GetEntryUrlFromUUID(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug("db", "UUID: {} does not exist", uuid);
+        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} does not exist", uuid);
         ResetStatement(stmt);
         EndTransaction();
         res.does_not_exist = true;
@@ -1493,7 +1532,7 @@ DBStringResult SQLiteDB::GetEntryUrlFromUUID(const std::string &uuid) const
 
 uint16_t SQLiteDB::GetVersionFromMd5(const std::string &uuid, size_t index_num) const
 {
-    BlackLibraryCommon::LogDebug("db", "Get version from MD5");
+    BlackLibraryCommon::LogDebug(logger_name_, "Get version from MD5");
 
     uint16_t version_num = 0;
 
@@ -1518,7 +1557,7 @@ uint16_t SQLiteDB::GetVersionFromMd5(const std::string &uuid, size_t index_num) 
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError("db", "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return version_num;
@@ -1536,7 +1575,7 @@ uint16_t SQLiteDB::GetVersionFromMd5(const std::string &uuid, size_t index_num) 
 
 DBRefresh SQLiteDB::GetRefreshFromMinDate() const
 {
-    BlackLibraryCommon::LogDebug("db", "Get refresh from next date");
+    BlackLibraryCommon::LogDebug(logger_name_, "Get refresh from next date");
 
     DBRefresh refresh;
 
@@ -1555,7 +1594,7 @@ DBRefresh SQLiteDB::GetRefreshFromMinDate() const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError("db", "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return refresh;
@@ -1579,10 +1618,11 @@ bool SQLiteDB::IsReady() const
 
 int SQLiteDB::GenerateTables()
 {
-    BlackLibraryCommon::LogDebug("db", "Setting up tables");
+    BlackLibraryCommon::LogDebug(logger_name_, "Setting up tables");
 
     int res = 0;
 
+    res += GenerateTable(CreateVersionTable);
     res += GenerateTable(CreateUserTable);
     res += GenerateTable(CreateMediaTypeTable);
     res += GenerateTable(CreateMediaSubtypeTable);
@@ -1599,7 +1639,7 @@ int SQLiteDB::GenerateTables()
 
 int SQLiteDB::SetupDefaultTypeTables()
 {
-    BlackLibraryCommon::LogDebug("db", "Setting up default type tables");
+    BlackLibraryCommon::LogDebug(logger_name_, "Setting up default type tables");
 
     int res = 0;
 
@@ -1728,6 +1768,7 @@ int SQLiteDB::PrepareStatements()
     res += PrepareStatement(DeleteRefreshStatement, DELETE_REFRESH_STATEMENT);
     res += PrepareStatement(DeleteErrorEntryStatement, DELETE_ERROR_ENTRY_STATEMENT);
 
+    res += PrepareStatement(GetDBVersionStatement, GET_DB_VERSION_STATEMENT);
     res += PrepareStatement(GetWorkEntriesStatement, GET_WORK_ENTRIES_STATEMENT);
     res += PrepareStatement(GetMd5sumsStatement, GET_CHECKSUMS_STATEMENT);
     res += PrepareStatement(GetErrorEntriesStatement, GET_ERROR_ENTRIES_STATEMENT);
@@ -1786,11 +1827,11 @@ int SQLiteDB::SetupDefaultLibraryUsers()
 int SQLiteDB::BeginTransaction() const
 {
     char *error_msg = 0;
-    BlackLibraryCommon::LogTrace("db", "Begin transaction");
+    BlackLibraryCommon::LogTrace(logger_name_, "Begin transaction");
     int ret = sqlite3_exec(database_conn_, "BEGIN TRANSACTION", 0, 0, &error_msg);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Begin transaction failed: {} - {}", error_msg, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Begin transaction failed: {} - {}", error_msg, sqlite3_errmsg(database_conn_));
         return -1;
     }
 
@@ -1801,7 +1842,7 @@ int SQLiteDB::CheckInitialized() const
 {
     if (!initialized_)
     {
-        BlackLibraryCommon::LogError("db", "Database not initialized");
+        BlackLibraryCommon::LogError(logger_name_, "Database not initialized");
         return -1;
     }
 
@@ -1811,11 +1852,11 @@ int SQLiteDB::CheckInitialized() const
 int SQLiteDB::EndTransaction() const
 {
     char *error_msg = 0;
-    BlackLibraryCommon::LogTrace("db", "End transaction");
+    BlackLibraryCommon::LogTrace(logger_name_, "End transaction");
     int ret = sqlite3_exec(database_conn_, "END TRANSACTION", 0, 0, &error_msg);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "End transaction  failed: {} - {}", error_msg, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "End transaction  failed: {} - {}", error_msg, sqlite3_errmsg(database_conn_));
         return -1;
     }
 
@@ -1828,7 +1869,7 @@ int SQLiteDB::GenerateTable(const std::string &sql)
     int ret = sqlite3_exec(database_conn_, sql.c_str(), 0, 0, &error_msg);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Generate table failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Generate table failed: {}", sqlite3_errmsg(database_conn_));
         return -1;
     }
 
@@ -1842,7 +1883,7 @@ int SQLiteDB::PrepareStatement(const std::string &statement, int statement_id)
     int ret = sqlite3_prepare_v2(database_conn_, statement.c_str(), -1, &prepared_statements_[statement_id], nullptr);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Prepare failed: {} - statement: {}", sqlite3_errmsg(database_conn_), statement);
+        BlackLibraryCommon::LogError(logger_name_, "Prepare failed: {} - statement: {}", sqlite3_errmsg(database_conn_), statement);
         return -1;
     }
 
@@ -1852,10 +1893,10 @@ int SQLiteDB::PrepareStatement(const std::string &statement, int statement_id)
 int SQLiteDB::ResetStatement(sqlite3_stmt* stmt) const
 {
     int ret = sqlite3_reset(stmt);
-    BlackLibraryCommon::LogTrace("db", "Reset statement");
+    BlackLibraryCommon::LogTrace(logger_name_, "Reset statement");
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Reset statement failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Reset statement failed: {}", sqlite3_errmsg(database_conn_));
         return -1;
     }
 
@@ -1864,12 +1905,12 @@ int SQLiteDB::ResetStatement(sqlite3_stmt* stmt) const
 
 int SQLiteDB::BindInt(sqlite3_stmt* stmt, const std::string &parameter_name, const int &bind_int) const
 {
-    BlackLibraryCommon::LogTrace("db", "BindInt parameter:{} with {}", parameter_name, bind_int);
+    BlackLibraryCommon::LogTrace(logger_name_, "BindInt parameter:{} with {}", parameter_name, bind_int);
     const std::string parameter_index_name = ":" + parameter_name;
     int ret = sqlite3_bind_int(stmt, sqlite3_bind_parameter_index(stmt, parameter_index_name.c_str()), bind_int);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Bind of {}: {} failed: {}", parameter_name, bind_int, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Bind of {}: {} failed: {}", parameter_name, bind_int, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -1880,13 +1921,13 @@ int SQLiteDB::BindInt(sqlite3_stmt* stmt, const std::string &parameter_name, con
 
 int SQLiteDB::BindText(sqlite3_stmt* stmt, const std::string &parameter_name, const std::string &bind_text) const
 {
-    BlackLibraryCommon::LogTrace("db", "BindText parameter:{} with {}", parameter_name, bind_text);
+    BlackLibraryCommon::LogTrace(logger_name_, "BindText parameter:{} with {}", parameter_name, bind_text);
     const std::string parameter_index_name = ":" + parameter_name;
     int index = sqlite3_bind_parameter_index(stmt, parameter_index_name.c_str());
     int ret = sqlite3_bind_text(stmt, index, bind_text.c_str(), bind_text.length(), SQLITE_STATIC);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError("db", "Bind of {}: {} failed: {}", parameter_name, bind_text, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Bind of {}: {} failed: {}", parameter_name, bind_text, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -1898,7 +1939,7 @@ int SQLiteDB::BindText(sqlite3_stmt* stmt, const std::string &parameter_name, co
 int SQLiteDB::LogTraceStatement(sqlite3_stmt* stmt) const
 {
     char *trace_sql = sqlite3_expanded_sql(stmt);
-    BlackLibraryCommon::LogTrace("db", "{}", std::string(trace_sql));
+    BlackLibraryCommon::LogTrace(logger_name_, "{}", std::string(trace_sql));
     sqlite3_free(trace_sql);
 
     return 0;

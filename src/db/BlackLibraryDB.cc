@@ -399,13 +399,24 @@ bool BlackLibraryDB::DoesErrorEntryExist(const std::string &uuid, size_t progres
     return check.result;
 }
 
+DBStringResult BlackLibraryDB::GetDBVersion()
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    DBStringResult res = database_connection_interface_->GetDBVersion();
+    if (res.error)
+        BlackLibraryCommon::LogError("db", "Failed to get db version");
+
+    return res;
+}
+
 DBStringResult BlackLibraryDB::GetWorkEntryUUIDFromUrl(const std::string &url)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
     DBStringResult res = database_connection_interface_->GetEntryUUIDFromUrl(url);
     if (res.error)
-        BlackLibraryCommon::LogError("db", "Failed to get black UUID from url: {}", url);
+        BlackLibraryCommon::LogError("db", "Failed to get UUID from url: {}", url);
 
     return res;
 }

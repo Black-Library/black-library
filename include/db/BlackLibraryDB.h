@@ -55,6 +55,7 @@ public:
 
     bool DoesWorkEntryUUIDExist(const std::string &uuid);
 
+    DBStringResult GetDBVersion();
     DBStringResult GetWorkEntryUUIDFromUrl(const std::string &url);
     DBStringResult GetWorkEntryUrlFromUUID(const std::string &uuid);
 
