@@ -20,6 +20,7 @@ namespace BlackLibraryCommon = black_library::core::common;
 
 BlackLibraryDB::BlackLibraryDB(const njson &config) :
     database_connection_interface_(nullptr),
+    logger_name_("db"),
     mutex_()
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
@@ -48,7 +49,7 @@ BlackLibraryDB::BlackLibraryDB(const njson &config) :
         db_version = nconfig["db_version"];
     }
 
-    BlackLibraryCommon::InitRotatingLogger("db", logger_path, logger_level);
+    BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
 
     database_connection_interface_ = std::make_unique<SQLiteDB>(database_url, db_version);
 }
@@ -90,7 +91,7 @@ int BlackLibraryDB::CreateWorkEntry(const DBEntry &entry)
 
     if (entry.uuid.empty() || database_connection_interface_->CreateEntry(entry))
     {
-        BlackLibraryCommon::LogError("db", "Failed to create entry with UUID: {}", entry.uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to create entry with UUID: {}", entry.uuid);
         return -1;
     }
 
@@ -105,7 +106,7 @@ DBEntry BlackLibraryDB::ReadWorkEntry(const std::string &uuid)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read entry with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read entry with empty UUID");
         return entry;
     }
 
@@ -113,7 +114,7 @@ DBEntry BlackLibraryDB::ReadWorkEntry(const std::string &uuid)
 
     if (entry.uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read entry with UUID: {}", uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read entry with UUID: {}", uuid);
         return entry;
     }
 
@@ -126,7 +127,7 @@ int BlackLibraryDB::UpdateWorkEntry(const DBEntry &entry)
 
     if (entry.uuid.empty() || database_connection_interface_->UpdateEntry(entry))
     {
-        BlackLibraryCommon::LogError("db", "Failed to update entry with UUID: {}", entry.uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update entry with UUID: {}", entry.uuid);
         return -1;
     }
 
@@ -139,14 +140,14 @@ int BlackLibraryDB::DeleteWorkEntry(const std::string &uuid)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete entry with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete entry with empty UUID");
         return -1;
     }
 
     if (database_connection_interface_->DeleteEntry(uuid))
 
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete entry with UUID: {}", uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete entry with UUID: {}", uuid);
         return -1;
     }
 
@@ -159,7 +160,7 @@ int BlackLibraryDB::CreateMd5Sum(const DBMd5Sum &md5)
 
     if (md5.uuid.empty() || database_connection_interface_->CreateMd5Sum(md5))
     {
-        BlackLibraryCommon::LogError("db", "Failed to create MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to create MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
         return -1;
     }
 
@@ -174,13 +175,13 @@ DBMd5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, size_t index_num)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read MD5 checksum with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with empty UUID");
         return md5;
     }
     md5 = database_connection_interface_->ReadMd5Sum(uuid, index_num);
     if (md5.uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
         return md5;
     }
 
@@ -195,7 +196,7 @@ uint16_t BlackLibraryDB::GetVersionFromMd5(const std::string &uuid, size_t index
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to get version from MD5 checksum with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to get version from MD5 checksum with empty UUID");
         return version_num;
     }
     version_num = database_connection_interface_->GetVersionFromMd5(uuid, index_num);
@@ -209,7 +210,7 @@ int BlackLibraryDB::UpdateMd5Sum(const DBMd5Sum &md5)
 
     if (md5.uuid.empty() || database_connection_interface_->UpdateMd5Sum(md5))
     {
-        BlackLibraryCommon::LogError("db", "Failed to update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
         return -1;
     }
 
@@ -222,12 +223,12 @@ int BlackLibraryDB::DeleteMd5Sum(const std::string &uuid, size_t index_num)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete MD5 checksum with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete MD5 checksum with empty UUID");
         return -1;
     }
     if (database_connection_interface_->DeleteMd5Sum(uuid, index_num))
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete MD5 checksum with UUID: {}", uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete MD5 checksum with UUID: {}", uuid);
         return -1;
     }
 
@@ -238,7 +239,7 @@ int BlackLibraryDB::CreateRefresh(const DBRefresh &refresh)
 {
     if (refresh.uuid.empty() || database_connection_interface_->CreateRefresh(refresh))
     {
-        BlackLibraryCommon::LogError("db", "Failed to create refresh with UUID: {} refresh_date: {}", refresh.uuid, refresh.refresh_date);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to create refresh with UUID: {} refresh_date: {}", refresh.uuid, refresh.refresh_date);
         return -1;
     }
 
@@ -253,13 +254,13 @@ DBRefresh BlackLibraryDB::ReadRefresh(const std::string &uuid)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read refresh with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read refresh with empty UUID");
         return refresh;
     }
     refresh = database_connection_interface_->ReadRefresh(uuid);
     if (refresh.uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to read refresh with UUID: {}", uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read refresh with UUID: {}", uuid);
         return refresh;
     }
 
@@ -272,12 +273,12 @@ int BlackLibraryDB::DeleteRefresh(const std::string &uuid)
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete refresh with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete refresh with empty UUID");
         return -1;
     }
     if (database_connection_interface_->DeleteRefresh(uuid))
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete refresh with UUID: {}", uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete refresh with UUID: {}", uuid);
         return -1;
     }
 
@@ -290,7 +291,7 @@ int BlackLibraryDB::CreateErrorEntry(const DBErrorEntry &entry)
 
     if (entry.uuid.empty() || database_connection_interface_->CreateErrorEntry(entry))
     {
-        BlackLibraryCommon::LogError("db", "Failed to create error entry with UUID: {}", entry.uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to create error entry with UUID: {}", entry.uuid);
         return -1;
     }
 
@@ -303,12 +304,12 @@ int BlackLibraryDB::DeleteErrorEntry(const std::string &uuid, size_t progress_nu
 
     if (uuid.empty())
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete error entry with empty UUID");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete error entry with empty UUID");
         return -1;
     }
     if (database_connection_interface_->DeleteErrorEntry(uuid, progress_num))
     {
-        BlackLibraryCommon::LogError("db", "Failed to delete error entry with UUID: {} and progress number: {}", uuid, progress_num);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to delete error entry with UUID: {} and progress number: {}", uuid, progress_num);
         return -1;
     }
 
@@ -323,7 +324,7 @@ bool BlackLibraryDB::DoesWorkEntryUrlExist(const std::string &url)
     
     if (check.error != 0)
     {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
         return false;
     }
 
@@ -338,7 +339,7 @@ bool BlackLibraryDB::DoesWorkEntryUUIDExist(const std::string &uuid)
     
     if (check.error != 0)
     {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
         return false;
     }
 
@@ -353,7 +354,7 @@ bool BlackLibraryDB::DoesMd5SumExist(const std::string &uuid, size_t index_num)
     
     if (check.error != 0)
     {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
         return false;
     }
 
@@ -368,7 +369,7 @@ bool BlackLibraryDB::DoesRefreshExist(const std::string &uuid)
     
     if (check.error != 0)
     {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
         return false;
     }
 
@@ -383,7 +384,7 @@ bool BlackLibraryDB::DoesMinRefreshExist()
     
     if (check.error != 0)
     {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
         return false;
     }
 
@@ -398,7 +399,7 @@ bool BlackLibraryDB::DoesErrorEntryExist(const std::string &uuid, size_t progres
     
     if (check.error != 0)
     {
-        BlackLibraryCommon::LogError("db", "Database returned {}", check.error);
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
         return false;
     }
 
@@ -411,7 +412,7 @@ DBStringResult BlackLibraryDB::GetDBVersion()
 
     DBStringResult res = database_connection_interface_->GetDBVersion();
     if (res.error)
-        BlackLibraryCommon::LogError("db", "Failed to get db version");
+        BlackLibraryCommon::LogError(logger_name_, "Failed to get db version");
 
     return res;
 }
@@ -422,7 +423,7 @@ DBStringResult BlackLibraryDB::GetWorkEntryUUIDFromUrl(const std::string &url)
 
     DBStringResult res = database_connection_interface_->GetEntryUUIDFromUrl(url);
     if (res.error)
-        BlackLibraryCommon::LogError("db", "Failed to get UUID from url: {}", url);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to get UUID from url: {}", url);
 
     return res;
 }

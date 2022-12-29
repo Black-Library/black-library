@@ -69,6 +69,7 @@ private:
     std::string GetUUID();
 
     std::unique_ptr<DBConnectionInterface> database_connection_interface_;
+    std::string logger_name_;
     std::mutex mutex_;
 };
 

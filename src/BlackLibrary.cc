@@ -83,7 +83,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
                 if (UpdateDatabaseWithResult(work_entry, result))
                 {
-                    BlackLibraryCommon::LogError(logger_name_, "Failed to update database with result with UUID: {}", result.metadata.uuid);
+                    BlackLibraryCommon::LogError(logger_name_, "Failed to update database with result UUID: {}", result.metadata.uuid);
                 }
 
                 return;
@@ -477,7 +477,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
     // update work entry
     if (!blacklibrary_db_.DoesWorkEntryUUIDExist(result.metadata.uuid))
     {
-        BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry, UUID: {}", result.metadata.uuid);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry UUID: {} does not exist", result.metadata.uuid);
         return -1;
     }
 
@@ -493,7 +493,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
         entry.processing = false;
     }
 
-    if (!blacklibrary_db_.UpdateWorkEntry(entry))
+    if (blacklibrary_db_.UpdateWorkEntry(entry))
     {
         BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry, UUID: {}", entry.uuid);
         return -1;
