@@ -50,29 +50,6 @@ DBEntry GenerateTestBlackEntry()
     return work_entry;
 }
 
-DBEntry GenerateTestStagingEntry()
-{
-    DBEntry staging_entry;
-
-    staging_entry.uuid = "75ee5fad-2deb-4436-120c-3226ceeeaed6";
-    staging_entry.title = "staging-title";
-    staging_entry.author = "staging-author";
-    staging_entry.nickname = "staging-nickname";
-    staging_entry.source = "staging-source";
-    staging_entry.url = "staging-url";
-    staging_entry.last_url = "staging-last-url";
-    staging_entry.series = "staging-series";
-    staging_entry.series_length = 15;
-    staging_entry.version = 25;
-    staging_entry.media_path = "staging-media-path";
-    staging_entry.birth_date = 35;
-    staging_entry.check_date = 45;
-    staging_entry.update_date = 55;
-    staging_entry.user_contributed = 4004;
-
-    return staging_entry;
-}
-
 DBMd5Sum GenerateTestMd5Sum()
 {
     DBMd5Sum md5;
