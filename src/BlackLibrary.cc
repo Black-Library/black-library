@@ -110,7 +110,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
             {
-                BlackLibraryCommon::LogWarn(logger_name_, "Progress number entry with UUID: {} does not exist", uuid);
+                BlackLibraryCommon::LogWarn(logger_name_, "Progress number callback entry with UUID: {} does not exist", uuid);
                 return;
             }
 
@@ -143,6 +143,11 @@ BlackLibrary::BlackLibrary(const njson &config) :
         [&](const std::string &uuid, size_t index_num)
         {
             std::string checksum = BlackLibraryCommon::EmptyMD5Version;
+            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
+            {
+                BlackLibraryCommon::LogWarn(logger_name_, "Register version read entry with UUID: {} does not exist", uuid);
+                return checksum;
+            }
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
                 BlackLibraryCommon::LogDebug(logger_name_, "Read version UUID: {} index_num: {} failed MD5 sum does not exist", uuid, index_num);
@@ -159,6 +164,11 @@ BlackLibrary::BlackLibrary(const njson &config) :
         [&](const std::string &uuid, size_t index_num)
         {
             uint16_t version_num = 0;
+            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
+            {
+                BlackLibraryCommon::LogWarn(logger_name_, "Register version read num entry with UUID: {} does not exist", uuid);
+                return version_num;
+            }
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
                 BlackLibraryCommon::LogDebug(logger_name_, "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
@@ -382,6 +392,8 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.birth_date = BlackLibraryCommon::GetUnixTime();
             entry.check_date = BlackLibraryCommon::GetUnixTime();
             type = "new";
+            // add to db
+            blacklibrary_db_.CreateWorkEntry(entry);
         }
 
         BlackLibraryCommon::LogDebug(logger_name_, "Type: {} UUID: {} last_url: {} length: {}", type, entry.uuid, entry.last_url, entry.series_length);
