@@ -144,6 +144,8 @@ struct DBMd5Sum {
     std::string uuid;
     size_t index_num;
     std::string md5_sum;
+    time_t date;
+    std::string url;
     size_t version_num;
 };
 
@@ -152,6 +154,8 @@ inline std::ostream& operator<< (std::ostream &out, const DBMd5Sum &sum)
     out << "UUID: " << sum.uuid << " ";
     out << "index_num: " << sum.index_num << " ";
     out << "md5_sum: " << sum.md5_sum << " ";
+    out << "date: " << sum.date << " ";
+    out << "url: " << sum.url << " ";
     out << "version_number: " << sum.version_num;
 
     return out;
@@ -162,6 +166,8 @@ enum class DBMd5SumColumnID : uint8_t
     uuid,
     index_num,
     md5_sum,
+    date,
+    url,
     version_num,
 
     _NUM_DB_MD5SUM_COLUMN_ID

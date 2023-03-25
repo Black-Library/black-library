@@ -256,6 +256,8 @@ void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
         ss << checksum.uuid << ',';
         ss << checksum.index_num << ',';
         ss << checksum.md5_sum << ',';
+        ss << checksum.date << ',';
+        ss << checksum.url << ',';
         ss << checksum.version_num;
         ss << '\n';
     }
@@ -422,7 +424,8 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
             tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::uuid)],
             static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::index_num)])),
             tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::md5_sum)],
-            static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::version_num)]))
+            stol(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::date)]),
+            tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::url)],
         };
 
         if (blacklibrary_db_.DoesMd5SumExist(checksum.uuid, checksum.index_num))
