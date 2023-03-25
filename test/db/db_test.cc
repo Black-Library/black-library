@@ -96,6 +96,10 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
 
     DBMd5Sum md5_read = blacklibrary_db.ReadMd5Sum(md5.uuid, md5.index_num);
     REQUIRE ( md5_read.uuid == md5.uuid );
+    REQUIRE ( md5_read.index_num == md5.index_num );
+    REQUIRE ( md5_read.md5_sum == md5.md5_sum );
+    REQUIRE ( md5_read.date == md5.date );
+    REQUIRE ( md5_read.url == md5.url );
 
     size_t version_num_0 = blacklibrary_db.GetVersionFromMd5(md5.uuid, md5.index_num);
     REQUIRE ( version_num_0 == md5.version_num );

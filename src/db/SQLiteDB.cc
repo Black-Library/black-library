@@ -29,7 +29,7 @@ static constexpr const char CreateBookGenreTable[]                = "CREATE TABL
 static constexpr const char CreateDocumentTagTable[]              = "CREATE TABLE IF NOT EXISTS document_tag(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateSourceTable[]                   = "CREATE TABLE IF NOT EXISTS source(name TEXT NOT NULL PRIMARY KEY, media_type TEXT, media_subtype TEXT, FOREIGN KEY(media_type) REFERENCES media_type(name) FOREIGN KEY(media_subtype) REFERENCES media_subtype(name))";
 static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, processing INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
-static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), date INTERGER, url TEXT, version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) NOT NULL PRIMARY KEY, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 
@@ -39,7 +39,7 @@ static constexpr const char CreateMediaTypeStatement[]            = "INSERT INTO
 static constexpr const char CreateMediaSubtypeStatement[]         = "INSERT INTO media_subtype(name, media_type_name) VALUES (:name, :media_type_name)";
 static constexpr const char CreateSourceStatement[]               = "INSERT INTO source(name, media_type, media_subtype) VALUES (:name, :media_type, :media_subtype)";
 static constexpr const char CreateWorkEntryStatement[]            = "INSERT INTO work_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed, processing) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed, :processing)";
-static constexpr const char CreateMd5SumStatement[]               = "INSERT INTO md5_sum(UUID, index_num, md5_sum, version_num) VALUES (:UUID, :index_num, :md5_sum, :version_num)";
+static constexpr const char CreateMd5SumStatement[]               = "INSERT INTO md5_sum(UUID, index_num, md5_sum, date, url, version_num) VALUES (:UUID, :index_num, :md5_sum, :date, :url, :version_num)";
 static constexpr const char CreateRefreshStatement[]              = "INSERT INTO refresh(UUID, refresh_date) VALUES (:UUID, :refresh_date)";
 static constexpr const char CreateErrorEntryStatement[]           = "INSERT INTO error_entry(UUID, progress_num) VALUES (:UUID, :progress_num)";
 
@@ -733,6 +733,10 @@ int SQLiteDB::CreateMd5Sum(const DBMd5Sum &md5) const
     if (BindInt(stmt, "index_num", md5.index_num))
         return -1;
     if (BindText(stmt, "md5_sum", md5.md5_sum))
+        return -1;
+    if (BindInt(stmt, "date", md5.date))
+        return -1;
+    if (BindText(stmt, "url", md5.url))
         return -1;
     if (BindInt(stmt, "version_num", md5.version_num))
         return -1;
