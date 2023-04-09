@@ -131,7 +131,7 @@ void ParserRR::FindIndexEntries(xmlNodePtr root_node)
     if (tbody_seek.found)
     {
         xmlNodePtr index_node = NULL;
-        uint16_t index_num = 0;
+        size_t index_num = 0;
         for (index_node = tbody_seek.seek_node->children; index_node; index_node = index_node->next)
         {
             if (!xmlStrcmp(index_node->name, (const xmlChar *) "tr"))
@@ -200,7 +200,7 @@ void ParserRR::FindMetaData(xmlNodePtr root_node)
 ParseSectionInfo ParserRR::ParseSection()
 {
     ParseSectionInfo output;
-    const auto index_entry = index_entries_[index_];
+    const auto index_entry = index_entry_queue_.front();
 
     const auto index_entry_url = "https://" + source_url_ + index_entry.data_url;
     BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry_url, index_entry.name);
@@ -250,18 +250,18 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
-    std::string saved_version = BlackLibraryCommon::EmptyMD5Version;
+    BlackLibraryCommon::Md5Sum saved_md5;
     bool skip_file_check = false;
 
-    if (version_read_callback_)
-        saved_version = version_read_callback_(uuid_, index_);
+    if (md5_read_callback_)
+        saved_md5 = md5_read_callback_(uuid_, index_entry.index_num);
 
-    if (saved_version == BlackLibraryCommon::EmptyMD5Version)
+    if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
     {
-        BlackLibraryCommon::LogDebug(parser_name_, "No MD5 sum for: {} index: {}", uuid_, index_);
+        BlackLibraryCommon::LogDebug(parser_name_, "No MD5 sum for: {} index: {}", uuid_, index_entry.index_num);
     }
 
-    // dump content
+    // dump content and free afterwards
     auto section_content = SectionDumpContent(section_doc_tree, current_node);
     xmlFreeDoc(section_doc_tree);
 
@@ -271,16 +271,16 @@ ParseSectionInfo ParserRR::ParseSection()
     }
 
     // version check
-    auto sec_version = BlackLibraryCommon::GetMD5Hash(section_content);
-    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, sec_version);
+    auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
+    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_entry.index_num, section_md5);
 
-    if (saved_version == sec_version)
+    if (saved_md5.md5_sum == section_md5 && saved_md5.date == index_entry.time_published && saved_md5.url == index_entry_url)
     {
-        BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
+        BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_entry.index_num);
         skip_file_check = true;
     }
 
-    // if we skip the file check we can just return after freeing the doc
+    // if we skip the file check we can just return
     if (skip_file_check)
     {
         output.has_error = false;
@@ -290,7 +290,7 @@ ParseSectionInfo ParserRR::ParseSection()
     uint16_t version_num = 0;
 
     if (version_read_num_callback_)
-        version_num = version_read_num_callback_(uuid_, index_);
+        version_num = version_read_num_callback_(uuid_, index_entry.index_num);
 
     const auto section_file_name = GetSectionFileName(index_entry.index_num, sanatized_section_name, version_num);
 
@@ -300,8 +300,11 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
-    if (version_update_callback_)
-        version_update_callback_(uuid_, index_, sec_version, version_num);
+    if (md5_update_callback_)
+        md5_update_callback_(uuid_, index_entry.index_num, section_md5, index_entry.time_published, index_entry_url, version_num + 1);
+
+    // okay to remove front of queue, no error
+    index_entry_queue_.pop();
 
     output.has_error = false;
 

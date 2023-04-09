@@ -12,6 +12,8 @@
 #include <optional>
 #include <string>
 
+#include <VersionOperations.h>
+
 #include <libxml/tree.h>
 #include <spdlog/fmt/ostr.h>
 
@@ -20,6 +22,8 @@ namespace black_library {
 namespace core {
 
 namespace parsers {
+
+namespace BlackLibraryCommon = black_library::core::common;
 
 enum class job_status_t {
     JOB_ERROR,
@@ -106,13 +110,13 @@ struct ParserJobStatusTracker
     error_job_rep is_error_job = false;
 };
 
-inline std::ostream& operator << (std::ostream &o, const ParserJobStatusTracker &parser_job_status_tracker)
+inline std::ostream& operator << (std::ostream &out, const ParserJobStatusTracker &parser_job_status_tracker)
 {
-    o << "uuid: " << parser_job_status_tracker.uuid << " ";
-    o << "job_status: " << GetStatusName(parser_job_status_tracker.job_status) << " ";
-    o << "is_error_job: " << parser_job_status_tracker.is_error_job;
+    out << "uuid: " << parser_job_status_tracker.uuid << " ";
+    out << "job_status: " << GetStatusName(parser_job_status_tracker.job_status) << " ";
+    out << "is_error_job: " << parser_job_status_tracker.is_error_job;
 
-    return o;
+    return out;
 }
 
 struct CurrentJobPairHash
@@ -132,16 +136,16 @@ inline bool operator == (const ParserJob &left, const ParserJob &right)
         left.start_number == right.start_number && left.end_number == right.end_number;
 }
 
-inline std::ostream& operator << (std::ostream &o, const ParserJob &parser_job)
+inline std::ostream& operator << (std::ostream &out, const ParserJob &parser_job)
 {
-    o << "uuid: " << parser_job.uuid << " ";
-    o << "url: " << parser_job.url << " ";
-    o << "last_url: " << parser_job.last_url << " ";
-    o << "start_number: " << parser_job.start_number << " ";
-    o << "end_number: " << parser_job.end_number << " ";
-    o << "is_error_job: " << parser_job.is_error_job;
+    out << "uuid: " << parser_job.uuid << " ";
+    out << "url: " << parser_job.url << " ";
+    out << "last_url: " << parser_job.last_url << " ";
+    out << "start_number: " << parser_job.start_number << " ";
+    out << "end_number: " << parser_job.end_number << " ";
+    out << "is_error_job: " << parser_job.is_error_job;
 
-    return o;
+    return out;
 }
 
 struct ParserResultMetadata {
@@ -158,20 +162,20 @@ struct ParserResultMetadata {
     time_t update_date = 0;
 };
 
-inline std::ostream& operator << (std::ostream &o, const ParserResultMetadata &parser_metadata)
+inline std::ostream& operator << (std::ostream &out, const ParserResultMetadata &parser_metadata)
 {
-    o << "uuid: " << parser_metadata.uuid << " ";
-    o << "title: " << parser_metadata.title << " ";
-    o << "author: " << parser_metadata.author << " ";
-    o << "nickname: " << parser_metadata.nickname << " ";
-    o << "source: " << parser_metadata.source << " ";
-    o << "url: " << parser_metadata.url << " ";
-    o << "last_url: " << parser_metadata.last_url << " ";
-    o << "series_length: " << parser_metadata.series_length << " ";
-    o << "media_path: " << parser_metadata.media_path << " ";
-    o << "update_date: " << parser_metadata.update_date;
+    out << "uuid: " << parser_metadata.uuid << " ";
+    out << "title: " << parser_metadata.title << " ";
+    out << "author: " << parser_metadata.author << " ";
+    out << "nickname: " << parser_metadata.nickname << " ";
+    out << "source: " << parser_metadata.source << " ";
+    out << "url: " << parser_metadata.url << " ";
+    out << "last_url: " << parser_metadata.last_url << " ";
+    out << "series_length: " << parser_metadata.series_length << " ";
+    out << "media_path: " << parser_metadata.media_path << " ";
+    out << "update_date: " << parser_metadata.update_date;
 
-    return o;
+    return out;
 }
 
 struct ParserJobResult {
@@ -184,15 +188,15 @@ struct ParserJobResult {
     bool has_error = true;
 };
 
-inline std::ostream& operator << (std::ostream &o, const ParserJobResult &job_result)
+inline std::ostream& operator << (std::ostream &out, const ParserJobResult &job_result)
 {
-    o << "metadata: " << job_result.metadata << " ";
-    o << "start_number: " << job_result.start_number << " ";
-    o << "end_number: " << job_result.end_number << " ";
-    o << "is_error_job: " << job_result.is_error_job << " ";
-    o << "has_error: " << job_result.has_error;
+    out << "metadata: " << job_result.metadata << " ";
+    out << "start_number: " << job_result.start_number << " ";
+    out << "end_number: " << job_result.end_number << " ";
+    out << "is_error_job: " << job_result.is_error_job << " ";
+    out << "has_error: " << job_result.has_error;
 
-    return o;
+    return out;
 }
 
 struct ParserResult {
@@ -203,14 +207,14 @@ struct ParserResult {
     bool has_error = true;
 };
 
-inline std::ostream& operator << (std::ostream &o, const ParserResult &parser_result)
+inline std::ostream& operator << (std::ostream &out, const ParserResult &parser_result)
 {
-    o << "metadata: " << parser_result.metadata << " ";
-    o << "debug_string: " << parser_result.debug_string << " ";
-    o << "is_error_job: " << parser_result.is_error_job << " ";
-    o << "has_error: " << parser_result.has_error;
+    out << "metadata: " << parser_result.metadata << " ";
+    out << "debug_string: " << parser_result.debug_string << " ";
+    out << "is_error_job: " << parser_result.is_error_job << " ";
+    out << "has_error: " << parser_result.has_error;
 
-    return o;
+    return out;
 }
 
 struct ParserXmlAttributeResult {
@@ -237,10 +241,13 @@ struct ParserTimeResult {
 using database_status_callback = std::function<void(ParserJobResult result)>;
 using job_status_callback = std::function<void(const ParserJob &parser_job, job_status_t job_status)>;
 using manager_notify_callback = std::function<void(ParserJobResult result)>;
+
+using md5_read_callback = std::function<BlackLibraryCommon::Md5Sum(const std::string &uuid, size_t index_num)>;
+using md5s_read_callback = std::function<std::unordered_map<std::string, BlackLibraryCommon::Md5Sum>(const std::string &uuid)>;
+using md5_update_callback = std::function<void(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)>;
+
 using progress_number_callback = std::function<void(const std::string &uuid, size_t progress_num, bool error)>;
-using version_read_callback = std::function<std::string(const std::string &uuid, size_t index_num)>;
 using version_read_num_callback = std::function<uint16_t(const std::string &uuid, size_t index_num)>;
-using version_update_callback = std::function<void(const std::string &uuid, size_t index_num, const std::string &md5_sum, uint64_t version_num)>;
 
 std::string GenerateXmlDocTreeString(xmlNodePtr root_node);
 std::string GenerateXmlDocTreeStringHelper(xmlNodePtr root_node, size_t depth);

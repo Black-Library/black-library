@@ -185,13 +185,13 @@ ParseSectionInfo ParserWP::ParseSection()
         return output;
     }
 
-    std::string saved_version = BlackLibraryCommon::EmptyMD5Version;
+    BlackLibraryCommon::Md5Sum saved_md5;
     bool skip_file_check = false;
 
-    if (version_read_callback_)
-        saved_version = version_read_callback_(uuid_, index_);
+    if (md5_read_callback_)
+        saved_md5 = md5_read_callback_(uuid_, index_);
 
-    if (saved_version == BlackLibraryCommon::EmptyMD5Version)
+    if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "No MD5 sum for: {} index: {}", uuid_, index_);
     }
@@ -206,10 +206,10 @@ ParseSectionInfo ParserWP::ParseSection()
     }
 
     // version check
-    auto sec_version = BlackLibraryCommon::GetMD5Hash(section_content);
-    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, sec_version);
+    auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
+    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, section_md5);
 
-    if (saved_version == sec_version)
+    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.url == working_url)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
         skip_file_check = true;
@@ -235,8 +235,8 @@ ParseSectionInfo ParserWP::ParseSection()
         return output;
     }
 
-    if (version_update_callback_)
-        version_update_callback_(uuid_, index_, sec_version, version_num);
+    if (md5_update_callback_)
+        md5_update_callback_(uuid_, index_, section_md5, last_update_date_, working_url, version_num);
 
     output.has_error = false;
 

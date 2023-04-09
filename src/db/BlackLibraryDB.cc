@@ -67,7 +67,7 @@ std::vector<DBEntry> BlackLibraryDB::GetWorkEntryList()
     return entry_list;
 }
 
-std::vector<DBMd5Sum> BlackLibraryDB::GetChecksumList()
+std::vector<BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetChecksumList()
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -154,7 +154,7 @@ int BlackLibraryDB::DeleteWorkEntry(const std::string &uuid)
     return 0;
 }
 
-int BlackLibraryDB::CreateMd5Sum(const DBMd5Sum &md5)
+int BlackLibraryDB::CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -167,11 +167,11 @@ int BlackLibraryDB::CreateMd5Sum(const DBMd5Sum &md5)
     return 0;
 }
 
-DBMd5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, size_t index_num)
+BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, size_t index_num)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    DBMd5Sum md5;
+    BlackLibraryCommon::Md5Sum md5;
 
     if (uuid.empty())
     {
@@ -188,23 +188,7 @@ DBMd5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, size_t index_num)
     return md5;
 }
 
-uint16_t BlackLibraryDB::GetVersionFromMd5(const std::string &uuid, size_t index_num)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    uint16_t version_num = 0;
-
-    if (uuid.empty())
-    {
-        BlackLibraryCommon::LogError(logger_name_, "Failed to get version from MD5 checksum with empty UUID");
-        return version_num;
-    }
-    version_num = database_connection_interface_->GetVersionFromMd5(uuid, index_num);
-
-    return version_num;
-}
-
-int BlackLibraryDB::UpdateMd5Sum(const DBMd5Sum &md5)
+int BlackLibraryDB::UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -434,6 +418,30 @@ DBStringResult BlackLibraryDB::GetWorkEntryUrlFromUUID(const std::string &uuid)
 
     return database_connection_interface_->GetEntryUrlFromUUID(uuid);
 }
+
+std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUID(const std::string &uuid)
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    return database_connection_interface_->GetMd5SumsFromUUID(uuid);
+}
+
+uint16_t BlackLibraryDB::GetVersionFromMd5(const std::string &uuid, size_t index_num)
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    uint16_t version_num = 0;
+
+    if (uuid.empty())
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed to get version from MD5 checksum with empty UUID");
+        return version_num;
+    }
+    version_num = database_connection_interface_->GetVersionFromMd5(uuid, index_num);
+
+    return version_num;
+}
+
 
 DBRefresh BlackLibraryDB::GetRefreshFromMinDate()
 {

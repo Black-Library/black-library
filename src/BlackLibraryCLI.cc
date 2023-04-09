@@ -186,6 +186,26 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
     }
 }
 
+void BlackLibraryCLI::ClearUrlFromChecksum(const std::vector<std::string> &tokens)
+{
+    (void) tokens;
+    auto checksums = blacklibrary_db_.GetChecksumList();
+
+    size_t modify_count = 0;
+    for (auto & checksum : checksums) 
+    {
+        if (checksum.url.rfind("/fiction", 0) == 0)
+        {
+            checksum.url.insert(0, "https://www.royalroad.com");
+            std::cout << checksum.url << std::endl;
+            blacklibrary_db_.UpdateMd5Sum(checksum);
+            ++modify_count;
+        }
+    }
+
+    BlackLibraryCommon::LogInfo(logger_name_, "Modified {} checksum rows", modify_count);
+}
+
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 {
     std::string target_entry_type;
@@ -240,7 +260,7 @@ void BlackLibraryCLI::Export(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBMd5Sum> checksum_list;
+    std::vector<BlackLibraryCommon::Md5Sum> checksum_list;
     std::string target_path = DefaultExportChecksumFileName;
     std::stringstream ss;
 
@@ -371,7 +391,7 @@ void BlackLibraryCLI::Import(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 {
-    std::vector<BlackLibraryDB::DBMd5Sum> checksum_list;
+    std::vector<BlackLibraryCommon::Md5Sum> checksum_list;
     std::string target_path = DefaultExportEntryFileName;
 
     if (tokens.size() >= 3)
@@ -414,18 +434,19 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
             tokens.emplace_back(token);
         }
 
-        if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBMd5SumColumnID::_NUM_DB_MD5SUM_COLUMN_ID))
+        if (tokens.size() < static_cast<size_t>(BlackLibraryCommon::DBMd5SumColumnID::_NUM_DB_MD5SUM_COLUMN_ID))
         {
             BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", checksum_line);
             continue;
         }
 
-        BlackLibraryDB::DBMd5Sum checksum = {
-            tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::uuid)],
-            static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::index_num)])),
-            tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::md5_sum)],
-            stol(tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::date)]),
-            tokens[DBColumnIDCast(BlackLibraryDB::DBMd5SumColumnID::url)],
+        BlackLibraryCommon::Md5Sum checksum = {
+            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::uuid)],
+            static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
+            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::md5_sum)],
+            stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
+            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::url)],
+            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
         };
 
         if (blacklibrary_db_.DoesMd5SumExist(checksum.uuid, checksum.index_num))
@@ -590,7 +611,7 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, delete, export, help, import, list, size, sizeall, versionall]";
+    ss << "Usage: [bind, clearurl, delete, export, help, import, list, size, sizeall, versionall]";
 
     // TODO make some kind of command mapping/register
 
@@ -620,7 +641,7 @@ void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
             if (blacklibrary_db_.DoesMd5SumExist(entry.uuid, i))
                 continue;
 
-            BlackLibraryDB::DBMd5Sum checksum;
+            BlackLibraryCommon::Md5Sum checksum;
 
             checksum.uuid = entry.uuid;
             checksum.index_num = i;
@@ -641,6 +662,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "bind")
     {
         BindEntry(tokens);
+    }
+    else if (command == "clearurl")
+    {
+        ClearUrlFromChecksum(tokens);
     }
     else if (command == "delete")
     {

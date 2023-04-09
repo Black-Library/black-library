@@ -6,6 +6,7 @@
 #define __BLACK_LIBRARY_CORE_DB_DB_TEST_UTILS_H__
 
 #include <ConfigOperations.h>
+#include <VersionOperations.h>
 
 #include <BlackLibraryDBDataTypes.h>
 
@@ -14,6 +15,8 @@ namespace black_library {
 namespace core {
 
 namespace db {
+
+namespace BlackLibraryCommon = black_library::core::common;
 
 static constexpr const char DefaultTestDBPath[] = "/tmp/catalog.db";
 
@@ -50,9 +53,9 @@ DBEntry GenerateTestBlackEntry()
     return work_entry;
 }
 
-DBMd5Sum GenerateTestMd5Sum()
+BlackLibraryCommon::Md5Sum GenerateTestMd5Sum()
 {
-    DBMd5Sum md5;
+    BlackLibraryCommon::Md5Sum md5;
 
     md5.uuid = "55ee59ad-2feb-4196-960b-3226c65c80d5";
     md5.index_num = 18;

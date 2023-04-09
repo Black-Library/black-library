@@ -25,12 +25,13 @@ ParserWorker::ParserWorker(const std::shared_ptr<ParserFactory> parser_factory, 
     job_queue_(),
     pool_results_(),
     pool_erases_(),
-    progress_number_callback_(),
     job_status_callback_(),
     notify_callback_(),
-    version_read_callback_(),
+    md5_read_callback_(),
+    md5s_read_callback_(),
+    md5_update_callback_(),
+    progress_number_callback_(),
     version_read_num_callback_(),
-    version_update_callback_(),
     storage_path_(BlackLibraryCommon::DefaultStoragePath),
     worker_name_(""),
     parser_factory_(parser_factory),
@@ -204,17 +205,21 @@ int ParserWorker::RunOnce()
             if (job_status_callback_)
                 job_status_callback_(parser_job, job_status_t::JOB_WORKING);
 
+
+            if (md5_read_callback_)
+                parser->RegisterMd5ReadCallback(md5_read_callback_);
+
+            if (md5s_read_callback_)
+                parser->RegisterMd5sReadCallback(md5s_read_callback_);
+
+            if (md5_update_callback_)
+                parser->RegisterMd5UpdateCallback(md5_update_callback_);
+
             if (progress_number_callback_)
                 parser->RegisterProgressNumberCallback(progress_number_callback_);
 
-            if (version_read_callback_)
-                parser->RegisterVersionReadCallback(version_read_callback_);
-
             if (version_read_num_callback_)
                 parser->RegisterVersionReadNumCallback(version_read_num_callback_);
-
-            if (version_update_callback_)
-                parser->RegisterVersionUpdateCallback(version_update_callback_);
 
             auto parser_result = parser->Parse(parser_job);
 
@@ -294,9 +299,9 @@ int ParserWorker::AddJob(const ParserJob &parser_job)
     return 0;
 }
 
-int ParserWorker::RegisterProgressNumberCallback(const progress_number_callback &callback)
+int ParserWorker::RegisterJobStatusCallback(const job_status_callback &callback)
 {
-    progress_number_callback_ = callback;
+    job_status_callback_ = callback;
 
     return 0;
 }
@@ -308,16 +313,30 @@ int ParserWorker::RegisterManagerNotifyCallback(const manager_notify_callback &c
     return 0;
 }
 
-int ParserWorker::RegisterJobStatusCallback(const job_status_callback &callback)
+int ParserWorker::RegisterMd5ReadCallback(const md5_read_callback &callback)
 {
-    job_status_callback_ = callback;
+    md5_read_callback_ = callback;
 
     return 0;
 }
 
-int ParserWorker::RegisterVersionReadCallback(const version_read_callback &callback)
+int ParserWorker::RegisterMd5sReadCallback(const md5s_read_callback &callback)
 {
-    version_read_callback_ = callback;
+    md5s_read_callback_ = callback;
+
+    return 0;
+}
+
+int ParserWorker::RegisterMd5UpdateCallback(const md5_update_callback &callback)
+{
+    md5_update_callback_ = callback;
+
+    return 0;
+}
+
+int ParserWorker::RegisterProgressNumberCallback(const progress_number_callback &callback)
+{
+    progress_number_callback_ = callback;
 
     return 0;
 }
@@ -325,13 +344,6 @@ int ParserWorker::RegisterVersionReadCallback(const version_read_callback &callb
 int ParserWorker::RegisterVersionReadNumCallback(const version_read_num_callback &callback)
 {
     version_read_num_callback_ = callback;
-
-    return 0;
-}
-
-int ParserWorker::RegisterVersionUpdateCallback(const version_update_callback &callback)
-{
-    version_update_callback_ = callback;
 
     return 0;
 }

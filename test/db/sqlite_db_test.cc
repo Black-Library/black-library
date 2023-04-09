@@ -68,12 +68,12 @@ TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
 {
     SQLiteDB db(DefaultTestDBPath, "1.0");
 
-    DBMd5Sum md5 = GenerateTestMd5Sum();
+    BlackLibraryCommon::Md5Sum md5 = GenerateTestMd5Sum();
 
     REQUIRE ( db.CreateMd5Sum(md5) == 0 );
     REQUIRE ( db.DoesMd5SumExist(md5.uuid, md5.index_num).result == true );
 
-    DBMd5Sum md5_read = db.ReadMd5Sum(md5.uuid, md5.index_num);
+    BlackLibraryCommon::Md5Sum md5_read = db.ReadMd5Sum(md5.uuid, md5.index_num);
     REQUIRE ( md5_read.uuid == md5.uuid );
 
     size_t version_num_0 = db.GetVersionFromMd5(md5.uuid, md5.index_num);
@@ -83,9 +83,13 @@ TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
     REQUIRE ( version_num_1 == 0 );
 
     md5.md5_sum = "17e8f0b4718aa78060a067fcee68513c";
+    md5.date = 101;
+    md5.version_num = 5;
     REQUIRE ( db.UpdateMd5Sum(md5) == 0 );
-    DBMd5Sum md5_update = db.ReadMd5Sum(md5.uuid, md5.index_num);
+    BlackLibraryCommon::Md5Sum md5_update = db.ReadMd5Sum(md5.uuid, md5.index_num);
     REQUIRE( md5_update.md5_sum == md5.md5_sum );
+    REQUIRE( md5_update.date == md5.date );
+    REQUIRE( md5_update.version_num == md5.version_num );
 
     REQUIRE ( db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     REQUIRE ( db.DoesMd5SumExist(md5.uuid, md5.index_num).result == false );

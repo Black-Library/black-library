@@ -21,6 +21,7 @@ public:
 protected:
     int CalculateIndexBounds(const ParserJob &parser_job);
     void ExpendedAttempts();
+    void IndicateNextSection();
     virtual int PreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job);
     bool ReachedEnd();
     virtual void SaveLastUrl(ParserResult &parser_result);

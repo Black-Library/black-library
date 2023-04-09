@@ -89,12 +89,12 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
     njson config = GenerateDBTestConfig();
     BlackLibraryDB blacklibrary_db(config);
 
-    DBMd5Sum md5 = GenerateTestMd5Sum();
+    BlackLibraryCommon::Md5Sum md5 = GenerateTestMd5Sum();
 
     REQUIRE ( blacklibrary_db.CreateMd5Sum(md5) == 0 );
     REQUIRE ( blacklibrary_db.DoesMd5SumExist(md5.uuid, md5.index_num) == true );
 
-    DBMd5Sum md5_read = blacklibrary_db.ReadMd5Sum(md5.uuid, md5.index_num);
+    BlackLibraryCommon::Md5Sum md5_read = blacklibrary_db.ReadMd5Sum(md5.uuid, md5.index_num);
     REQUIRE ( md5_read.uuid == md5.uuid );
     REQUIRE ( md5_read.index_num == md5.index_num );
     REQUIRE ( md5_read.md5_sum == md5.md5_sum );
@@ -108,9 +108,13 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
     REQUIRE ( version_num_1 == 0 );
 
     md5.md5_sum = "17e8f0b4718aa78060a067fcee68513c";
+    md5.date = 101;
+    md5.version_num = 5;
     REQUIRE ( blacklibrary_db.UpdateMd5Sum(md5) == 0 );
-    DBMd5Sum md5_update = blacklibrary_db.ReadMd5Sum(md5.uuid, md5.index_num);
+    BlackLibraryCommon::Md5Sum md5_update = blacklibrary_db.ReadMd5Sum(md5.uuid, md5.index_num);
     REQUIRE( md5_update.md5_sum == md5.md5_sum );
+    REQUIRE( md5_update.date == md5.date );
+    REQUIRE( md5_update.version_num == md5.version_num );
 
     REQUIRE ( blacklibrary_db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     REQUIRE ( blacklibrary_db.DoesMd5SumExist(md5.uuid, md5.index_num) == false );
