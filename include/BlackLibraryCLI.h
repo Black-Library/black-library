@@ -29,6 +29,7 @@ private:
     void BindEntry(const std::vector<std::string> &tokens);
     void ChangeSize(const std::vector<std::string> &tokens);
     void ChangeSizeAll(const std::vector<std::string> &tokens);
+    void ClearUrlFromChecksum(const std::vector<std::string> &tokens);
     void DeleteEntry(const std::vector<std::string> &tokens);
     void Export(const std::vector<std::string> &tokens);
     void ExportChecksums(const std::vector<std::string> &tokens);

@@ -17,6 +17,8 @@ namespace core {
 
 namespace db {
 
+namespace BlackLibraryCommon = black_library::core::common;
+
 class SQLiteDB : public DBConnectionInterface
 {
 public:
@@ -24,7 +26,7 @@ public:
     ~SQLiteDB();
 
     std::vector<DBEntry> ListEntries() const;
-    std::vector<DBMd5Sum> ListChecksums() const;
+    std::vector<BlackLibraryCommon::Md5Sum> ListChecksums() const;
     std::vector<DBErrorEntry> ListErrorEntries() const;
 
     int CreateDBVersion(const std::string &db_version) const;
@@ -38,9 +40,9 @@ public:
     int UpdateEntry(const DBEntry &entry) const override;
     int DeleteEntry(const std::string &uuid) const override;
 
-    int CreateMd5Sum(const DBMd5Sum &md5) const override;
-    DBMd5Sum ReadMd5Sum(const std::string &uuid, size_t index_num) const override;
-    int UpdateMd5Sum(const DBMd5Sum &md5) const override;
+    int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
+    BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, size_t index_num) const override;
+    int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
     int DeleteMd5Sum(const std::string &uuid, size_t index_num) const override;
 
     int CreateRefresh(const DBRefresh &refresh) const override;
@@ -60,6 +62,8 @@ public:
     DBStringResult GetDBVersion() const override;
     DBStringResult GetEntryUUIDFromUrl(const std::string &url) const override;
     DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const override;
+
+    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid) const override;
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num) const override;
 

@@ -47,6 +47,11 @@ void LinkedListParser::ExpendedAttempts()
     reached_end_ = true;
 }
 
+void LinkedListParser::IndicateNextSection()
+{
+    ++index_;
+}
+
 int LinkedListParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job)
 {
     if (parser_job.url == parser_job.last_url || parser_job.last_url.empty())

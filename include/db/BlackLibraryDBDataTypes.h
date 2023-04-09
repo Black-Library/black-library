@@ -140,39 +140,6 @@ enum class DBEntryColumnID : uint8_t
     _NUM_DB_ENTRY_COLUMN_ID
 };
 
-struct DBMd5Sum {
-    std::string uuid;
-    size_t index_num;
-    std::string md5_sum;
-    time_t date;
-    std::string url;
-    size_t version_num;
-};
-
-inline std::ostream& operator<< (std::ostream &out, const DBMd5Sum &sum)
-{
-    out << "UUID: " << sum.uuid << " ";
-    out << "index_num: " << sum.index_num << " ";
-    out << "md5_sum: " << sum.md5_sum << " ";
-    out << "date: " << sum.date << " ";
-    out << "url: " << sum.url << " ";
-    out << "version_number: " << sum.version_num;
-
-    return out;
-}
-
-enum class DBMd5SumColumnID : uint8_t
-{
-    uuid,
-    index_num,
-    md5_sum,
-    date,
-    url,
-    version_num,
-
-    _NUM_DB_MD5SUM_COLUMN_ID
-};
-
 struct DBRefresh {
     std::string uuid;
     time_t refresh_date;
@@ -186,6 +153,14 @@ inline std::ostream& operator<< (std::ostream &out, const DBRefresh &refresh)
     return out;
 }
 
+enum class DBRefreshColumnID : uint8_t
+{
+    uuid,
+    refresh_date,
+
+    _NUM_DB_REFRESH_COLUMN_ID
+};
+
 struct DBErrorEntry {
     std::string uuid;
     size_t progress_num;
@@ -198,6 +173,14 @@ inline std::ostream& operator<< (std::ostream &out, const DBErrorEntry &entry)
 
     return out;
 }
+
+enum class DBErrorEntryColumnID : uint8_t
+{
+    uuid,
+    progress_num,
+
+    _NUM_DB_ERROR_ENTRY_COLUMN_ID
+};
 
 struct DBRating {
     std::string uuid;

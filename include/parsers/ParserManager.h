@@ -47,10 +47,13 @@ public:
     bool StillWorkingOn(const std::string &uuid);
 
     int RegisterDatabaseStatusCallback(const database_status_callback &callback);
+
+    int RegisterMd5ReadCallback(const md5_read_callback &callback);
+    int RegisterMd5sReadCallback(const md5s_read_callback &callback);
+    int RegisterMd5UpdateCallback(const md5_update_callback &callback);
+
     int RegisterProgressNumberCallback(const progress_number_callback &callback);
-    int RegisterVersionReadCallback(const version_read_callback &callback);
     int RegisterVersionReadNumCallback(const version_read_num_callback &callback);
-    int RegisterVersionUpdateCallback(const version_update_callback &callback);
 
 private:
     int AddResult(ParserJobResult result);
@@ -61,11 +64,16 @@ private:
     BlockingUnorderedMap<std::pair<std::string, error_job_rep>, job_status_t, CurrentJobPairHash> current_jobs_;
     BlockingQueue<ParserJob> job_queue_;
     BlockingQueue<ParserJobResult> result_queue_;
-    progress_number_callback progress_number_callback_;
+
     database_status_callback database_status_callback_;
-    version_read_callback version_read_callback_;
+
+    md5_read_callback md5_read_callback_;
+    md5s_read_callback md5s_read_callback_;
+    md5_update_callback md5_update_callback_;
+
+    progress_number_callback progress_number_callback_;
     version_read_num_callback version_read_num_callback_;
-    version_update_callback version_update_callback_;
+
     njson config_;
     std::atomic_bool done_;
     std::atomic_bool initialized_;

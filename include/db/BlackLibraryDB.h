@@ -26,7 +26,7 @@ public:
 
     // front-end
     std::vector<DBEntry> GetWorkEntryList();
-    std::vector<DBMd5Sum> GetChecksumList();
+    std::vector<BlackLibraryCommon::Md5Sum> GetChecksumList();
     std::vector<DBErrorEntry> GetErrorEntryList();
 
     // back-end
@@ -35,9 +35,9 @@ public:
     int UpdateWorkEntry(const DBEntry &entry);
     int DeleteWorkEntry(const std::string &uuid);
 
-    int CreateMd5Sum(const DBMd5Sum &md5);
-    DBMd5Sum ReadMd5Sum(const std::string &uuid, size_t index_num);
-    int UpdateMd5Sum(const DBMd5Sum &md5);
+    int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
+    BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, size_t index_num);
+    int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
     int DeleteMd5Sum(const std::string &uuid, size_t index_num);
 
     int CreateRefresh(const DBRefresh &refresh);
@@ -58,6 +58,8 @@ public:
     DBStringResult GetDBVersion();
     DBStringResult GetWorkEntryUUIDFromUrl(const std::string &url);
     DBStringResult GetWorkEntryUrlFromUUID(const std::string &uuid);
+
+    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid);
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num);
 

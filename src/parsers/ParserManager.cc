@@ -27,11 +27,12 @@ ParserManager::ParserManager(const njson &config) :
     current_jobs_(),
     job_queue_(),
     result_queue_(),
-    progress_number_callback_(),
     database_status_callback_(),
-    version_read_callback_(),
+    md5_read_callback_(),
+    md5s_read_callback_(),
+    md5_update_callback_(),
+    progress_number_callback_(),
     version_read_num_callback_(),
-    version_update_callback_(),
     config_(config),
     done_(true),
     initialized_(false)
@@ -88,17 +89,10 @@ ParserManager::ParserManager(const njson &config) :
     AddWorker(parser_t::RR_PARSER, worker_count);
     AddWorker(parser_t::SBF_PARSER, worker_count);
     AddWorker(parser_t::SVF_PARSER, worker_count);
-    AddWorker(parser_t::WP_PARSER, worker_count);
+    // AddWorker(parser_t::WP_PARSER, worker_count);
 
     for (auto & worker : worker_map_)
     {
-        worker.second->RegisterProgressNumberCallback(
-            [this](const std::string &uuid, size_t progress_num, bool error)
-            {
-                if (progress_number_callback_)
-                    progress_number_callback_(uuid, progress_num, error);
-            }
-        );
         worker.second->RegisterJobStatusCallback(
             [this](const ParserJob &parser_job, job_status_t job_status)
             {
@@ -113,21 +107,38 @@ ParserManager::ParserManager(const njson &config) :
                 result_queue_.push(result);
             }
         );
-        worker.second->RegisterVersionReadCallback(
+        worker.second->RegisterMd5ReadCallback(
             [this](const std::string &uuid, size_t index_num)
             {
-                std::string check_sum = BlackLibraryCommon::EmptyMD5Version;
-                if (version_read_callback_)
-                    check_sum = version_read_callback_(uuid, index_num);
+                BlackLibraryCommon::Md5Sum check_sum;
+                if (md5_read_callback_)
+                    check_sum = md5_read_callback_(uuid, index_num);
 
                 return check_sum;
             }
         );
-        worker.second->RegisterVersionUpdateCallback(
-            [this](const std::string &uuid, size_t index_num, const std::string &md5_sum, uint64_t version_num)
+        worker.second->RegisterMd5sReadCallback(
+            [this](const std::string &uuid)
             {
-                if (version_update_callback_)
-                    version_update_callback_(uuid, index_num, md5_sum, version_num);
+                std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums;
+                if (md5s_read_callback_)
+                    md5_sums = md5s_read_callback_(uuid);
+
+                return md5_sums;
+            }
+        );
+        worker.second->RegisterMd5UpdateCallback(
+            [this](const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
+            {
+                if (md5_update_callback_)
+                    md5_update_callback_(uuid, index_num, md5_sum, date, url, version_num);
+            }
+        );
+        worker.second->RegisterProgressNumberCallback(
+            [this](const std::string &uuid, size_t progress_num, bool error)
+            {
+                if (progress_number_callback_)
+                    progress_number_callback_(uuid, progress_num, error);
             }
         );
     }
@@ -333,6 +344,28 @@ int ParserManager::RegisterDatabaseStatusCallback(const database_status_callback
     return 0;
 }
 
+int ParserManager::RegisterMd5ReadCallback(const md5_read_callback &callback)
+{
+    md5_read_callback_ = callback;
+
+    return 0;
+}
+
+
+int ParserManager::RegisterMd5sReadCallback(const md5s_read_callback &callback)
+{
+    md5s_read_callback_ = callback;
+
+    return 0;
+}
+
+int ParserManager::RegisterMd5UpdateCallback(const md5_update_callback &callback)
+{
+    md5_update_callback_ = callback;
+
+    return 0;
+}
+
 int ParserManager::RegisterProgressNumberCallback(const progress_number_callback &callback)
 {
     progress_number_callback_ = callback;
@@ -340,23 +373,9 @@ int ParserManager::RegisterProgressNumberCallback(const progress_number_callback
     return 0;
 }
 
-int ParserManager::RegisterVersionReadCallback(const version_read_callback &callback)
-{
-    version_read_callback_ = callback;
-
-    return 0;
-}
-
 int ParserManager::RegisterVersionReadNumCallback(const version_read_num_callback &callback)
 {
     version_read_num_callback_ = callback;
-
-    return 0;
-}
-
-int ParserManager::RegisterVersionUpdateCallback(const version_update_callback &callback)
-{
-    version_update_callback_ = callback;
 
     return 0;
 }

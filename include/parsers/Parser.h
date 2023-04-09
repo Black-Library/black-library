@@ -50,10 +50,12 @@ public:
     std::string GetSourceName();
     std::string GetSourceUrl();
 
+    int RegisterMd5ReadCallback(const md5_read_callback &callback);
+    int RegisterMd5sReadCallback(const md5s_read_callback &callback);
+    int RegisterMd5UpdateCallback(const md5_update_callback &callback);
+
     int RegisterProgressNumberCallback(const progress_number_callback &callback);
-    int RegisterVersionReadCallback(const version_read_callback &callback);
     int RegisterVersionReadNumCallback(const version_read_num_callback &callback);
-    int RegisterVersionUpdateCallback(const version_update_callback &callback);
 
 protected:
     std::string SectionDumpContent(const xmlDocPtr doc_ptr, const xmlNodePtr node_ptr);
@@ -61,6 +63,7 @@ protected:
     virtual int CalculateIndexBounds(const ParserJob &parser_job);
     virtual void ExpendedAttempts();
     virtual void FindMetaData(xmlNodePtr root_node);
+    virtual void IndicateNextSection();
     virtual void ParseLoop(ParserResult &parser_result);
     virtual ParseSectionInfo ParseSection();
     virtual void PostParseLoop(ParserResult &parser_result);
@@ -71,10 +74,14 @@ protected:
     virtual void SaveMetaData(ParserResult &parser_result);
     virtual void SaveUpdateDate(ParserResult &parser_result);
 
+    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5s_;
+
+    md5_read_callback md5_read_callback_;
+    md5s_read_callback md5s_read_callback_;
+    md5_update_callback md5_update_callback_;
     progress_number_callback progress_number_callback_;
-    version_read_callback version_read_callback_;
     version_read_num_callback version_read_num_callback_;
-    version_update_callback version_update_callback_;
+
     std::shared_ptr<ParserTimeGenerator> time_generator_;
 
     std::string uuid_;
@@ -89,7 +96,6 @@ protected:
     std::string parser_name_;
 
     size_t index_;
-    size_t end_index_;
 
     std::mutex mutex_;
     parser_t parser_type_;
