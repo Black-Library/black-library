@@ -562,27 +562,48 @@ void BlackLibraryCLI::List(const std::vector<std::string> &tokens)
 
 void BlackLibraryCLI::ListChecksums(const std::vector<std::string> &tokens)
 {
-    (void) tokens;
+    std::string target_uuid = "";
     auto checksum_list = blacklibrary_db_.GetChecksumList();
 
-    for (const auto & checksum : checksum_list)
+    if (tokens.size() >= 3)
     {
-        std::cout << checksum << std::endl;
+        target_uuid = tokens[2];
+    }
+
+    if (target_uuid.empty())
+    {
+        for (const auto & checksum : checksum_list)
+        {
+            std::cout << checksum << std::endl;
+        }
+    }
+    else
+    {
+        for (const auto & checksum : checksum_list)
+        {
+            if (checksum.uuid == target_uuid)
+                std::cout << checksum << std::endl;
+        }
     }
 }
 
 void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens, const std::string &type)
 {
-    (void) tokens;
+    std::string target_uuid = "";
     std::vector<BlackLibraryDB::DBEntry> entry_list;
     std::vector<BlackLibraryDB::DBErrorEntry> error_list;
+
+    if (tokens.size() >= 3)
+    {
+        target_uuid = tokens[2];
+    }
 
     if (type == "work")
         entry_list = blacklibrary_db_.GetWorkEntryList();
     else if (type == "error")
         error_list = blacklibrary_db_.GetErrorEntryList();
     else if (type == "help")
-        std::cout << "list [error, work]" << std::endl;
+        std::cout << "list [error, work] (uuid)" << std::endl;
     else
     {
         auto work_entries = blacklibrary_db_.GetWorkEntryList();
@@ -594,9 +615,20 @@ void BlackLibraryCLI::ListEntries(const std::vector<std::string> &tokens, const 
 
     std::cout << "Entries" << std::endl;
 
-    for (const auto & entry : entry_list)
+    if (target_uuid.empty())
     {
-        std::cout << entry << std::endl;
+        for (const auto & entry : entry_list)
+        {
+            std::cout << entry << std::endl;
+        }
+    }
+    else
+    {
+        for (const auto & entry : entry_list)
+        {
+            if (entry.uuid == target_uuid)
+                std::cout << entry << std::endl;
+        }
     }
 
     std::cout << "Errors" << std::endl;

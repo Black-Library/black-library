@@ -208,7 +208,7 @@ ParseSectionInfo ParserXF::ParseSection()
     bool skip_file_check = false;
 
     if (md5_read_callback_)
-        saved_md5 = md5_read_callback_(uuid_, index_);
+        saved_md5 = md5_read_callback_(uuid_, working_url);
 
     if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
     {
@@ -232,6 +232,16 @@ ParseSectionInfo ParserXF::ParseSection()
     {
         BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
         skip_file_check = true;
+    }
+
+    // TODO remove: update hack for populating date and url
+    if (saved_md5.md5_sum == section_md5)
+    {
+        if (md5_update_callback_)
+            md5_update_callback_(uuid_, index_, section_md5, last_update_date_, working_url, 0);
+        
+        output.has_error = false;
+        return output;
     }
 
     // if we skip the file check we can just return

@@ -104,24 +104,34 @@ BlackLibrary::BlackLibrary(const njson &config) :
             }
         }
     );
+    parser_manager_.RegisterMd5CheckCallback(
+        [&](const std::string &md5_sum, const std::string &uuid)
+        {
+            BlackLibraryCommon::Md5Sum md5;
+
+            md5 = blacklibrary_db_.GetMd5SumFromMd5Sum(md5_sum, uuid);
+
+            return md5;
+        }
+    );
     parser_manager_.RegisterMd5ReadCallback(
         [&](const std::string &uuid, size_t index_num)
         {
-            BlackLibraryCommon::Md5Sum md5_sum;
+            BlackLibraryCommon::Md5Sum md5;
             if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
             {
-                BlackLibraryCommon::LogWarn(logger_name_, "Register version read entry with UUID: {} does not exist", uuid);
-                return md5_sum;
+                BlackLibraryCommon::LogWarn(logger_name_, "Register md5 read entry with UUID: {} does not exist", uuid);
+                return md5;
             }
             if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
             {
-                BlackLibraryCommon::LogDebug(logger_name_, "Read version UUID: {} index_num: {} failed MD5 sum does not exist", uuid, index_num);
-                return md5_sum;
+                BlackLibraryCommon::LogDebug(logger_name_, "Read md5 UUID: {} index_num: {} failed md5 sum does not exist", uuid, index_num);
+                return md5;
             }
 
-            md5_sum = blacklibrary_db_.ReadMd5Sum(uuid, index_num);
+            md5 = blacklibrary_db_.ReadMd5Sum(uuid, index_num);
 
-            return md5_sum;
+            return md5;
         }
     );
     parser_manager_.RegisterMd5sReadCallback(
@@ -144,10 +154,21 @@ BlackLibrary::BlackLibrary(const njson &config) :
             //     return;
             // }
 
+            if (blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
+            {
+                if (blacklibrary_db_.UpdateMd5Sum(md5))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} already exists", uuid, index_num, md5_sum, date, url, version_num);
+                    return;
+                }
+                
+                return;
+            }
+
             // otherwise, create a new one with incremented version num
             if (blacklibrary_db_.CreateMd5Sum(md5))
             {
-                BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} failed", uuid, index_num, md5_sum, date, url);
+                BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} failed", uuid, index_num, md5_sum, date, url, version_num);
                 return;
             }
         }

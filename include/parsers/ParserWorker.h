@@ -41,6 +41,7 @@ public:
     int RegisterJobStatusCallback(const job_status_callback &callback);
     int RegisterManagerNotifyCallback(const manager_notify_callback &callback);
 
+    int RegisterMd5CheckCallback(const md5_check_callback &callback);
     int RegisterMd5sReadCallback(const md5s_read_callback &callback);
     int RegisterMd5ReadCallback(const md5_read_callback &callback);
     int RegisterVersionReadNumCallback(const version_read_num_callback &callback);
@@ -58,6 +59,7 @@ private:
     job_status_callback job_status_callback_;
     manager_notify_callback notify_callback_;
 
+    md5_check_callback md5_check_callback_;
     md5_read_callback md5_read_callback_;
     md5s_read_callback md5s_read_callback_;
     md5_update_callback md5_update_callback_;

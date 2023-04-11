@@ -419,6 +419,13 @@ DBStringResult BlackLibraryDB::GetWorkEntryUrlFromUUID(const std::string &uuid)
     return database_connection_interface_->GetEntryUrlFromUUID(uuid);
 }
 
+BlackLibraryCommon::Md5Sum BlackLibraryDB::GetMd5SumFromMd5Sum(const std::string &md5_sum, const std::string &uuid)
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    return database_connection_interface_->GetMd5SumFromMd5Sum(md5_sum, uuid);
+}
+
 std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUID(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
