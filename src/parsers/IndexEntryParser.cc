@@ -21,70 +21,23 @@ namespace BlackLibraryCommon = black_library::core::common;
 IndexEntryParser::IndexEntryParser(parser_t parser_type, const njson &config) : 
     Parser(parser_type, config),
     index_entries_(),
-    index_entry_queue_()
+    index_entry_queue_(),
+    last_url_(),
+    md5_index_num_offset_(0)
 {
     parser_behavior_ = parser_behavior_t::INDEX_ENTRY;
 }
 
 int IndexEntryParser::CalculateIndexBounds(const ParserJob &parser_job)
 {
-    (void) parser_job;
     index_ = 0;
 
-    // new entry with no md5s in db, add everything to queue
-    if (md5s_.size() <= 0)
-    {
-        BlackLibraryCommon::LogDebug(parser_name_, "No md5s for {}, treating as new entry", uuid_);
-    }
-    // check index entries for already existing values
-    else
-    {
-        // get max index num
-        size_t max_index_num = 0;
-        for (auto const & index_entry : index_entries_)
-        {
-            if (max_index_num <= index_entry.index_num)
-                max_index_num = index_entry.index_num;
-        }
+    target_start_index_ = parser_job.start_number - 1;
+    target_end_index_ = parser_job.end_number - 1;
 
-        // max_index_num increment assuming at least one value 
-        ++max_index_num;
-
-        // add things to queue that do not have a data_url
-        std::vector<ParserIndexEntry> clean_index_entries;
-        size_t matched_entries_count = 0;
-        for (auto & index_entry : index_entries_)
-        {
-            // url and date is in md5 map do not add to queue
-            if (md5s_.count(index_entry.data_url))
-            {
-                // check date
-                BlackLibraryCommon::Md5Sum md5_sum = md5s_.find(index_entry.data_url)->second;
-                if (md5_sum.date == index_entry.time_published)
-                {
-                    ++matched_entries_count;
-                }
-                // add to queue, entry requires update
-                else
-                {
-                    clean_index_entries.emplace_back(index_entry);
-                }
-            }
-            // url and date not in md5 map
-            else
-            {
-                index_entry.index_num = index_entry.index_num + max_index_num;
-                // skip if index num is less then parser job start num
-                clean_index_entries.emplace_back(index_entry);
-            }
-        }
-        index_entries_ = clean_index_entries;
-        BlackLibraryCommon::LogDebug(parser_name_, "New index entries size {}, matched index entries size {}", index_entries_.size(), matched_entries_count);
-    }
-
-    for (auto const & index_entry : index_entries_)
+    if (target_end_index_ == 0)
     {
-        index_entry_queue_.push(index_entry);
+        target_end_index_ = std::numeric_limits<size_t>::max();
     }
 
     return 0;
@@ -99,6 +52,17 @@ void IndexEntryParser::ExpendedAttempts()
 
 void IndexEntryParser::IndicateNextSection()
 {
+    if (index_entry_queue_.empty())
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Index entry parser tried to pop empty queue");
+        return;
+    }
+
+    // update last update date if next in queue is more recent
+    if (last_update_date_ < index_entry_queue_.front().time_published)
+        last_update_date_ = index_entry_queue_.front().time_published;
+    last_url_ = index_entry_queue_.front().data_url;
+
     index_entry_queue_.pop();
 }
 
@@ -114,11 +78,48 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     if (md5s_read_callback_)
         md5s_ = md5s_read_callback_(uuid_);
 
+    BlackLibraryCommon::LogDebug(parser_name_, "Read {} md5s", md5s_.size());
+
     if (index_entries_.size() <= 0)
     {
         BlackLibraryCommon::LogError(parser_name_, "Index entries size error");
         return -1;
     }
+
+    BlackLibraryCommon::LogDebug(parser_name_, "Match index entries to md5s");
+
+    if (md5s_.size() <= 0)
+    {
+        BlackLibraryCommon::LogDebug(parser_name_, "No md5s for {}, treating as new entry", uuid_);
+        return 0;
+    }
+
+    // get largest index_num if we need it later
+    for (auto const & md5 : md5s_)
+    {
+        if (md5.second.index_num >= md5_index_num_offset_)
+        {
+            md5_index_num_offset_ = md5.second.index_num;
+            last_update_date_ = md5.second.date;
+            last_url_ = md5.second.url;
+        }
+    }
+
+    // skip any entries which match url AND date
+    std::vector<ParserIndexEntry> truncated_index_entries;
+    for (const auto & index_entry : index_entries_)
+    {
+        if (!md5s_.count(index_entry.data_url))
+            continue;
+        
+        if (md5s_.find(index_entry.data_url)->second.date != index_entry.time_published)
+            continue;
+
+        truncated_index_entries.emplace_back(index_entry);
+    }
+
+    BlackLibraryCommon::LogWarn(parser_name_, "Truncated index entries size {}, index entries size {}", truncated_index_entries.size(), index_entries_.size());
+    index_entries_ = truncated_index_entries;
 
     return 0;
 }
@@ -130,16 +131,12 @@ bool IndexEntryParser::ReachedEnd()
 
 void IndexEntryParser::SaveLastUrl(ParserResult &parser_result)
 {
-    parser_result.metadata.last_url = index_entries_[index_entries_.size() - 1].data_url;
+    parser_result.metadata.last_url = last_url_;
 }
 
 void IndexEntryParser::SaveUpdateDate(ParserResult &parser_result)
 {
-    for (const auto & index_entry : index_entries_)
-    {
-        if (index_entry.time_published > parser_result.metadata.update_date)
-            parser_result.metadata.update_date = index_entry.time_published;
-    }
+    parser_result.metadata.update_date = last_update_date_;
 
     if (parser_result.metadata.update_date <= 0)
         BlackLibraryCommon::LogError(parser_name_, "Failed to get update date for UUID: {}", uuid_);

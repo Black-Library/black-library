@@ -189,7 +189,7 @@ ParseSectionInfo ParserWP::ParseSection()
     bool skip_file_check = false;
 
     if (md5_read_callback_)
-        saved_md5 = md5_read_callback_(uuid_, index_);
+        saved_md5 = md5_read_callback_(uuid_, working_url);
 
     if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
     {

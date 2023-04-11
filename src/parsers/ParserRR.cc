@@ -74,7 +74,7 @@ ParserIndexEntry ParserRR::ExtractIndexEntry(xmlNodePtr root_node)
         return index_entry;
     }
 
-    index_entry.data_url = url_result.result;
+    index_entry.data_url = "https://" + source_url_ + url_result.result;
 
     current_node = current_node->children;
 
@@ -200,12 +200,17 @@ void ParserRR::FindMetaData(xmlNodePtr root_node)
 ParseSectionInfo ParserRR::ParseSection()
 {
     ParseSectionInfo output;
+    if (index_entry_queue_.empty())
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Unable to get front of queue for UUID: {}", uuid_);
+        return output;
+    }
+
     const auto index_entry = index_entry_queue_.front();
 
-    const auto index_entry_url = "https://" + source_url_ + index_entry.data_url;
-    BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry_url, index_entry.name);
+    BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry.data_url, index_entry.name);
 
-    const auto curl_request_result = CurlRequest(index_entry_url);
+    const auto curl_request_result = CurlRequest(index_entry.data_url);
     xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_request_result.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (section_doc_tree == NULL)
@@ -250,49 +255,52 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
-    BlackLibraryCommon::Md5Sum saved_md5;
-    bool skip_file_check = false;
-
-    if (md5_read_callback_)
-        saved_md5 = md5_read_callback_(uuid_, index_entry.index_num);
-
-    if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
-    {
-        BlackLibraryCommon::LogDebug(parser_name_, "No MD5 sum for: {} index: {}", uuid_, index_entry.index_num);
-    }
-
     // dump content and free afterwards
     auto section_content = SectionDumpContent(section_doc_tree, current_node);
     xmlFreeDoc(section_doc_tree);
 
     if (section_content.empty())
-    {
         return output;
-    }
 
     // version check
+    auto index_num = index_entry.index_num;
     auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
-    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_entry.index_num, section_md5);
+    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_num, section_md5);
 
-    if (saved_md5.md5_sum == section_md5 && saved_md5.date == index_entry.time_published && saved_md5.url == index_entry_url)
-    {
-        BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_entry.index_num);
-        skip_file_check = true;
-    }
+    BlackLibraryCommon::Md5Sum md5_check;
+    if (md5_check_callback_)
+        md5_check = md5_check_callback_(section_md5, uuid_);
 
-    // if we skip the file check we can just return
-    if (skip_file_check)
+    // md5 already exists with correct md5_sum, update md5 with the correct index_num
+    if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
     {
+        BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, md5_check.index_num);
+        index_num = md5_check.index_num;
+
+        if (md5_update_callback_)
+            md5_update_callback_(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, 0);
+
         output.has_error = false;
+
         return output;
     }
 
+    if (md5_read_callback_)
+        md5_check = md5_read_callback_(uuid_, index_entry.data_url);
+
+    // update if data url is same
+    if (index_entry.data_url == md5_check)
+    get index_num from
+
+    // new
+    index_num += md5_index_num_offset_;
+
     uint16_t version_num = 0;
-
     if (version_read_num_callback_)
-        version_num = version_read_num_callback_(uuid_, index_entry.index_num);
+        version_num = version_read_num_callback_(uuid_, index_num);
 
-    const auto section_file_name = GetSectionFileName(index_entry.index_num, sanatized_section_name, version_num);
+    // save file
+    const auto section_file_name = GetSectionFileName(index_num, sanatized_section_name, version_num);
 
     if (SectionFileSave(section_content, section_file_name))
     {
@@ -301,10 +309,7 @@ ParseSectionInfo ParserRR::ParseSection()
     }
 
     if (md5_update_callback_)
-        md5_update_callback_(uuid_, index_entry.index_num, section_md5, index_entry.time_published, index_entry_url, version_num + 1);
-
-    // okay to remove front of queue, no error
-    index_entry_queue_.pop();
+        md5_update_callback_(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, version_num);
 
     output.has_error = false;
 

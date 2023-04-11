@@ -21,9 +21,6 @@ namespace BlackLibraryCommon = black_library::core::common;
 LinkedListParser::LinkedListParser(parser_t parser_type, const njson &config) : 
     Parser(parser_type, config),
     next_url_(),
-    last_update_date_(0),
-    target_start_index_(0),
-    target_end_index_(0),
     reached_end_(false)
 {
     parser_behavior_ = parser_behavior_t::LINKED_LIST;

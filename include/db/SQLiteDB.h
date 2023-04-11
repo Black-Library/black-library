@@ -63,6 +63,7 @@ public:
     DBStringResult GetEntryUUIDFromUrl(const std::string &url) const override;
     DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const override;
 
+    BlackLibraryCommon::Md5Sum GetMd5SumFromMd5Sum(const std::string &md5_sum, const std::string &uuid) const override;
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid) const override;
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num) const override;

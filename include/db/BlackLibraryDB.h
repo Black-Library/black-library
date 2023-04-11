@@ -59,6 +59,7 @@ public:
     DBStringResult GetWorkEntryUUIDFromUrl(const std::string &url);
     DBStringResult GetWorkEntryUrlFromUUID(const std::string &uuid);
 
+    BlackLibraryCommon::Md5Sum GetMd5SumFromMd5Sum(const std::string &md5_sum, const std::string &uuid);
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid);
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num);

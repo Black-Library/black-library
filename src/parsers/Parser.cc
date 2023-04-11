@@ -21,8 +21,12 @@ namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
+// TODO user parser metadata result instead of individual fields
+// TODO restructure main parser loop -> parse section, version check section, save section
+
 Parser::Parser(parser_t parser_type, const njson &config) :
     md5s_(),
+    md5_check_callback_(),
     md5_read_callback_(),
     md5s_read_callback_(),
     md5_update_callback_(),
@@ -37,10 +41,14 @@ Parser::Parser(parser_t parser_type, const njson &config) :
     target_url_(""),
     local_des_(""),
     parser_name_(""),
+    last_update_date_(0),
     index_(0),
+    target_start_index_(0),
+    target_end_index_(0),
     parser_type_(parser_type),
     parser_behavior_(parser_behavior_t::ERROR),
-    done_(false)
+    done_(false),
+    first_curl_wait_done_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
@@ -78,6 +86,7 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
     const std::lock_guard<std::mutex> lock(mutex_);
     ParserResult parser_result;
     done_ = false;
+    first_curl_wait_done_ = false;
 
     uuid_ = parser_job.uuid;
 
@@ -87,6 +96,11 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
     parser_result.is_error_job = parser_job.is_error_job;
 
     target_url_ = PreprocessTargetUrl(parser_job);
+
+    if (CalculateIndexBounds(parser_job))
+    {
+        return parser_result;
+    }
 
     BlackLibraryCommon::LogDebug(parser_name_, "Start parser job: {} target_url: {}", parser_job, target_url_);
 
@@ -123,12 +137,10 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
 
     SaveMetaData(parser_result);
 
-    if (CalculateIndexBounds(parser_job))
-    {
-        return parser_result;
-    }
-
     xmlFreeDoc(doc_tree);
+
+    // wait before parsing any sections
+    FirstCurlWait();
 
     ParseLoop(parser_result);
 
@@ -146,6 +158,7 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
 void Parser::Stop()
 {
     done_ = true;
+    first_curl_wait_done_ = true;
 }
 
 std::string Parser::CurlRequest(const std::string &url)
@@ -211,6 +224,13 @@ std::string Parser::GetSourceName()
 std::string Parser::GetSourceUrl()
 {
     return source_url_;
+}
+
+int Parser::RegisterMd5CheckCallback(const md5_check_callback &callback)
+{
+    md5_check_callback_ = callback;
+
+    return 0;
 }
 
 int Parser::RegisterMd5ReadCallback(const md5_read_callback &callback)
@@ -285,7 +305,7 @@ int Parser::CalculateIndexBounds(const ParserJob &parser_job)
 
 void Parser::ExpendedAttempts()
 {
-    done_ = true;;
+    done_ = true;
 }
 
 void Parser::FindMetaData(xmlNodePtr root_node)
@@ -378,6 +398,7 @@ void Parser::ParseLoop(ParserResult &parser_result)
 void Parser::PostParseLoop(ParserResult &parser_result)
 {
     (void) parser_result;
+    BlackLibraryCommon::LogDebug(parser_name_, "Post parse loop");
     return;
 }
 
@@ -418,6 +439,31 @@ void Parser::SaveUpdateDate(ParserResult &parser_result)
 {
     (void) parser_result;
     return;
+}
+
+int Parser::FirstCurlWait()
+{
+    size_t seconds_counter = 0;
+    size_t wait_time = 15;
+
+    while (!first_curl_wait_done_)
+    {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+
+        if (first_curl_wait_done_)
+            break;
+
+        if (seconds_counter >= wait_time)
+        {
+            first_curl_wait_done_ = true;
+        }
+
+        ++seconds_counter;
+
+        std::this_thread::sleep_until(deadline);
+    }
+
+    return 0;
 }
 
 // Credit: https://stackoverflow.com/questions/5525613/how-do-i-fetch-a-html-page-source-with-libcurl-in-c

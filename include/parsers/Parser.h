@@ -50,6 +50,7 @@ public:
     std::string GetSourceName();
     std::string GetSourceUrl();
 
+    int RegisterMd5CheckCallback(const md5_check_callback &callback);
     int RegisterMd5ReadCallback(const md5_read_callback &callback);
     int RegisterMd5sReadCallback(const md5s_read_callback &callback);
     int RegisterMd5UpdateCallback(const md5_update_callback &callback);
@@ -76,6 +77,7 @@ protected:
 
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5s_;
 
+    md5_check_callback md5_check_callback_;
     md5_read_callback md5_read_callback_;
     md5s_read_callback md5s_read_callback_;
     md5_update_callback md5_update_callback_;
@@ -95,14 +97,19 @@ protected:
     std::string local_des_;
     std::string parser_name_;
 
+    time_t last_update_date_;
     size_t index_;
+    size_t target_start_index_;
+    size_t target_end_index_;
 
     std::mutex mutex_;
     parser_t parser_type_;
     parser_behavior_t parser_behavior_;
     std::atomic_bool done_;
+    std::atomic_bool first_curl_wait_done_;
 
 private:
+    int FirstCurlWait();
 };
 
 size_t HandleCurlResponse(void* prt, size_t size, size_t nmemb, void* data);

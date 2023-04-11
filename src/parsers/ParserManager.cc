@@ -28,6 +28,7 @@ ParserManager::ParserManager(const njson &config) :
     job_queue_(),
     result_queue_(),
     database_status_callback_(),
+    md5_check_callback_(),
     md5_read_callback_(),
     md5s_read_callback_(),
     md5_update_callback_(),
@@ -107,14 +108,24 @@ ParserManager::ParserManager(const njson &config) :
                 result_queue_.push(result);
             }
         );
-        worker.second->RegisterMd5ReadCallback(
-            [this](const std::string &uuid, size_t index_num)
+        worker.second->RegisterMd5CheckCallback(
+            [this](const std::string &md5_sum, const std::string &uuid)
             {
-                BlackLibraryCommon::Md5Sum check_sum;
+                BlackLibraryCommon::Md5Sum md5;
+                if (md5_check_callback_)
+                    md5 = md5_check_callback_(md5_sum, uuid);
+                
+                return md5;
+            }
+        );
+        worker.second->RegisterMd5ReadCallback(
+            [this](const std::string &uuid, const std::string &url)
+            {
+                BlackLibraryCommon::Md5Sum md5;
                 if (md5_read_callback_)
-                    check_sum = md5_read_callback_(uuid, index_num);
+                    md5 = md5_read_callback_(uuid, url);
 
-                return check_sum;
+                return md5;
             }
         );
         worker.second->RegisterMd5sReadCallback(
@@ -340,6 +351,13 @@ int ParserManager::AddWorker(parser_t parser_type, size_t num_parsers)
 int ParserManager::RegisterDatabaseStatusCallback(const database_status_callback &callback)
 {
     database_status_callback_ = callback;
+
+    return 0;
+}
+
+int ParserManager::RegisterMd5CheckCallback(const md5_check_callback &callback)
+{
+    md5_check_callback_ = callback;
 
     return 0;
 }
