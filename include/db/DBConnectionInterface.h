@@ -35,7 +35,7 @@ public:
     virtual int DeleteEntry(const std::string &uuid) const = 0;
 
     virtual int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const = 0;
-    virtual BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, size_t index_num) const = 0;
+    virtual BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, const std::string &url) const = 0;
     virtual int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const = 0;
     virtual int DeleteMd5Sum(const std::string &uuid, size_t index_num) const = 0;
 
@@ -48,7 +48,8 @@ public:
 
     virtual DBBoolResult DoesEntryUrlExist(const std::string &url) const = 0;
     virtual DBBoolResult DoesEntryUUIDExist(const std::string &uuid) const = 0;
-    virtual DBBoolResult DoesMd5SumExist(const std::string &uuid, size_t index_num) const = 0;
+    virtual DBBoolResult DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num) const = 0;
+    virtual DBBoolResult DoesMd5SumExistUrl(const std::string &uuid, const std::string &url) const = 0;
     virtual DBBoolResult DoesRefreshExist(const std::string &uuid) const = 0;
     virtual DBBoolResult DoesMinRefreshExist() const = 0;
     virtual DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const = 0;

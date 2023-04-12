@@ -167,7 +167,7 @@ int BlackLibraryDB::CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5)
     return 0;
 }
 
-BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, size_t index_num)
+BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, const std::string &url)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -178,10 +178,10 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, s
         BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with empty UUID");
         return md5;
     }
-    md5 = database_connection_interface_->ReadMd5Sum(uuid, index_num);
+    md5 = database_connection_interface_->ReadMd5Sum(uuid, url);
     if (md5.uuid.empty())
     {
-        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} url: {}", uuid, url);
         return md5;
     }
 
@@ -330,11 +330,26 @@ bool BlackLibraryDB::DoesWorkEntryUUIDExist(const std::string &uuid)
     return check.result;
 }
 
-bool BlackLibraryDB::DoesMd5SumExist(const std::string &uuid, size_t index_num)
+bool BlackLibraryDB::DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    DBBoolResult check = database_connection_interface_->DoesMd5SumExist(uuid, index_num);
+    DBBoolResult check = database_connection_interface_->DoesMd5SumExistIndexNum(uuid, index_num);
+    
+    if (check.error != 0)
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Database returned {}", check.error);
+        return false;
+    }
+
+    return check.result;
+}
+
+bool BlackLibraryDB::DoesMd5SumExistUrl(const std::string &uuid, const std::string &url)
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    DBBoolResult check = database_connection_interface_->DoesMd5SumExistUrl(uuid, url);
     
     if (check.error != 0)
     {
