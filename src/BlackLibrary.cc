@@ -107,7 +107,6 @@ BlackLibrary::BlackLibrary(const njson &config) :
     parser_manager_.RegisterMd5CheckCallback(
         [&](const std::string &md5_sum, const std::string &uuid)
         {
-            BlackLibraryCommon::LogDebug(logger_name_, "foo");
             BlackLibraryCommon::Md5Sum md5;
             if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
             {
