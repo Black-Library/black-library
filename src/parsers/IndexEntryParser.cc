@@ -73,12 +73,12 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     FindIndexEntries(root_node);
 
-    BlackLibraryCommon::LogDebug(parser_name_, "Found {} nodes", index_entries_.size());
+    BlackLibraryCommon::LogDebug(parser_name_, "Found {} nodes for {}", index_entries_.size(), uuid_);
 
     if (md5s_read_callback_)
         md5s_ = md5s_read_callback_(uuid_);
 
-    BlackLibraryCommon::LogDebug(parser_name_, "Read {} md5s", md5s_.size());
+    BlackLibraryCommon::LogDebug(parser_name_, "Found {} md5s for {}", md5s_.size(), uuid_);
 
     if (index_entries_.size() <= 0)
     {
@@ -99,13 +99,13 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     {
         if (md5.second.index_num >= md5_index_num_offset_)
         {
-            md5_index_num_offset_ = md5.second.index_num;
+            md5_index_num_offset_ = md5.second.index_num + 1;
             last_update_date_ = md5.second.date;
             last_url_ = md5.second.url;
         }
     }
 
-    BlackLibraryCommon::LogDebug(parser_name_, "UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, md5_index_num_offset_, last_url_);
+    BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, md5_index_num_offset_, last_url_);
 
     std::vector<ParserIndexEntry> truncated_index_entries;
     for (const auto & index_entry : index_entries_)
@@ -120,7 +120,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         truncated_index_entries.emplace_back(index_entry);
     }
 
-    BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} index entries size {}, index entries size {}", uuid_, truncated_index_entries.size(), index_entries_.size());
+    BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} index entries size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());
     index_entries_ = truncated_index_entries;
 
     for (const auto & index_entry : index_entries_)

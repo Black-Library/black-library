@@ -107,7 +107,13 @@ BlackLibrary::BlackLibrary(const njson &config) :
     parser_manager_.RegisterMd5CheckCallback(
         [&](const std::string &md5_sum, const std::string &uuid)
         {
+            BlackLibraryCommon::LogDebug(logger_name_, "foo");
             BlackLibraryCommon::Md5Sum md5;
+            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
+            {
+                BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 read", uuid);
+                return md5;
+            }
 
             md5 = blacklibrary_db_.GetMd5SumFromMd5Sum(md5_sum, uuid);
 
@@ -120,7 +126,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
             BlackLibraryCommon::Md5Sum md5;
             if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
             {
-                BlackLibraryCommon::LogWarn(logger_name_, "Register md5 read entry with UUID: {} does not exist", uuid);
+                BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 read", uuid);
                 return md5;
             }
             if (!blacklibrary_db_.DoesMd5SumExistUrl(uuid, url))
@@ -129,7 +135,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
                 return md5;
             }
 
-            md5 = blacklibrary_db_.ReadMd5Sum(uuid, url);
+            md5 = blacklibrary_db_.ReadMd5SumUrl(uuid, url);
 
             return md5;
         }
@@ -165,7 +171,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
                 return;
             }
 
-            // otherwise, create a new one with incremented version num
+            // otherwise, create a new one
             if (blacklibrary_db_.CreateMd5Sum(md5))
             {
                 BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} failed", uuid, index_num, md5_sum, date, url, version_num);
