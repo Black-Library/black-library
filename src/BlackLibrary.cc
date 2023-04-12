@@ -115,7 +115,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
         }
     );
     parser_manager_.RegisterMd5ReadCallback(
-        [&](const std::string &uuid, size_t index_num)
+        [&](const std::string &uuid, const std::string &url)
         {
             BlackLibraryCommon::Md5Sum md5;
             if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
@@ -123,13 +123,13 @@ BlackLibrary::BlackLibrary(const njson &config) :
                 BlackLibraryCommon::LogWarn(logger_name_, "Register md5 read entry with UUID: {} does not exist", uuid);
                 return md5;
             }
-            if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
+            if (!blacklibrary_db_.DoesMd5SumExistUrl(uuid, url))
             {
-                BlackLibraryCommon::LogDebug(logger_name_, "Read md5 UUID: {} index_num: {} failed md5 sum does not exist", uuid, index_num);
+                BlackLibraryCommon::LogDebug(logger_name_, "Read md5 UUID: {} url: {} failed md5 sum does not exist", uuid, url);
                 return md5;
             }
 
-            md5 = blacklibrary_db_.ReadMd5Sum(uuid, index_num);
+            md5 = blacklibrary_db_.ReadMd5Sum(uuid, url);
 
             return md5;
         }
@@ -154,7 +154,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
             //     return;
             // }
 
-            if (blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
+            if (blacklibrary_db_.DoesMd5SumExistIndexNum(uuid, index_num))
             {
                 if (blacklibrary_db_.UpdateMd5Sum(md5))
                 {
@@ -217,7 +217,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
                 BlackLibraryCommon::LogWarn(logger_name_, "Register version read num entry with UUID: {} does not exist", uuid);
                 return version_num;
             }
-            if (!blacklibrary_db_.DoesMd5SumExist(uuid, index_num))
+            if (!blacklibrary_db_.DoesMd5SumExistIndexNum(uuid, index_num))
             {
                 BlackLibraryCommon::LogDebug(logger_name_, "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
                 return version_num;

@@ -105,21 +105,30 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         }
     }
 
-    // skip any entries which match url AND date
+    BlackLibraryCommon::LogDebug(parser_name_, "UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, md5_index_num_offset_, last_url_);
+
     std::vector<ParserIndexEntry> truncated_index_entries;
     for (const auto & index_entry : index_entries_)
     {
-        if (!md5s_.count(index_entry.data_url))
-            continue;
-        
-        if (md5s_.find(index_entry.data_url)->second.date != index_entry.time_published)
-            continue;
+        // skip any entries which match url AND date
+        if (md5s_.count(index_entry.data_url))
+        {
+            if (md5s_.find(index_entry.data_url)->second.date == index_entry.time_published)
+                continue;
+        }
 
         truncated_index_entries.emplace_back(index_entry);
     }
 
-    BlackLibraryCommon::LogWarn(parser_name_, "Truncated index entries size {}, index entries size {}", truncated_index_entries.size(), index_entries_.size());
+    BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} index entries size {}, index entries size {}", uuid_, truncated_index_entries.size(), index_entries_.size());
     index_entries_ = truncated_index_entries;
+
+    for (const auto & index_entry : index_entries_)
+    {
+        index_entry_queue_.emplace(index_entry);
+    }
+
+    BlackLibraryCommon::LogDebug(parser_name_, "index_entry_queue_ size: {}", index_entry_queue_.size());
 
     return 0;
 }

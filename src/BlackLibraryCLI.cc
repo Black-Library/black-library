@@ -449,7 +449,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
             static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
         };
 
-        if (blacklibrary_db_.DoesMd5SumExist(checksum.uuid, checksum.index_num))
+        if (blacklibrary_db_.DoesMd5SumExistIndexNum(checksum.uuid, checksum.index_num))
         {
             blacklibrary_db_.UpdateMd5Sum(checksum);
         }
@@ -670,7 +670,7 @@ void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
         // series_length is uint16_t
         for (uint16_t i = 0; i < entry.series_length - 1; ++i)
         {
-            if (blacklibrary_db_.DoesMd5SumExist(entry.uuid, i))
+            if (blacklibrary_db_.DoesMd5SumExistIndexNum(entry.uuid, i))
                 continue;
 
             BlackLibraryCommon::Md5Sum checksum;

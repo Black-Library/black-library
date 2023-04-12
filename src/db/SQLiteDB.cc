@@ -46,7 +46,7 @@ static constexpr const char CreateErrorEntryStatement[]           = "INSERT INTO
 static constexpr const char ReadWorkEntryStatement[]              = "SELECT * FROM work_entry WHERE UUID = :UUID";
 static constexpr const char ReadWorkEntryUrlStatement[]           = "SELECT * FROM work_entry WHERE url = :url";
 static constexpr const char ReadWorkEntryUUIDStatement[]          = "SELECT * FROM work_entry WHERE UUID = :UUID";
-static constexpr const char ReadMd5SumStatement[]                 = "SELECT * FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
+static constexpr const char ReadMd5SumStatement[]                 = "SELECT * FROM md5_sum WHERE UUID = :UUID AND url = :url";
 static constexpr const char ReadRefreshStatement[]                = "SELECT * FROM refresh WHERE UUID = :UUID";
 static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
@@ -768,9 +768,9 @@ int SQLiteDB::CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const
     return 0;
 }
 
-BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5Sum(const std::string &uuid, size_t index_num) const
+BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5Sum(const std::string &uuid, const std::string &url) const
 {
-    BlackLibraryCommon::LogDebug(logger_name_, "Read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
+    BlackLibraryCommon::LogDebug(logger_name_, "Read MD5 checksum with UUID: {} url: {}", uuid, url);
 
     BlackLibraryCommon::Md5Sum checksum;
 
@@ -785,7 +785,7 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5Sum(const std::string &uuid, size_t 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
         return checksum;
-    if (BindInt(stmt, "index_num", index_num))
+    if (BindText(stmt, "url", url))
         return checksum;
 
     LogTraceStatement(stmt);
@@ -967,7 +967,7 @@ DBRefresh SQLiteDB::ReadRefresh(const std::string &uuid) const
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogError(logger_name_, "Read MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Read refresh failed: {}", sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return refresh;
@@ -1219,7 +1219,7 @@ DBBoolResult SQLiteDB::DoesEntryUUIDExist(const std::string &uuid) const
     return check;
 }
 
-DBBoolResult SQLiteDB::DoesMd5SumExist(const std::string &uuid, size_t index_num) const
+DBBoolResult SQLiteDB::DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num) const
 {
     BlackLibraryCommon::LogDebug(logger_name_, "Check MD5 checksum for UUID: {}, index_num: {}", uuid, index_num);
 
@@ -1270,10 +1270,75 @@ DBBoolResult SQLiteDB::DoesMd5SumExist(const std::string &uuid, size_t index_num
         EndTransaction();
         return check;
     }
-    else
+
+    check.result = true;
+
+
+    ResetStatement(stmt);
+
+    if (EndTransaction())
     {
-        check.result = true;
+        check.error = sqlite3_errcode(database_conn_);
+        return check;
     }
+
+    return check;
+}
+
+DBBoolResult SQLiteDB::DoesMd5SumExistUrl(const std::string &uuid, const std::string &url) const
+{
+    BlackLibraryCommon::LogDebug(logger_name_, "Check MD5 checksum for UUID: {}, url: {}", uuid, url);
+
+    DBBoolResult check;
+
+    if (uuid.empty() || url.empty())
+    {
+        check.result = false;
+        return check;
+    }
+
+    if (CheckInitialized())
+    {
+        check.error = sqlite3_errcode(database_conn_);
+        return check;
+    }
+
+    if (BeginTransaction())
+    {
+        check.error = sqlite3_errcode(database_conn_);
+        return check;
+    }
+
+    sqlite3_stmt *stmt = prepared_statements_[READ_MD5_SUM_STATEMENT];
+
+    // bind statement variables
+    if (BindText(stmt, "UUID", uuid))
+    {
+        check.error = sqlite3_errcode(database_conn_);
+        return check;
+    }
+    if (BindText(stmt, "url", url))
+    {
+        check.error = sqlite3_errcode(database_conn_);
+        return check;
+    }
+
+    LogTraceStatement(stmt);
+
+    // run statement
+    int ret = SQLITE_OK;
+    ret = sqlite3_step(stmt);
+    if (ret != SQLITE_ROW)
+    {
+        BlackLibraryCommon::LogDebug(logger_name_, "MD5 checksum UUID: {} url: {} does not exist", uuid, url);
+        check.result = false;
+        ResetStatement(stmt);
+        EndTransaction();
+        return check;
+    }
+
+    check.result = true;
+
 
     ResetStatement(stmt);
 

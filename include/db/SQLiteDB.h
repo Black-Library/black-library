@@ -41,7 +41,7 @@ public:
     int DeleteEntry(const std::string &uuid) const override;
 
     int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
-    BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, size_t index_num) const override;
+    BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, const std::string &url) const override;
     int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
     int DeleteMd5Sum(const std::string &uuid, size_t index_num) const override;
 
@@ -54,7 +54,8 @@ public:
 
     DBBoolResult DoesEntryUrlExist(const std::string &url) const override;
     DBBoolResult DoesEntryUUIDExist(const std::string &uuid) const override;
-    DBBoolResult DoesMd5SumExist(const std::string &uuid, size_t index_num) const override;
+    DBBoolResult DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num) const override;
+    DBBoolResult DoesMd5SumExistUrl(const std::string &uuid, const std::string &url) const override;
     DBBoolResult DoesRefreshExist(const std::string &uuid) const override;
     DBBoolResult DoesMinRefreshExist() const override;
     DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const override;
