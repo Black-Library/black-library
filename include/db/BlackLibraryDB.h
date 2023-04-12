@@ -36,7 +36,8 @@ public:
     int DeleteWorkEntry(const std::string &uuid);
 
     int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
-    BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, const std::string &url);
+    BlackLibraryCommon::Md5Sum ReadMd5SumIndexNum(const std::string &uuid, size_t index_num);
+    BlackLibraryCommon::Md5Sum ReadMd5SumUrl(const std::string &uuid, const std::string &url);
     int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
     int DeleteMd5Sum(const std::string &uuid, size_t index_num);
 

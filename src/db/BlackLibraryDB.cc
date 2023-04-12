@@ -167,7 +167,7 @@ int BlackLibraryDB::CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5)
     return 0;
 }
 
-BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, const std::string &url)
+BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumIndexNum(const std::string &uuid, size_t index_num)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -178,7 +178,28 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5Sum(const std::string &uuid, c
         BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with empty UUID");
         return md5;
     }
-    md5 = database_connection_interface_->ReadMd5Sum(uuid, url);
+    md5 = database_connection_interface_->ReadMd5SumIndexNum(uuid, index_num);
+    if (md5.uuid.empty())
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} index_num: {}", uuid, index_num);
+        return md5;
+    }
+
+    return md5;
+}
+
+BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumUrl(const std::string &uuid, const std::string &url)
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    BlackLibraryCommon::Md5Sum md5;
+
+    if (uuid.empty())
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with empty UUID");
+        return md5;
+    }
+    md5 = database_connection_interface_->ReadMd5SumUrl(uuid, url);
     if (md5.uuid.empty())
     {
         BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} url: {}", uuid, url);
@@ -438,7 +459,17 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::GetMd5SumFromMd5Sum(const std::string
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    return database_connection_interface_->GetMd5SumFromMd5Sum(md5_sum, uuid);
+    BlackLibraryCommon::Md5Sum md5;
+
+    if (md5_sum.empty() || uuid.empty())
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed to get version from MD5 checksum with empty md5_sum or UUID");
+        return md5;
+    }
+
+    md5 = database_connection_interface_->GetMd5SumFromMd5Sum(md5_sum, uuid);
+
+    return md5;
 }
 
 std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUID(const std::string &uuid)

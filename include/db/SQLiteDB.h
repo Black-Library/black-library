@@ -41,7 +41,8 @@ public:
     int DeleteEntry(const std::string &uuid) const override;
 
     int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
-    BlackLibraryCommon::Md5Sum ReadMd5Sum(const std::string &uuid, const std::string &url) const override;
+    BlackLibraryCommon::Md5Sum ReadMd5SumIndexNum(const std::string &uuid, size_t index_num) const override;
+    BlackLibraryCommon::Md5Sum ReadMd5SumUrl(const std::string &uuid, const std::string &url) const override;
     int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
     int DeleteMd5Sum(const std::string &uuid, size_t index_num) const override;
 
