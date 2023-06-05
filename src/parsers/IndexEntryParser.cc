@@ -90,8 +90,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     if (md5s_.size() <= 0)
     {
-        BlackLibraryCommon::LogDebug(parser_name_, "No md5s for {}, treating as new entry", uuid_);
-        return 0;
+        BlackLibraryCommon::LogDebug(parser_name_, "No md5s for {}, md5 list empty", uuid_);
     }
 
     // get largest index_num if we need it later
@@ -148,7 +147,7 @@ void IndexEntryParser::SaveUpdateDate(ParserResult &parser_result)
     parser_result.metadata.update_date = last_update_date_;
 
     if (parser_result.metadata.update_date <= 0)
-        BlackLibraryCommon::LogError(parser_name_, "Failed to get update date for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed to get update date for UUID: {}, last update date: {}", uuid_, last_update_date_);
 }
 
 } // namespace parsers
