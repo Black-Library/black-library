@@ -288,7 +288,7 @@ ParseSectionInfo ParserRR::ParseSection()
     if (md5_read_callback_)
         md5_check = md5_read_callback_(uuid_, index_entry.data_url);
 
-    // set index_num if new, other wise just update
+    // set index_num with offset if new
     if (index_entry.data_url != md5_check.url)
         index_num += md5_index_num_offset_;
 

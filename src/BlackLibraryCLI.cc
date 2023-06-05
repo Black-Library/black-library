@@ -658,6 +658,48 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
     std::cout << std::endl;
 }
 
+void BlackLibraryCLI::SquashMd5Indexes(const std::vector<std::string> &tokens)
+{
+    (void) tokens;
+
+    std::vector<BlackLibraryCommon::Md5Sum> md5_list;
+
+    md5_list = blacklibrary_db_.GetChecksumList();
+
+    // organize by uuid
+    std::unordered_map<std::string, std::vector<BlackLibraryCommon::Md5Sum>> md5_map;
+
+    for (const auto &md5 : md5_list)
+    {
+        auto it = md5_map.find(md5.uuid);
+        if (it == md5_map.end())
+        {
+            std::vector<BlackLibraryCommon::Md5Sum> md5_sublist;
+            md5_sublist.emplace_back(md5);
+            md5_map.emplace(md5.uuid, md5_sublist);
+        }
+        else
+        {
+            std::vector<BlackLibraryCommon::Md5Sum> md5_sublist = it->second;
+            md5_sublist.emplace_back(md5);
+            it->second = md5_sublist;
+        }
+    }
+
+    for (auto &ele : md5_map)
+    {
+        std::sort(ele.second.begin(), ele.second.end());
+        std::vector<BlackLibraryCommon::Md5Sum> md5_sublist = ele.second;
+        BlackLibraryCommon::Md5Sum last = md5_sublist.back();
+        // only works with no version increment, increments would increase size of md5 vector
+        if (last.index_num + 1 != ele.second.size())
+        {
+            std::cout << "Found " << ele.second.size() << " entries for " << ele.first << std::endl;
+            std::cout << "size mismatch " << last.index_num + 1 << " - " << ele.second.size() << std::endl;
+        }
+    }
+}
+
 void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
 {
     (void) tokens;
@@ -726,6 +768,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "sizeall")
     {
         ChangeSizeAll(tokens);
+    }
+    else if (command == "squash")
+    {
+        SquashMd5Indexes(tokens);
     }
     else if (command == "versionall")
     {

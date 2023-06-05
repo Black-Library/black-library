@@ -38,6 +38,11 @@ inline std::ostream& operator<< (std::ostream &out, const Md5Sum &sum)
     return out;
 }
 
+inline bool operator < (const Md5Sum &left, const Md5Sum &right)
+{
+    return left.index_num < right.index_num;
+}
+
 enum class DBMd5SumColumnID : uint8_t
 {
     uuid,
