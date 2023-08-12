@@ -89,11 +89,24 @@ TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
     md5.md5_sum = "17e8f0b4718aa78060a067fcee68513c";
     md5.date = 101;
     md5.version_num = 5;
+    md5.url = "new-md5-url";
     REQUIRE ( db.UpdateMd5Sum(md5) == 0 );
     BlackLibraryCommon::Md5Sum md5_update = db.ReadMd5SumUrl(md5.uuid, md5.url);
     REQUIRE( md5_update.md5_sum == md5.md5_sum );
     REQUIRE( md5_update.date == md5.date );
     REQUIRE( md5_update.version_num == md5.version_num );
+    REQUIRE( md5_update.url == md5.url );
+
+    REQUIRE( db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
+    md5.index_num = 1000;
+    REQUIRE ( db.CreateMd5Sum(md5) == 0 );
+    BlackLibraryCommon::Md5Sum md5_update_index_num = db.ReadMd5SumUrl(md5.uuid, md5.url);
+
+    REQUIRE( md5_update_index_num.md5_sum == md5.md5_sum );
+    REQUIRE( md5_update_index_num.date == md5.date );
+    REQUIRE( md5_update_index_num.version_num == md5.version_num );
+    REQUIRE( md5_update_index_num.url == md5.url );
+    REQUIRE( md5_update_index_num.index_num == md5.index_num );
 
     REQUIRE ( db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     REQUIRE ( db.DoesMd5SumExistIndexNum(md5.uuid, md5.index_num).result == false );
