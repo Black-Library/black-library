@@ -696,6 +696,17 @@ void BlackLibraryCLI::SquashMd5Indexes(const std::vector<std::string> &tokens)
         {
             std::cout << "Found " << ele.second.size() << " entries for " << ele.first << std::endl;
             std::cout << "size mismatch " << last.index_num + 1 << " - " << ele.second.size() << std::endl;
+
+            size_t expected_index = 0;
+            for (auto & md5 : md5_sublist){
+                if (md5.index_num != expected_index){
+                    std::cout << "setting md5 index: " << md5.index_num << " to " << expected_index << std::endl;
+                    blacklibrary_db_.DeleteMd5Sum(md5.uuid, md5.index_num);
+                    md5.index_num = expected_index;
+                    blacklibrary_db_.CreateMd5Sum(md5);
+                }
+                ++expected_index;
+            }
         }
     }
 }
