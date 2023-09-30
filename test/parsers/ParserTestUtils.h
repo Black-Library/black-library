@@ -19,7 +19,11 @@ namespace BlackLibraryCommon = black_library::core::common;
 static constexpr const char DefaultTestLogPath[] = "/tmp/log";
 static constexpr const char DefaultTestStoragePath[] = "/tmp/store";
 
+static constexpr const char AO3_DUMMY_URL[] = "https://archiveofourown.org/works/0000000";
 static constexpr const char RR_DUMMY_URL[] = "https://www.royalroad.com/fiction/00000/some-fiction";
+static constexpr const char SBF_DUMMY_URL[] = "https://forums.spacebattles.com/threads/some-fiction-name.0000000/";
+static constexpr const char SVF_DUMMY_URL[] = "https://forums.sufficientvelocity.com/threads/some-fiction-name.000000/";
+static constexpr const char WP_DUMMY_URL[] = "https://some-name.wordpress.com/";
 
 static constexpr const char RR_DUMMY_UUID[] = "b0ad76bc-39d9-40ac-8de7-c5020568526d";
 
@@ -105,21 +109,6 @@ std::unordered_map<uint8_t, BlackLibraryCommon::Md5Sum> GenerateFullTestMd5Map()
     md5_map.emplace(5, md5_5);
 
     return md5_map;
-}
-
-size_t GenerateVersionOffset(std::vector<BlackLibraryCommon::Md5Sum> md5s)
-{
-    size_t offset = 0;
-    // get largest index_num if we need it later
-    for (auto const & md5 : md5s)
-    {
-        if (md5.second.index_num >= md5_index_num_offset_)
-        {
-            md5_index_num_offset_ = md5.second.index_num + 1;
-            last_update_date_ = md5.second.date;
-            last_url_ = md5.second.url;
-        }
-    }
 }
 
 } // namespace parsers

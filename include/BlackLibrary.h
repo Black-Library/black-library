@@ -44,8 +44,8 @@ private:
 
     std::string GenerateUUID();
 
-    BlackLibraryParsers::ParserManager parser_manager_;
-    BlackLibraryDB::BlackLibraryDB blacklibrary_db_;
+    std::shared_ptr<BlackLibraryParsers::ParserManager> parser_manager_;
+    std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
     std::vector<BlackLibraryDB::DBEntry> parse_entries_;
     std::vector<std::string> pull_urls_;

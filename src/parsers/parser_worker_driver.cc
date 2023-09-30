@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 
     using dummy_worker = BlackLibraryParsers::ParserWorker;
 
-    auto factory = std::make_shared<BlackLibraryParsers::ParserFactory>(nconfig);
+    auto factory = std::make_shared<BlackLibraryParsers::ParserFactory>(nconfig, nullptr);
 
     dummy_worker dummy_worker_0(factory, nconfig, BlackLibraryParsers::parser_t::ERROR_PARSER, 3);
 

@@ -21,17 +21,13 @@ namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
-ParserManager::ParserManager(const njson &config) :
+ParserManager::ParserManager(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter) :
     worker_map_(),
-    parser_factory_(std::make_shared<ParserFactory>(config)),
+    parser_factory_(std::make_shared<ParserFactory>(config, db_adapter)),
     current_jobs_(),
     job_queue_(),
     result_queue_(),
     database_status_callback_(),
-    md5_check_callback_(),
-    md5_read_callback_(),
-    md5s_read_callback_(),
-    md5_update_callback_(),
     progress_number_callback_(),
     version_read_num_callback_(),
     config_(config),
@@ -87,7 +83,7 @@ ParserManager::ParserManager(const njson &config) :
     BlackLibraryCommon::LogDebug("parser_manager", "workers will use {} parsers", worker_count);
 
     AddWorker(parser_t::AO3_PARSER, worker_count);
-    AddWorker(parser_t::RR_PARSER, worker_count);
+    // AddWorker(parser_t::RR_PARSER, worker_count);
     AddWorker(parser_t::SBF_PARSER, worker_count);
     AddWorker(parser_t::SVF_PARSER, worker_count);
     // AddWorker(parser_t::WP_PARSER, worker_count);
@@ -106,43 +102,6 @@ ParserManager::ParserManager(const njson &config) :
             {
                 BlackLibraryCommon::LogDebug("parser_manager", "Recieved result: {}", result);
                 result_queue_.push(result);
-            }
-        );
-        worker.second->RegisterMd5CheckCallback(
-            [this](const std::string &md5_sum, const std::string &uuid)
-            {
-                BlackLibraryCommon::Md5Sum md5;
-                if (md5_check_callback_)
-                    md5 = md5_check_callback_(md5_sum, uuid);
-                
-                return md5;
-            }
-        );
-        worker.second->RegisterMd5ReadCallback(
-            [this](const std::string &uuid, const std::string &url)
-            {
-                BlackLibraryCommon::Md5Sum md5;
-                if (md5_read_callback_)
-                    md5 = md5_read_callback_(uuid, url);
-
-                return md5;
-            }
-        );
-        worker.second->RegisterMd5sReadCallback(
-            [this](const std::string &uuid)
-            {
-                std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums;
-                if (md5s_read_callback_)
-                    md5_sums = md5s_read_callback_(uuid);
-
-                return md5_sums;
-            }
-        );
-        worker.second->RegisterMd5UpdateCallback(
-            [this](const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
-            {
-                if (md5_update_callback_)
-                    md5_update_callback_(uuid, index_num, md5_sum, date, url, version_num);
             }
         );
         worker.second->RegisterProgressNumberCallback(
@@ -351,35 +310,6 @@ int ParserManager::AddWorker(parser_t parser_type, size_t num_parsers)
 int ParserManager::RegisterDatabaseStatusCallback(const database_status_callback &callback)
 {
     database_status_callback_ = callback;
-
-    return 0;
-}
-
-int ParserManager::RegisterMd5CheckCallback(const md5_check_callback &callback)
-{
-    md5_check_callback_ = callback;
-
-    return 0;
-}
-
-int ParserManager::RegisterMd5ReadCallback(const md5_read_callback &callback)
-{
-    md5_read_callback_ = callback;
-
-    return 0;
-}
-
-
-int ParserManager::RegisterMd5sReadCallback(const md5s_read_callback &callback)
-{
-    md5s_read_callback_ = callback;
-
-    return 0;
-}
-
-int ParserManager::RegisterMd5UpdateCallback(const md5_update_callback &callback)
-{
-    md5_update_callback_ = callback;
 
     return 0;
 }

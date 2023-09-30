@@ -207,8 +207,8 @@ ParseSectionInfo ParserXF::ParseSection()
     BlackLibraryCommon::Md5Sum saved_md5;
     bool skip_file_check = false;
 
-    if (md5_read_callback_)
-        saved_md5 = md5_read_callback_(uuid_, working_url);
+    if (db_adapter_)
+        saved_md5 = db_adapter_->ReadMd5(uuid_, working_url);
 
     if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
     {
@@ -237,9 +237,9 @@ ParseSectionInfo ParserXF::ParseSection()
     // TODO remove: update hack for populating date and url
     if (saved_md5.md5_sum == section_md5)
     {
-        if (md5_update_callback_)
-            md5_update_callback_(uuid_, index_, section_md5, last_update_date_, working_url, 0);
-        
+        if (db_adapter_)
+            db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, working_url, 0);
+
         output.has_error = false;
         return output;
     }
@@ -264,8 +264,8 @@ ParseSectionInfo ParserXF::ParseSection()
         return output;
     }
 
-    if (md5_update_callback_)
-        md5_update_callback_(uuid_, index_, section_md5, last_update_date_, working_url, version_num);
+    if (db_adapter_)
+        db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, working_url, version_num);
 
     output.has_error = false;
 

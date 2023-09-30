@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
-    BlackLibraryParsers::ParserManager manager(config);
+    BlackLibraryParsers::ParserManager manager(config, nullptr);
 
     parser_manager = &manager;
 

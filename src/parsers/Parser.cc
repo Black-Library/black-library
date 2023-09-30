@@ -26,11 +26,8 @@ namespace BlackLibraryCommon = black_library::core::common;
 
 Parser::Parser(parser_t parser_type, const njson &config) :
     md5s_(),
-    md5_check_callback_(),
-    md5_read_callback_(),
-    md5s_read_callback_(),
-    md5_update_callback_(),
     progress_number_callback_(),
+    db_adapter_(nullptr),
     time_generator_(std::make_shared<ShortTimeGenerator>()),
     uuid_(""),
     title_(GetParserName(parser_type) + "_title"),
@@ -226,34 +223,6 @@ std::string Parser::GetSourceUrl()
     return source_url_;
 }
 
-int Parser::RegisterMd5CheckCallback(const md5_check_callback &callback)
-{
-    md5_check_callback_ = callback;
-
-    return 0;
-}
-
-int Parser::RegisterMd5ReadCallback(const md5_read_callback &callback)
-{
-    md5_read_callback_ = callback;
-
-    return 0;
-}
-
-int Parser::RegisterMd5sReadCallback(const md5s_read_callback &callback)
-{
-    md5s_read_callback_ = callback;
-
-    return 0;
-}
-
-int Parser::RegisterMd5UpdateCallback(const md5_update_callback &callback)
-{
-    md5_update_callback_ = callback;
-
-    return 0;
-}
-
 int Parser::RegisterProgressNumberCallback(const progress_number_callback &callback)
 {
     progress_number_callback_ = callback;
@@ -264,6 +233,13 @@ int Parser::RegisterProgressNumberCallback(const progress_number_callback &callb
 int Parser::RegisterVersionReadNumCallback(const version_read_num_callback &callback)
 {
     version_read_num_callback_ = callback;
+
+    return 0;
+}
+
+int Parser::SetDbAdapter(const std::shared_ptr<ParserDbAdapter> &db_adapter)
+{
+    db_adapter_ = db_adapter;
 
     return 0;
 }

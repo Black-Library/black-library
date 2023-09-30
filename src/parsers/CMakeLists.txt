@@ -8,6 +8,7 @@ include(GNUInstallDirs)
 add_library(blacklibraryparsers
     IndexEntryParser.cc
     LinkedListParser.cc
+    ParserDbAdapter.cc
 
     Parser.cc
     ParserCommon.cc
@@ -28,7 +29,7 @@ add_library(blacklibraryparsers
     ShortTimeGenerator.cc
     )
 
-target_link_libraries(blacklibraryparsers blacklibrarycommon ${CURL_LIBRARY} ${LIBXML2_LIBRARIES} pthread)
+target_link_libraries(blacklibraryparsers blacklibrarycommon blacklibrarydb ${CURL_LIBRARY} ${LIBXML2_LIBRARIES} pthread)
 target_include_directories(blacklibraryparsers PUBLIC ${CURL_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/parsers)
 
 install(

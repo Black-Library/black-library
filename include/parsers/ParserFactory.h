@@ -11,6 +11,7 @@
 #include <ConfigOperations.h>
 
 #include "Parser.h"
+#include "ParserDbAdapter.h"
 
 namespace black_library {
 
@@ -28,7 +29,7 @@ typedef std::function<ParserFactoryResult(void)> factory_function;
 class ParserFactory
 {
 public:
-    ParserFactory(const njson &config);
+    ParserFactory(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter);
     ~ParserFactory();
 
     ParserFactoryResult GetParserByUrl(const std::string &url);
@@ -38,6 +39,7 @@ protected:
     int InitParserMap(const njson &config);
 
     std::unordered_map<parser_t, factory_function> parser_map_;
+    std::shared_ptr<ParserDbAdapter> db_adapter_;
 
 private:
 };
