@@ -21,6 +21,7 @@
 #include <SourceInformation.h>
 
 #include "ParserCommon.h"
+#include "ParserDbAdapter.h"
 #include "ParserTimeGenerator.h"
 
 namespace black_library {
@@ -50,13 +51,10 @@ public:
     std::string GetSourceName();
     std::string GetSourceUrl();
 
-    int RegisterMd5CheckCallback(const md5_check_callback &callback);
-    int RegisterMd5ReadCallback(const md5_read_callback &callback);
-    int RegisterMd5sReadCallback(const md5s_read_callback &callback);
-    int RegisterMd5UpdateCallback(const md5_update_callback &callback);
-
     int RegisterProgressNumberCallback(const progress_number_callback &callback);
     int RegisterVersionReadNumCallback(const version_read_num_callback &callback);
+
+    int SetDbAdapter(const std::shared_ptr<ParserDbAdapter> &db_adapter);
 
 protected:
     std::string SectionDumpContent(const xmlDocPtr doc_ptr, const xmlNodePtr node_ptr);
@@ -77,13 +75,10 @@ protected:
 
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5s_;
 
-    md5_check_callback md5_check_callback_;
-    md5_read_callback md5_read_callback_;
-    md5s_read_callback md5s_read_callback_;
-    md5_update_callback md5_update_callback_;
     progress_number_callback progress_number_callback_;
     version_read_num_callback version_read_num_callback_;
 
+    std::shared_ptr<ParserDbAdapter> db_adapter_;
     std::shared_ptr<ParserTimeGenerator> time_generator_;
 
     std::string uuid_;

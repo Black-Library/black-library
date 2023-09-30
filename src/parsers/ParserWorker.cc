@@ -27,10 +27,6 @@ ParserWorker::ParserWorker(const std::shared_ptr<ParserFactory> parser_factory, 
     pool_erases_(),
     job_status_callback_(),
     notify_callback_(),
-    md5_check_callback_(),
-    md5_read_callback_(),
-    md5s_read_callback_(),
-    md5_update_callback_(),
     progress_number_callback_(),
     version_read_num_callback_(),
     storage_path_(BlackLibraryCommon::DefaultStoragePath),
@@ -206,18 +202,6 @@ int ParserWorker::RunOnce()
             if (job_status_callback_)
                 job_status_callback_(parser_job, job_status_t::JOB_WORKING);
 
-            if (md5_check_callback_)
-                parser->RegisterMd5CheckCallback(md5_check_callback_);
-
-            if (md5_read_callback_)
-                parser->RegisterMd5ReadCallback(md5_read_callback_);
-
-            if (md5s_read_callback_)
-                parser->RegisterMd5sReadCallback(md5s_read_callback_);
-
-            if (md5_update_callback_)
-                parser->RegisterMd5UpdateCallback(md5_update_callback_);
-
             if (progress_number_callback_)
                 parser->RegisterProgressNumberCallback(progress_number_callback_);
 
@@ -312,34 +296,6 @@ int ParserWorker::RegisterJobStatusCallback(const job_status_callback &callback)
 int ParserWorker::RegisterManagerNotifyCallback(const manager_notify_callback &callback)
 {
     notify_callback_ = callback;
-
-    return 0;
-}
-
-int ParserWorker::RegisterMd5CheckCallback(const md5_check_callback &callback)
-{
-    md5_check_callback_ = callback;
-
-    return 0;
-}
-
-int ParserWorker::RegisterMd5ReadCallback(const md5_read_callback &callback)
-{
-    md5_read_callback_ = callback;
-
-    return 0;
-}
-
-int ParserWorker::RegisterMd5sReadCallback(const md5s_read_callback &callback)
-{
-    md5s_read_callback_ = callback;
-
-    return 0;
-}
-
-int ParserWorker::RegisterMd5UpdateCallback(const md5_update_callback &callback)
-{
-    md5_update_callback_ = callback;
 
     return 0;
 }

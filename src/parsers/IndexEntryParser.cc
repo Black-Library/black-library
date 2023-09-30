@@ -75,8 +75,8 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     BlackLibraryCommon::LogDebug(parser_name_, "Found {} nodes for {}", index_entries_.size(), uuid_);
 
-    if (md5s_read_callback_)
-        md5s_ = md5s_read_callback_(uuid_);
+    if (db_adapter_)
+        md5s_ = db_adapter_->ReadMd5s(uuid_);
 
     BlackLibraryCommon::LogDebug(parser_name_, "Found {} md5s for {}", md5s_.size(), uuid_);
 

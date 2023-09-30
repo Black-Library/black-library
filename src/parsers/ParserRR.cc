@@ -262,14 +262,13 @@ ParseSectionInfo ParserRR::ParseSection()
     if (section_content.empty())
         return output;
 
-    // version check
     auto index_num = index_entry.index_num;
     auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
     BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_num, section_md5);
 
     BlackLibraryCommon::Md5Sum md5_check;
-    if (md5_check_callback_)
-        md5_check = md5_check_callback_(section_md5, uuid_);
+    if (db_adapter_)
+        md5_check = db_adapter_->CheckForMd5(section_md5, uuid_);
 
     // md5 already exists with correct md5_sum, update md5 with the correct index_num
     if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
@@ -277,16 +276,16 @@ ParseSectionInfo ParserRR::ParseSection()
         BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, md5_check.index_num);
         index_num = md5_check.index_num;
 
-        if (md5_update_callback_)
-            md5_update_callback_(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, 0);
+        if (db_adapter_)
+            db_adapter_->UpsertMd5(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, 0);
 
         output.has_error = false;
 
         return output;
     }
 
-    if (md5_read_callback_)
-        md5_check = md5_read_callback_(uuid_, index_entry.data_url);
+    if (db_adapter_)
+        md5_check = db_adapter_->ReadMd5(uuid_, index_entry.data_url);
 
     // set index_num with offset if new
     if (index_entry.data_url != md5_check.url)
@@ -305,8 +304,8 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
-    if (md5_update_callback_)
-        md5_update_callback_(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, version_num);
+    if (db_adapter_)
+        db_adapter_->UpsertMd5(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, version_num);
 
     output.has_error = false;
 

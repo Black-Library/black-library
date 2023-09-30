@@ -242,11 +242,6 @@ using database_status_callback = std::function<void(ParserJobResult result)>;
 using job_status_callback = std::function<void(const ParserJob &parser_job, job_status_t job_status)>;
 using manager_notify_callback = std::function<void(ParserJobResult result)>;
 
-using md5_check_callback = std::function<BlackLibraryCommon::Md5Sum(const std::string &md5_sum, const std::string &uuid)>;
-using md5_read_callback = std::function<BlackLibraryCommon::Md5Sum(const std::string &uuid, const std::string &url)>;
-using md5s_read_callback = std::function<std::unordered_map<std::string, BlackLibraryCommon::Md5Sum>(const std::string &uuid)>;
-using md5_update_callback = std::function<void(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)>;
-
 using progress_number_callback = std::function<void(const std::string &uuid, size_t progress_num, bool error)>;
 using version_read_num_callback = std::function<uint16_t(const std::string &uuid, size_t index_num)>;
 

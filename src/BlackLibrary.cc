@@ -13,6 +13,7 @@
 #include <VersionOperations.h>
 
 #include <BlackLibrary.h>
+#include <ParserDbAdapter.h>
 #include <WgetUrlPuller.h>
 
 namespace black_library {
@@ -24,8 +25,8 @@ namespace BlackLibraryParsers = black_library::core::parsers;
 const int BLACKLIBRARY_FREQUENCY = 24*60*60;
 
 BlackLibrary::BlackLibrary(const njson &config) :
-    parser_manager_(config),
-    blacklibrary_db_(config),
+    parser_manager_(nullptr),
+    blacklibrary_db_(nullptr),
     url_puller_(nullptr),
     parse_entries_(),
     pull_urls_(),
@@ -63,23 +64,28 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
     BlackLibraryCommon::LogInfo(logger_name_, "Initializing BlackLibrary application");
 
-    gen_ = std::mt19937_64(rd_());
-
+    blacklibrary_db_ = std::make_shared<BlackLibraryDB::BlackLibraryDB>(config);
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
-    parser_manager_.RegisterDatabaseStatusCallback(
+    auto db_adapter = std::make_shared<BlackLibraryParsers::ParserDbAdapter>(blacklibrary_db_);
+
+    parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter);
+
+    gen_ = std::mt19937_64(rd_());
+
+    parser_manager_->RegisterDatabaseStatusCallback(
         [&](BlackLibraryParsers::ParserJobResult result)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
             if (!result.is_error_job)
             {
-                if (!blacklibrary_db_.DoesWorkEntryUUIDExist(result.metadata.uuid))
+                if (!blacklibrary_db_->DoesWorkEntryUUIDExist(result.metadata.uuid))
                 {
                     BlackLibraryCommon::LogError(logger_name_, "Status entry with UUID: {} does not exist", result.metadata.uuid);
                     return;
                 }
 
-                auto work_entry = blacklibrary_db_.ReadWorkEntry(result.metadata.uuid);
+                auto work_entry = blacklibrary_db_->ReadWorkEntry(result.metadata.uuid);
 
                 if (UpdateDatabaseWithResult(work_entry, result))
                 {
@@ -90,13 +96,13 @@ BlackLibrary::BlackLibrary(const njson &config) :
             }
             else
             {
-                if (!blacklibrary_db_.DoesErrorEntryExist(result.metadata.uuid, result.start_number))
+                if (!blacklibrary_db_->DoesErrorEntryExist(result.metadata.uuid, result.start_number))
                 {
                     BlackLibraryCommon::LogError(logger_name_, "Error entry with UUID: {} does not exist", result.metadata.uuid);
                     return;
                 }
 
-                if (blacklibrary_db_.DeleteErrorEntry(result.metadata.uuid, result.start_number))
+                if (blacklibrary_db_->DeleteErrorEntry(result.metadata.uuid, result.start_number))
                 {
                     BlackLibraryCommon::LogError(logger_name_, "Failed to delete error entry with UUID: {} and progress number: {}", result.metadata.uuid, result.start_number);
                     return;
@@ -104,85 +110,12 @@ BlackLibrary::BlackLibrary(const njson &config) :
             }
         }
     );
-    parser_manager_.RegisterMd5CheckCallback(
-        [&](const std::string &md5_sum, const std::string &uuid)
-        {
-            BlackLibraryCommon::Md5Sum md5;
-            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
-            {
-                BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 read", uuid);
-                return md5;
-            }
 
-            md5 = blacklibrary_db_.GetMd5SumFromMd5Sum(md5_sum, uuid);
-
-            return md5;
-        }
-    );
-    parser_manager_.RegisterMd5ReadCallback(
-        [&](const std::string &uuid, const std::string &url)
-        {
-            BlackLibraryCommon::Md5Sum md5;
-            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
-            {
-                BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 read", uuid);
-                return md5;
-            }
-            if (!blacklibrary_db_.DoesMd5SumExistUrl(uuid, url))
-            {
-                BlackLibraryCommon::LogDebug(logger_name_, "Read md5 UUID: {} url: {} failed md5 sum does not exist", uuid, url);
-                return md5;
-            }
-
-            md5 = blacklibrary_db_.ReadMd5SumUrl(uuid, url);
-
-            return md5;
-        }
-    );
-    parser_manager_.RegisterMd5sReadCallback(
-        [&](const std::string &uuid)
-        {
-            const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-
-            return blacklibrary_db_.GetMd5SumsFromUUID(uuid);
-        }
-    );
-    parser_manager_.RegisterMd5UpdateCallback(
-        [&](const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
-        {
-            BlackLibraryCommon::Md5Sum md5 = { uuid, index_num, md5_sum, date, url, version_num };
-
-            // if exact copy already exists print warning, previous step should have already caught
-            // if (blacklibrary_db_.DoesMd5SumExistExact())
-            // {
-            //     BlackLibraryCommon::LogError(logger_name_, "Exact copy of md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} already exists", uuid, index_num, md5_sum, date, url);
-            //     return;
-            // }
-
-            if (blacklibrary_db_.DoesMd5SumExistIndexNum(uuid, index_num))
-            {
-                if (blacklibrary_db_.UpdateMd5Sum(md5))
-                {
-                    BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} already exists", uuid, index_num, md5_sum, date, url, version_num);
-                    return;
-                }
-                
-                return;
-            }
-
-            // otherwise, create a new one
-            if (blacklibrary_db_.CreateMd5Sum(md5))
-            {
-                BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} failed", uuid, index_num, md5_sum, date, url, version_num);
-                return;
-            }
-        }
-    );
-    parser_manager_.RegisterProgressNumberCallback(
+    parser_manager_->RegisterProgressNumberCallback(
         [&](const std::string &uuid, size_t progress_num, bool error)
         {
             const std::lock_guard<std::mutex> lock(database_parser_mutex_);
-            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
+            if (!blacklibrary_db_->DoesWorkEntryUUIDExist(uuid))
             {
                 BlackLibraryCommon::LogWarn(logger_name_, "Progress number callback entry with UUID: {} does not exist", uuid);
                 return;
@@ -190,7 +123,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
             if (error)
             {
-                if (blacklibrary_db_.DoesErrorEntryExist(uuid, progress_num))
+                if (blacklibrary_db_->DoesErrorEntryExist(uuid, progress_num))
                 {
                     BlackLibraryCommon::LogWarn(logger_name_, "Error entry with UUID: {} progress_num: {} already exists", uuid, progress_num);
                     return;
@@ -198,37 +131,37 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
                 BlackLibraryDB::DBErrorEntry entry = { uuid, progress_num };
 
-                blacklibrary_db_.CreateErrorEntry(entry);
+                blacklibrary_db_->CreateErrorEntry(entry);
             }
 
-            auto work_entry = blacklibrary_db_.ReadWorkEntry(uuid);
+            auto work_entry = blacklibrary_db_->ReadWorkEntry(uuid);
 
             if (work_entry.series_length < progress_num)
                 work_entry.series_length = progress_num;
 
-            if (blacklibrary_db_.UpdateWorkEntry(work_entry))
+            if (blacklibrary_db_->UpdateWorkEntry(work_entry))
             {
                 BlackLibraryCommon::LogError(logger_name_, "Work entry with UUID: {} failed to be updated", work_entry.uuid);
                 return;
             }
         }
     );
-    parser_manager_.RegisterVersionReadNumCallback(
+    parser_manager_->RegisterVersionReadNumCallback(
         [&](const std::string &uuid, size_t index_num)
         {
             uint16_t version_num = 0;
-            if (!blacklibrary_db_.DoesWorkEntryUUIDExist(uuid))
+            if (!blacklibrary_db_->DoesWorkEntryUUIDExist(uuid))
             {
                 BlackLibraryCommon::LogWarn(logger_name_, "Register version read num entry with UUID: {} does not exist", uuid);
                 return version_num;
             }
-            if (!blacklibrary_db_.DoesMd5SumExistIndexNum(uuid, index_num))
+            if (!blacklibrary_db_->DoesMd5SumExistIndexNum(uuid, index_num))
             {
                 BlackLibraryCommon::LogDebug(logger_name_, "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
                 return version_num;
             }
 
-            version_num = blacklibrary_db_.GetVersionFromMd5(uuid, index_num);
+            version_num = blacklibrary_db_->GetVersionFromMd5(uuid, index_num);
 
             return version_num;
         }
@@ -237,19 +170,19 @@ BlackLibrary::BlackLibrary(const njson &config) :
     done_ = false;
 
     manager_thread_ = std::thread([this](){
-        while (!done_ && parser_manager_.GetDone())
+        while (!done_ && parser_manager_->GetDone())
         {
             const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
 
             if (done_)
                 break;
 
-            parser_manager_.RunOnce();
+            parser_manager_->RunOnce();
 
             std::this_thread::sleep_until(deadline);
         }
 
-        parser_manager_.Stop();
+        parser_manager_->Stop();
     });
 }
 
@@ -302,13 +235,13 @@ int BlackLibrary::RunOnce()
 
     BlackLibraryCommon::LogInfo(logger_name_, "Running Black Library application");
 
-    if (!blacklibrary_db_.IsReady())
+    if (!blacklibrary_db_->IsReady())
     {
         BlackLibraryCommon::LogError(logger_name_, "Black Library stalled, database not initalized/ready");
         return -1;
     }
 
-    if (!parser_manager_.IsReady())
+    if (!parser_manager_->IsReady())
     {
         BlackLibraryCommon::LogError(logger_name_, "Black Library stalled, parser manager not initalized/ready");
         return -1;
@@ -406,11 +339,11 @@ int BlackLibrary::CompareAndUpdateUrls()
         std::string type = "unknown";
 
         // check entries to continue jobs that were still in progress
-        if (blacklibrary_db_.DoesWorkEntryUrlExist(url))
+        if (blacklibrary_db_->DoesWorkEntryUrlExist(url))
         {
-            auto res = blacklibrary_db_.GetWorkEntryUUIDFromUrl(url);
+            auto res = blacklibrary_db_->GetWorkEntryUUIDFromUrl(url);
             std::string uuid = res.result;
-            entry = blacklibrary_db_.ReadWorkEntry(uuid);
+            entry = blacklibrary_db_->ReadWorkEntry(uuid);
             entry.check_date = BlackLibraryCommon::GetUnixTime();
             entry.processing = true;
             type = "black";
@@ -425,7 +358,7 @@ int BlackLibrary::CompareAndUpdateUrls()
             entry.check_date = BlackLibraryCommon::GetUnixTime();
             type = "new";
             // add to db
-            blacklibrary_db_.CreateWorkEntry(entry);
+            blacklibrary_db_->CreateWorkEntry(entry);
         }
 
         BlackLibraryCommon::LogDebug(logger_name_, "Type: {} UUID: {} last_url: {} length: {}", type, entry.uuid, entry.last_url, entry.series_length);
@@ -442,7 +375,7 @@ int BlackLibrary::ParseUrls()
 
     for (auto & entry : parse_entries_)
     {
-        parser_manager_.AddJob(entry.uuid, entry.url, entry.last_url, entry.series_length);
+        parser_manager_->AddJob(entry.uuid, entry.url, entry.last_url, entry.series_length);
     }
 
     return 0;
@@ -450,19 +383,19 @@ int BlackLibrary::ParseUrls()
 
 int BlackLibrary::ParseErrorEntries()
 {
-    auto error_list = blacklibrary_db_.GetErrorEntryList();
+    auto error_list = blacklibrary_db_->GetErrorEntryList();
 
     BlackLibraryCommon::LogInfo(logger_name_, "Adding {} error jobs to parser manager", error_list.size());
 
     for (const auto & error : error_list)
     {
-        if (!blacklibrary_db_.DoesWorkEntryUUIDExist(error.uuid))
+        if (!blacklibrary_db_->DoesWorkEntryUUIDExist(error.uuid))
         {
             BlackLibraryCommon::LogWarn(logger_name_, "Work entry does not exist for error UUID: {}", error.uuid);
             continue;
         }
 
-        auto res = blacklibrary_db_.GetWorkEntryUrlFromUUID(error.uuid);
+        auto res = blacklibrary_db_->GetWorkEntryUrlFromUUID(error.uuid);
 
         if (res.error)
         {
@@ -471,7 +404,7 @@ int BlackLibrary::ParseErrorEntries()
         }
         
         std::string url = res.result;
-        BlackLibraryDB::DBEntry entry = blacklibrary_db_.ReadWorkEntry(error.uuid);
+        BlackLibraryDB::DBEntry entry = blacklibrary_db_->ReadWorkEntry(error.uuid);
 
         if (entry.uuid.empty())
         {
@@ -479,7 +412,7 @@ int BlackLibrary::ParseErrorEntries()
             continue;
         }
 
-        parser_manager_.AddJob(error.uuid, url, url, error.progress_num, error.progress_num, true);
+        parser_manager_->AddJob(error.uuid, url, url, error.progress_num, error.progress_num, true);
     }
 
     return 0;
@@ -519,14 +452,14 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
         entry.media_path = result.metadata.media_path;
 
     // update work entry
-    if (!blacklibrary_db_.DoesWorkEntryUUIDExist(result.metadata.uuid))
+    if (!blacklibrary_db_->DoesWorkEntryUUIDExist(result.metadata.uuid))
     {
         BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry UUID: {} does not exist", result.metadata.uuid);
         return -1;
     }
 
     // Do not set processing off if still working on uuid
-    if (parser_manager_.StillWorkingOn(result.metadata.uuid))
+    if (parser_manager_->StillWorkingOn(result.metadata.uuid))
     {
         BlackLibraryCommon::LogWarn(logger_name_, "Still working on job with UUID: {}", result.metadata.uuid);
         entry.processing = true;
@@ -537,7 +470,7 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
         entry.processing = false;
     }
 
-    if (blacklibrary_db_.UpdateWorkEntry(entry))
+    if (blacklibrary_db_->UpdateWorkEntry(entry))
     {
         BlackLibraryCommon::LogError(logger_name_, "Failed to update work entry, UUID: {}", entry.uuid);
         return -1;

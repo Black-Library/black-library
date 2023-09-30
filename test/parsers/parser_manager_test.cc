@@ -20,7 +20,7 @@ TEST_CASE( "Generic parser manager tests (pass)", "[single-file]" )
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
     njson config = GenerateParserTestConfig();
-    ParserManager ParserManager(config);
+    ParserManager ParserManager(config, nullptr);
     ParserManager.Stop();
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
@@ -30,7 +30,7 @@ TEST_CASE( "Parser manager current jobs tests (pass)", "[single-file]" )
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
     njson config = GenerateParserTestConfig();
-    ParserManager ParserManager(config);
+    ParserManager ParserManager(config, nullptr);
 
     auto job_list = ParserManager.GetCurrentJobList();
     REQUIRE( job_list.size() == 0 );

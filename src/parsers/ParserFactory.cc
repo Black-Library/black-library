@@ -17,6 +17,7 @@
 #include <ParserWP.h>
 
 #include <ParserFactory.h>
+#include <ParserDbAdapter.h>
 
 namespace black_library {
 
@@ -26,7 +27,9 @@ namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
-ParserFactory::ParserFactory(const njson &config)
+ParserFactory::ParserFactory(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter) :
+    parser_map_(),
+    db_adapter_(db_adapter)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
@@ -96,6 +99,7 @@ int ParserFactory::InitParserMap(const njson &config)
         ParserFactoryResult result;
 
         result.parser_result = std::static_pointer_cast<Parser>(std::make_shared<AO3::ParserAO3>(config));
+        result.parser_result->SetDbAdapter(db_adapter_);
 
         return result;
     });
@@ -104,6 +108,7 @@ int ParserFactory::InitParserMap(const njson &config)
         ParserFactoryResult result;
 
         result.parser_result = std::static_pointer_cast<Parser>(std::make_shared<RR::ParserRR>(config));
+        result.parser_result->SetDbAdapter(db_adapter_);
 
         return result;
     });
@@ -112,6 +117,7 @@ int ParserFactory::InitParserMap(const njson &config)
         ParserFactoryResult result;
 
         result.parser_result = std::static_pointer_cast<Parser>(std::make_shared<SBF::ParserSBF>(config));
+        result.parser_result->SetDbAdapter(db_adapter_);
 
         return result;
     });
@@ -120,6 +126,7 @@ int ParserFactory::InitParserMap(const njson &config)
         ParserFactoryResult result;
 
         result.parser_result = std::static_pointer_cast<Parser>(std::make_shared<SVF::ParserSVF>(config));
+        result.parser_result->SetDbAdapter(db_adapter_);
 
         return result;
     });
@@ -128,6 +135,7 @@ int ParserFactory::InitParserMap(const njson &config)
         ParserFactoryResult result;
 
         result.parser_result = std::static_pointer_cast<Parser>(std::make_shared<WP::ParserWP>(config));
+        result.parser_result->SetDbAdapter(db_adapter_);
 
         return result;
     });
