@@ -62,8 +62,9 @@ private:
     BlockingQueue<ParserJob> job_queue_;
     BlockingQueue<ParserJobResult> result_queue_;
 
-    database_status_callback database_status_callback_;
+    std::shared_ptr<ParserDbAdapter> db_adapter_;
 
+    database_status_callback database_status_callback_;
     progress_number_callback progress_number_callback_;
     version_read_num_callback version_read_num_callback_;
 

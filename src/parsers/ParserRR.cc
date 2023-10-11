@@ -262,34 +262,24 @@ ParseSectionInfo ParserRR::ParseSection()
     if (section_content.empty())
         return output;
 
-    auto index_num = index_entry.index_num;
-    auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
-    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_num, section_md5);
+    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_entry.index_num, index_entry.time_published, index_entry.data_url);
 
-    BlackLibraryCommon::Md5Sum md5_check;
-    if (db_adapter_)
-        md5_check = db_adapter_->CheckForMd5(section_md5, uuid_);
+    if (version_check_result.has_error)
+        return output;
 
-    // md5 already exists with correct md5_sum, update md5 with the correct index_num
-    if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
+    if (version_check_result.already_exists)
     {
-        BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, md5_check.index_num);
-        index_num = md5_check.index_num;
-
-        if (db_adapter_)
-            db_adapter_->UpsertMd5(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, 0);
-
         output.has_error = false;
 
         return output;
     }
 
-    if (db_adapter_)
-        md5_check = db_adapter_->ReadMd5(uuid_, index_entry.data_url);
+    auto index_num = index_entry.index_num;
 
     // set index_num with offset if new
-    if (index_entry.data_url != md5_check.url)
-        index_num += md5_index_num_offset_;
+    // use offset if 
+    // if (index_entry.data_url != md5_check.url)
+    //     index_num += md5_index_num_offset_;
 
     uint16_t version_num = 0;
     if (version_read_num_callback_)
@@ -303,9 +293,6 @@ ParseSectionInfo ParserRR::ParseSection()
         BlackLibraryCommon::LogError(parser_name_, "Failed section file save with UUID: {}", uuid_);
         return output;
     }
-
-    if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, version_num);
 
     output.has_error = false;
 

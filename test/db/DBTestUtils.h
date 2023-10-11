@@ -30,7 +30,7 @@ njson GenerateDBTestConfig()
     return j;
 }
 
-DBEntry GenerateTestBlackEntry()
+DBEntry GenerateTestWorkEntry()
 {
     DBEntry work_entry;
 

@@ -12,6 +12,7 @@
 #include <VersionOperations.h>
 
 #include <BlackLibraryDB.h>
+#include <ParserCommon.h>
 
 namespace black_library {
 
@@ -25,21 +26,22 @@ namespace BlackLibraryDB = black_library::core::db;
 class ParserDbAdapter
 {
 public:
-    explicit ParserDbAdapter(const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db_);
+    explicit ParserDbAdapter(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db_);
 
-    // size_t CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num);
+    ParserVersionCheckResult CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time, const std::string &url);
     // size_t GetVersion();
     // size_t UpsertVersion();
 
     BlackLibraryCommon::Md5Sum CheckForMd5(const std::string &md5_sum, const std::string &uuid);
     BlackLibraryCommon::Md5Sum ReadMd5(const std::string &uuid, const std::string &url);
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> ReadMd5s(const std::string &uuid);
-    void UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num);
+    int UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num);
 
 private:
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;
 
     std::string logger_name_;
+    std::mutex version_check_mutex_;
 };
 
 } // namespace parsers

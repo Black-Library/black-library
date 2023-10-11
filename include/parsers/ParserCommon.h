@@ -217,6 +217,21 @@ inline std::ostream& operator << (std::ostream &out, const ParserResult &parser_
     return out;
 }
 
+struct ParserVersionCheckResult {
+    size_t offset = 0;
+    bool already_exists = false;
+    bool has_error = true;
+};
+
+inline std::ostream& operator << (std::ostream &out, const ParserVersionCheckResult &parser_result)
+{
+    out << "offset: " << parser_result.offset << " ";
+    out << "already_exists: " << parser_result.already_exists << " ";
+    out << "has_error: " << parser_result.has_error;
+
+    return out;
+}
+
 struct ParserXmlAttributeResult {
     std::string result = "";
     bool found = false;
