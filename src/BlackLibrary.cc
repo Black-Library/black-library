@@ -67,7 +67,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
     blacklibrary_db_ = std::make_shared<BlackLibraryDB::BlackLibraryDB>(config);
     url_puller_ = std::make_shared<WgetUrlPuller>();
 
-    auto db_adapter = std::make_shared<BlackLibraryParsers::ParserDbAdapter>(blacklibrary_db_);
+    auto db_adapter = std::make_shared<BlackLibraryParsers::ParserDbAdapter>(config, blacklibrary_db_);
 
     parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter);
 

@@ -5,7 +5,6 @@
 #include <LogOperations.h>
 
 #include <BlackLibraryDB.h>
-
 #include <ParserDbAdapter.h>
 
 namespace black_library {
@@ -16,50 +15,84 @@ namespace parsers {
 
 namespace BlackLibraryDB = black_library::core::db;
 
-ParserDbAdapter::ParserDbAdapter(const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db) :
+ParserDbAdapter::ParserDbAdapter(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db) :
     blacklibrary_db_(blacklibrary_db),
-    logger_name_("parser_db_adapter")
+    logger_name_("parser_db_adapter"),
+    version_check_mutex_()
 {
+    njson nconfig = BlackLibraryCommon::LoadConfig(config);
+    std::string db_version = "";
+
+    std::string logger_path = BlackLibraryCommon::DefaultLogPath;
+    if (nconfig.contains("logger_path"))
+    {
+        logger_path = nconfig["logger_path"];
+    }
+
+    bool logger_level = BlackLibraryCommon::DefaultLogLevel;
+    if (nconfig.contains("db_debug_log"))
+    {
+        logger_level = nconfig["db_debug_log"];
+    }
+
+    if (nconfig.contains("db_version"))
+    {
+        db_version = nconfig["db_version"];
+    }
+
+    BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
 }
 
 // get section content
 // check to see if md5 already exists
 // if exists, but no index, update index
-// if exists with correct index, 
+// if exists with correct index, skip
 // if 
 
-// size_t ParserDbAdapter::CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num)
-// {
-//     auto content_md5 = BlackLibraryCommon::GetMD5Hash(content);
-//     BlackLibraryCommon::LogDebug(logger_name_, "Section UUID: {} index: {} checksum hash: {}", uuid, index_num, content_md5);
+ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time, const std::string &url)
+{
+    const std::lock_guard<std::mutex> lock(version_check_mutex_);
 
-//     BlackLibraryCommon::Md5Sum md5_check;
-//     if (md5_check_callback_)
-//         md5_check = md5_check_callback_(content_md5, uuid);
+    ParserVersionCheckResult version_check;
+    auto content_md5 = BlackLibraryCommon::GetMD5Hash(content);
+    BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} index: {} checksum hash: {}", uuid, index_num, content_md5);
 
-//     // md5 already exists with correct md5_sum, update md5 with the correct index_num
-//     if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
-//     {
-//         BlackLibraryCommon::LogDebug(logger_name_, "Version hash matches: {} index: {}, skip file save", uuid, md5_check.index_num);
-//         index_num = md5_check.index_num;
+    BlackLibraryCommon::Md5Sum md5_check;
+    md5_check = CheckForMd5(content_md5, uuid);
 
-//         if (md5_upsert_callback_)
-//             md5_upsert_callback_(uuid, index_num, content_md5, index_entry.time_published, index_entry.data_url, 0);
+    if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
+    {
+        // TODO: remove later, patch
+        if (md5_check.index_num == 0)
+        {
+            if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))
+            {
+                return version_check;
+            }
+        }
 
-//         output.has_error = false;
+        version_check.already_exists = true;
+        version_check.has_error = false;
 
-//         return output;
-//     }
+        return version_check;
+    }
 
-//     return 15;
-// }
+    if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))
+    {
+        return version_check;
+    }
+
+    version_check.has_error = false;
+
+    return version_check;
+}
 
 BlackLibraryCommon::Md5Sum ParserDbAdapter::CheckForMd5(const std::string &md5_sum, const std::string &uuid)
 {
     BlackLibraryCommon::Md5Sum md5;
     if (!blacklibrary_db_->DoesWorkEntryUUIDExist(uuid))
     {
-        BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 read", uuid);
+        BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 check", uuid);
         return md5;
     }
 
@@ -92,8 +125,10 @@ std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> ParserDbAdapter::Rea
     return blacklibrary_db_->GetMd5SumsFromUUID(uuid);
 }
 
-void ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
+int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
 {
+    const std::lock_guard<std::mutex> lock(version_check_mutex_);
+
     BlackLibraryCommon::Md5Sum md5 = { uuid, index_num, md5_sum, date, url, version_num };
 
     // if exact copy already exists print warning, previous step should have already caught
@@ -108,18 +143,20 @@ void ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const
         if (blacklibrary_db_->UpdateMd5Sum(md5))
         {
             BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} already exists", uuid, index_num, md5_sum, date, url, version_num);
-            return;
+            return -1;
         }
         
-        return;
+        return 0;
     }
 
     // otherwise, create a new one
     if (blacklibrary_db_->CreateMd5Sum(md5))
     {
         BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} failed", uuid, index_num, md5_sum, date, url, version_num);
-        return;
+        return -1;
     }
+
+    return 0;
 }
 
 // size_t ParserDbAdapter::UpsertVersion(const std::string &uuid,)

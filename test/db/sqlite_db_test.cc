@@ -38,7 +38,7 @@ TEST_CASE( "Test create database sqlite already exists (pass)", "[single-file]" 
 
 TEST_CASE( "Test CRUD for entries sqlite (pass)", "[single-file]" )
 {
-    DBEntry work_entry = GenerateTestBlackEntry();
+    DBEntry work_entry = GenerateTestWorkEntry();
     DBErrorEntry error_entry = GenerateTestErrorEntry();
 
     SQLiteDB db(DefaultTestDBPath, "1.0");

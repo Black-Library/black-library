@@ -21,7 +21,7 @@ namespace BlackLibraryCommon = black_library::core::common;
 
 TEST_CASE( "Test init black library db logger (pass)", "[single-file]")
 {
-    BlackLibraryCommon::InitRotatingLogger("db", "/tmp/", false);
+    BlackLibraryCommon::InitRotatingLogger("db", "/tmp/log", false);
     BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
@@ -57,7 +57,7 @@ TEST_CASE( "Test CRUD for empty entries black library (pass)", "[single-file]" )
 
 TEST_CASE( "Test CRUD for work and error entry tables black library (pass)", "[single-file]" )
 {
-    DBEntry work_entry = GenerateTestBlackEntry();
+    DBEntry work_entry = GenerateTestWorkEntry();
     DBErrorEntry error_entry = GenerateTestErrorEntry();
 
     njson config = GenerateDBTestConfig();

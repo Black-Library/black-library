@@ -2,6 +2,7 @@ set(SOURCES_TESTS
     parser_test.cc
     parser_factory_test.cc
     parser_manager_test.cc
+    parser_version_test.cc
     )
 
 string( REPLACE ".cc" "" BASENAMES_TESTS "${SOURCES_TESTS}" )
@@ -12,7 +13,7 @@ foreach( name ${TARGETS_LIST} )
 endforeach()
 
 foreach( name ${TARGETS_LIST} )
-    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibraryparsers )
+    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibraryparsers blacklibrarydb)
     include_directories( ${PROJECT_SOURCE_DIR}/test/parsers )
     set_property( TARGET ${name} PROPERTY CXX_STANDARD 14 )
     set_property( TARGET ${name} PROPERTY CXX_EXTENSIONS OFF )

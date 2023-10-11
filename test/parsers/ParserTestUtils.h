@@ -8,6 +8,8 @@
 #include <ConfigOperations.h>
 #include <VersionOperations.h>
 
+#include <BlackLibraryDBDataTypes.h>
+
 namespace black_library {
 
 namespace core {
@@ -15,7 +17,9 @@ namespace core {
 namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
+namespace BlackLibraryDb = black_library::core::db;
 
+static constexpr const char DefaultTestDbPath[] = "/tmp/catalog.db";
 static constexpr const char DefaultTestLogPath[] = "/tmp/log";
 static constexpr const char DefaultTestStoragePath[] = "/tmp/store";
 
@@ -52,12 +56,36 @@ njson GenerateParserTestConfig()
 {
     njson j;
 
+    j["config"]["db_path"] = DefaultTestDbPath;
     j["config"]["logger_path"] = DefaultTestLogPath;
     j["config"]["storage_path"] = DefaultTestStoragePath;
     j["config"]["worker_debug_log"] = true;
     j["config"]["parser_debug_log"] = true;
 
     return j;
+}
+
+BlackLibraryDb::DBEntry GenerateTestWorkEntry()
+{
+    BlackLibraryDb::DBEntry work_entry;
+
+    work_entry.uuid = RR_DUMMY_UUID;
+    work_entry.title = "black-title";
+    work_entry.author = "black-author";
+    work_entry.nickname = "black-nickname";
+    work_entry.source = "black-source";
+    work_entry.url = RR_DUMMY_URL;
+    work_entry.last_url = RR_URL_5;
+    work_entry.series = "black-series";
+    work_entry.series_length = 10;
+    work_entry.version = 20;
+    work_entry.media_path = "black-media-path";
+    work_entry.birth_date = 30;
+    work_entry.check_date = 40;
+    work_entry.update_date = 50;
+    work_entry.user_contributed = 4004;
+
+    return work_entry;
 }
 
 std::unordered_map<uint8_t, BlackLibraryCommon::Md5Sum> GenerateFullTestMd5Map()
