@@ -41,7 +41,7 @@ private:
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;
 
     std::string logger_name_;
-    std::mutex version_check_mutex_;
+    std::mutex upsert_mutex_;
 };
 
 } // namespace parsers

@@ -18,7 +18,7 @@ namespace BlackLibraryDB = black_library::core::db;
 ParserDbAdapter::ParserDbAdapter(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db) :
     blacklibrary_db_(blacklibrary_db),
     logger_name_("parser_db_adapter"),
-    version_check_mutex_()
+    upsert_mutex_()
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
     std::string db_version = "";
@@ -51,8 +51,6 @@ ParserDbAdapter::ParserDbAdapter(const njson &config, const std::shared_ptr<Blac
 
 ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time, const std::string &url)
 {
-    const std::lock_guard<std::mutex> lock(version_check_mutex_);
-
     ParserVersionCheckResult version_check;
     auto content_md5 = BlackLibraryCommon::GetMD5Hash(content);
     BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} index: {} checksum hash: {}", uuid, index_num, content_md5);
@@ -63,13 +61,13 @@ ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &conten
     if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
     {
         // TODO: remove later, patch
-        if (md5_check.index_num == 0)
-        {
-            if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))
-            {
-                return version_check;
-            }
-        }
+        // if (md5_check.index_num == 0)
+        // {
+        //     if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))
+        //     {
+        //         return version_check;
+        //     }
+        // }
 
         version_check.already_exists = true;
         version_check.has_error = false;
@@ -127,7 +125,7 @@ std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> ParserDbAdapter::Rea
 
 int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
 {
-    const std::lock_guard<std::mutex> lock(version_check_mutex_);
+    const std::lock_guard<std::mutex> lock(upsert_mutex_);
 
     BlackLibraryCommon::Md5Sum md5 = { uuid, index_num, md5_sum, date, url, version_num };
 

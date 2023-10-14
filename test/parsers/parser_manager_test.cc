@@ -4,7 +4,7 @@
 
 #include <ParserManager.h>
 
-#include <ParserTestUtils.h>
+#include "../CommonTestUtils.h"
 
 namespace black_library {
 

@@ -69,20 +69,18 @@ void IndexEntryParser::IndicateNextSection()
 int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job)
 {
     (void) parser_job;
-    BlackLibraryCommon::LogDebug(parser_name_, "Find index entry nodes");
+    BlackLibraryCommon::LogDebug(parser_name_, "Find index entry nodes with UUID: {}", uuid_);
 
     FindIndexEntries(root_node);
-
-    BlackLibraryCommon::LogDebug(parser_name_, "Found {} nodes for {}", index_entries_.size(), uuid_);
 
     if (db_adapter_)
         md5s_ = db_adapter_->ReadMd5s(uuid_);
 
-    BlackLibraryCommon::LogDebug(parser_name_, "Found {} md5s for {}", md5s_.size(), uuid_);
+    BlackLibraryCommon::LogDebug(parser_name_, "Found {} nodes and {} db md5s for {}", index_entries_.size(), md5s_.size(), uuid_);
 
     if (index_entries_.size() <= 0)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Index entries size error");
+        BlackLibraryCommon::LogError(parser_name_, "Index entries size error with UUID: {}", uuid_);
         return -1;
     }
 
