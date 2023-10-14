@@ -5,6 +5,7 @@ set(SOURCES_TESTS
     source_test.cc
     string_test.cc
     time_test.cc
+    version_test.cc
     )
 
 string( REPLACE ".cc" "" BASENAMES_TESTS "${SOURCES_TESTS}" )

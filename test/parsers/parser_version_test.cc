@@ -4,7 +4,9 @@
 
 #include <BlackLibraryDB.h>
 #include <ParserDbAdapter.h>
-#include <ParserTestUtils.h>
+
+#include "../CommonTestUtils.h"
+#include "ParserTestUtils.h"
 
 namespace black_library {
 
@@ -58,7 +60,6 @@ TEST_CASE( "Generic 'new section' version check test", "[single-file]" )
         ++i;
     }
     REQUIRE( i == 6 );
-    REQUIRE( true == false );
 
     for (const auto & md5 : md5_map)
     {
@@ -82,7 +83,7 @@ TEST_CASE( "Generic 'new section' version check test", "[single-file]" )
         REQUIRE( md5_map.count(i) == 1 );
         auto md5 = md5_map.find(i);
         char dest_0[24];
-        snprintf(dest_0, sizeof(dest_0), "dummy content %lu to hash", i);
+        snprintf(dest_0, sizeof(dest_0), "dummy content %d to hash", md5->first);
         auto version_check = db_adapter->CheckVersion(std::string(dest_0), md5->second.uuid, md5->second.index_num, md5->second.date, md5->second.url);
         REQUIRE( version_check.already_exists == true );
     }
