@@ -88,6 +88,21 @@ TEST_CASE( "Generic 'new section' version check test", "[single-file]" )
         REQUIRE( version_check.already_exists == true );
     }
 
+    auto version_check = db_adapter->CheckVersion("dummy content 6 to hash", RR_DUMMY_UUID, 6, 0, RR_URL_6);
+
+    REQUIRE( version_check.has_error == false );
+    REQUIRE( version_check.already_exists == false );
+    REQUIRE( version_check.offset == 0 );
+
+    md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
+    i = 0;
+    for (const auto & md5 : md5s)
+    {
+        REQUIRE( md5.second.uuid == RR_DUMMY_UUID );
+        ++i;
+    }
+    REQUIRE( i == 7 );
+
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
 

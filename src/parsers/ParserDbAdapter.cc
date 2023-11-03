@@ -75,8 +75,11 @@ ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &conten
         return version_check;
     }
 
-    if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))
+    uint64_t version = 0;
+
+    if (UpsertMd5(uuid, index_num, content_md5, time, url, version))
     {
+        BlackLibraryCommon::LogError(logger_name_, "Check Version upsert error: UUID: {} index: {} checksum hash: {} time: {} url: {} version: {}", uuid, index_num, content_md5, time, url, version);
         return version_check;
     }
 

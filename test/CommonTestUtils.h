@@ -48,6 +48,7 @@ static constexpr const char RR_URL_2[] = "https://www.royalroad.com/fiction/0000
 static constexpr const char RR_URL_3[] = "https://www.royalroad.com/fiction/00000/some-fiction/3";
 static constexpr const char RR_URL_4[] = "https://www.royalroad.com/fiction/00000/some-fiction/4";
 static constexpr const char RR_URL_5[] = "https://www.royalroad.com/fiction/00000/some-fiction/5";
+static constexpr const char RR_URL_6[] = "https://www.royalroad.com/fiction/00000/some-fiction/6";
 
 njson GenerateParserTestConfig()
 {
