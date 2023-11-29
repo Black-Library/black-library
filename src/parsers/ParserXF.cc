@@ -27,6 +27,7 @@ namespace BlackLibraryCommon = black_library::core::common;
 ParserXF::ParserXF(parser_t parser_type, const njson &config) :
     LinkedListParser(parser_type, config)
 {
+    // set as error, XF should be inherited from
     source_name_ = BlackLibraryCommon::ERROR::source_name;
     source_url_ = BlackLibraryCommon::ERROR::source_url;
 }
