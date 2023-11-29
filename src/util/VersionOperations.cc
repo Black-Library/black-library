@@ -40,6 +40,8 @@ std::string CalculateMd5Manual(unsigned char* buf, unsigned int buf_size)
         oss << std::setw(2) << (int)md5_digest[i];
     }
 
+    OPENSSL_free(md5_digest);
+
     return oss.str();
 }
 
