@@ -160,12 +160,6 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
     return 0;
 }
 
-// size_t ParserDbAdapter::UpsertVersion(const std::string &uuid,)
-// {
-//     if (md5_upsert_callback_)
-//         md5_upsert_callback_(uuid_, index_num, section_md5, index_entry.time_published, index_entry.data_url, version_num);
-// }
-
 } // namespace parsers
 } // namespace core
 } // namespace black_library
