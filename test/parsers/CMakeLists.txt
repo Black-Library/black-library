@@ -1,5 +1,7 @@
 set(SOURCES_TESTS
+    index_entry_parser_test.cc
     parser_test.cc
+    parser_db_adapter_test.cc
     parser_factory_test.cc
     parser_manager_test.cc
     parser_version_test.cc
@@ -13,7 +15,7 @@ foreach( name ${TARGETS_LIST} )
 endforeach()
 
 foreach( name ${TARGETS_LIST} )
-    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibraryparsers blacklibrarydb)
+    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibraryparserstestparsers blacklibrarydb )
     include_directories( ${PROJECT_SOURCE_DIR}/test/parsers )
     set_property( TARGET ${name} PROPERTY CXX_STANDARD 14 )
     set_property( TARGET ${name} PROPERTY CXX_EXTENSIONS OFF )
