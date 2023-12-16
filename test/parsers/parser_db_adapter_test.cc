@@ -5,8 +5,6 @@
 #include <BlackLibraryDB.h>
 #include <ParserDbAdapter.h>
 
-#include <TestIndexEntryParser.h>
-
 #include "../CommonTestUtils.h"
 #include "ParserTestUtils.h"
 
@@ -19,7 +17,7 @@ namespace parsers {
 namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
-TEST_CASE( "Generic version check tests (pass)", "[single-file]" )
+TEST_CASE( "Generic db adapter tests (pass)", "[single-file]" )
 {
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
 
@@ -62,7 +60,7 @@ TEST_CASE( "Generic version check tests (pass)", "[single-file]" )
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
 
-TEST_CASE( "Generic already exists version check tests (pass)", "[single-file]" )
+TEST_CASE( "Generic already exists db adapter tests (pass)", "[single-file]" )
 {
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
 
@@ -94,7 +92,7 @@ TEST_CASE( "Generic already exists version check tests (pass)", "[single-file]" 
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
 
-TEST_CASE( "Generic 'new section' version check test", "[single-file]" )
+TEST_CASE( "Generic 'new section' db adapter test", "[single-file]" )
 {
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
 
@@ -112,8 +110,14 @@ TEST_CASE( "Generic 'new section' version check test", "[single-file]" )
         REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
-    TestIndexEntryParser test_index_entry_parser(config);
-    test_index_entry_parser.SetDbAdapter(db_adapter);
+    auto version_check = db_adapter->CheckVersion("dummy content 6 to hash", RR_DUMMY_UUID, 6, 0, RR_URL_6);
+
+    REQUIRE( version_check.has_error == false );
+    REQUIRE( version_check.already_exists == false );
+    REQUIRE( version_check.offset == 0 );
+
+    auto md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
+    REQUIRE( md5s.size() == 7 );
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);

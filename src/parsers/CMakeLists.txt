@@ -61,3 +61,5 @@ set_target_properties(parser_manager_driver PROPERTIES INSTALL_RPATH
 message(STATUS "linker path: $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib")
 
 install(TARGETS parser_driver parser_worker_driver parser_manager_driver thread_pool_example RUNTIME DESTINATION bin)
+
+add_subdirectory(test-parsers)
