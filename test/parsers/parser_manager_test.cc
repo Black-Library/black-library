@@ -62,6 +62,12 @@ TEST_CASE( "Parser manager current jobs tests (pass)", "[single-file]" )
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
 
+TEST_CASE( "Clean up in case of failure" )
+{
+    BlackLibraryCommon::RemovePath(DefaultTestDbPath);
+    BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
+}
+
 } // namespace parsers
 } // namespace core
 } // namespace black_library
