@@ -83,7 +83,7 @@ ParserManager::ParserManager(const njson &config, const std::shared_ptr<ParserDb
     BlackLibraryCommon::LogDebug("parser_manager", "workers will use {} parsers", worker_count);
 
     AddWorker(parser_t::AO3_PARSER, worker_count);
-    // AddWorker(parser_t::RR_PARSER, worker_count);
+    AddWorker(parser_t::RR_PARSER, worker_count);
     AddWorker(parser_t::SBF_PARSER, worker_count);
     AddWorker(parser_t::SVF_PARSER, worker_count);
     // AddWorker(parser_t::WP_PARSER, worker_count);
