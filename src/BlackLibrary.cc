@@ -316,13 +316,13 @@ int BlackLibrary::VerifyUrls()
     // remove if url not on the protected list
     pull_urls_.erase(std::remove_if(pull_urls_.begin(), pull_urls_.end(), [](const std::string &str){ return !BlackLibraryCommon::IsSourceInformationMember(str); }), pull_urls_.end());
 
-    BlackLibraryCommon::LogInfo(logger_name_, "After source information check {} urls", pull_urls_.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "Verified {} urls", pull_urls_.size());
 
     // remove duplicate urls, sorting is faster then using a set for low number of duplicates
     std::sort(pull_urls_.begin(), pull_urls_.end());
     pull_urls_.erase(std::unique(pull_urls_.begin(), pull_urls_.end()), pull_urls_.end());
 
-    BlackLibraryCommon::LogInfo(logger_name_, "Verified {} urls", pull_urls_.size());
+    BlackLibraryCommon::LogInfo(logger_name_, "Verified {} urls with no duplicates", pull_urls_.size());
 
     return 0;
 }
