@@ -69,7 +69,7 @@ static constexpr const char GetWorkEntryUUIDFromUrlStatement[]    = "SELECT UUID
 static constexpr const char GetWorkEntryUrlFromUUIDStatement[]    = "SELECT url, last_url FROM work_entry WHERE UUID = :UUID";
 static constexpr const char GetMd5SumFromMd5SumStatement[]        = "SELECT * FROM md5_sum WHERE UUID = :UUID AND md5_sum = :md5_sum";
 static constexpr const char GetMd5SumFromUUIDAndIndexStatement[]  = "SELECT * FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
-static constexpr const char GetMd5SumsFromUUIDStatement[]         = "SELECT * FROM md5_sum WHERE UUID = :UUID";
+static constexpr const char GetMd5SumsFromUUIDStatement[]         = "SELECT * FROM md5_sum WHERE UUID = :UUID ORDER BY index_num DESC";
 static constexpr const char GetRefreshFromMinDateStatement[]      = "SELECT * FROM refresh WHERE refresh_date=(SELECT MIN(refresh_date) FROM refresh)";
 
 typedef enum {
