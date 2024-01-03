@@ -34,28 +34,28 @@ TEST_CASE( "Generic version check tests (pass)", "[single-file]" )
     REQUIRE (blacklibrary_db->CreateWorkEntry(test_entry) == 0);
     for (const auto & md5 : md5_map)
     {
-        REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
+        REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
     // check to make sure md5s are in the table
     auto md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
-    REQUIRE( md5s.size() == 6 );
+    REQUIRE ( md5s.size() == 6 );
 
     for (const auto & md5 : md5_map)
     {
         auto db_md5 = blacklibrary_db->ReadMd5SumUrl(md5.second.uuid, md5.second.url);
-        REQUIRE(blacklibrary_db->DoesMd5SumExistUrl(md5.second.uuid, md5.second.url) == true);
-        REQUIRE(blacklibrary_db->DoesWorkEntryUUIDExist(md5.second.uuid));
+        REQUIRE (blacklibrary_db->DoesMd5SumExistUrl(md5.second.uuid, md5.second.url) == true);
+        REQUIRE (blacklibrary_db->DoesWorkEntryUUIDExist(md5.second.uuid));
 
         auto db_adapter_md5 = db_adapter->ReadMd5(md5.second.uuid, md5.second.url);
-        REQUIRE( db_md5.uuid == db_adapter_md5.uuid );
-        REQUIRE( db_md5.url == db_adapter_md5.url );
-        REQUIRE( db_md5.index_num == db_adapter_md5.index_num );
-        REQUIRE( db_md5.md5_sum == db_adapter_md5.md5_sum );
+        REQUIRE ( db_md5.uuid == db_adapter_md5.uuid );
+        REQUIRE ( db_md5.url == db_adapter_md5.url );
+        REQUIRE ( db_md5.index_num == db_adapter_md5.index_num );
+        REQUIRE ( db_md5.md5_sum == db_adapter_md5.md5_sum );
 
         auto md5_check = db_adapter->CheckForMd5(md5.second.md5_sum, md5.second.uuid);
-        REQUIRE( md5_check.uuid == RR_DUMMY_UUID );
-        REQUIRE( md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version );
+        REQUIRE ( md5_check.uuid == RR_DUMMY_UUID );
+        REQUIRE ( md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version );
     }
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
@@ -77,17 +77,17 @@ TEST_CASE( "Generic already exists version check tests (pass)", "[single-file]" 
     REQUIRE (blacklibrary_db->CreateWorkEntry(test_entry) == 0);
     for (const auto & md5 : md5_map)
     {
-        REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
+        REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
     for (size_t i = 0; i < 6; ++i)
     {
-        REQUIRE( md5_map.count(i) == 1 );
+        REQUIRE ( md5_map.count(i) == 1 );
         auto md5 = md5_map.find(i);
         char dest_0[24];
         snprintf(dest_0, sizeof(dest_0), "dummy content %d to hash", md5->first);
         auto version_check = db_adapter->CheckVersion(std::string(dest_0), md5->second.uuid, md5->second.index_num, md5->second.date, md5->second.url);
-        REQUIRE( version_check.already_exists == true );
+        REQUIRE ( version_check.already_exists == true );
     }
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
@@ -109,7 +109,7 @@ TEST_CASE( "Generic 'new section' version check test", "[single-file]" )
     REQUIRE (blacklibrary_db->CreateWorkEntry(test_entry) == 0);
     for (const auto & md5 : md5_map)
     {
-        REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
+        REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
     TestIndexEntryParser test_index_entry_parser(config);
@@ -132,7 +132,7 @@ TEST_CASE( "Generic 'middle gap' version check test", "[single-file]" )
     REQUIRE (blacklibrary_db->CreateWorkEntry(test_entry) == 0);
     for (const auto & md5 : md5_map)
     {
-        REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
+        REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
@@ -152,7 +152,7 @@ TEST_CASE( "Generic 'start missing' version check test", "[single-file]" )
     REQUIRE (blacklibrary_db->CreateWorkEntry(test_entry) == 0);
     for (const auto & md5 : md5_map)
     {
-        REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
+        REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);

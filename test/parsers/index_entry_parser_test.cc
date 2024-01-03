@@ -43,7 +43,7 @@ TEST_CASE( "Generic CalculateIndexBounds test", "[single-file]" )
     REQUIRE (blacklibrary_db->CreateWorkEntry(test_entry) == 0);
     for (const auto & md5 : md5_map)
     {
-        REQUIRE( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
+        REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
     TestIndexEntryParser test_index_entry_parser(config);
@@ -58,9 +58,9 @@ TEST_CASE( "Generic CalculateIndexBounds test", "[single-file]" )
 
     test_index_entry_parser.TestCalculateIndexBounds(parser_job);
 
-    REQUIRE( test_index_entry_parser.GetIndex() == 0 );
-    REQUIRE( test_index_entry_parser.GetTargetStartIndex() == 0 );
-    REQUIRE( test_index_entry_parser.GetTargetEndIndex() == std::numeric_limits<size_t>::max() );
+    REQUIRE ( test_index_entry_parser.GetIndex() == 0 );
+    REQUIRE ( test_index_entry_parser.GetTargetStartIndex() == 0 );
+    REQUIRE ( test_index_entry_parser.GetTargetEndIndex() == std::numeric_limits<size_t>::max() );
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
