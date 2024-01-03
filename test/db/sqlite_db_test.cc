@@ -28,7 +28,7 @@ TEST_CASE( "Test init sqlite logger (pass)", "[single-file]")
 TEST_CASE( "Test setup database sqlite (pass)", "[single-file]" )
 {
     SQLiteDB db(DefaultTestDBPath, "1.0");
-    REQUIRE( db.IsReady() == true );
+    REQUIRE ( db.IsReady() == true );
 }
 
 TEST_CASE( "Test create database sqlite already exists (pass)", "[single-file]" )
@@ -43,25 +43,25 @@ TEST_CASE( "Test CRUD for entries sqlite (pass)", "[single-file]" )
 
     SQLiteDB db(DefaultTestDBPath, "1.0");
 
-    REQUIRE( db.CreateEntry(work_entry) == 0 );
-    REQUIRE( db.CreateErrorEntry(error_entry) == 0 );
-    REQUIRE( db.DoesEntryUrlExist(work_entry.url).result == true );
-    REQUIRE( db.DoesEntryUUIDExist(work_entry.uuid).result == true );
-    REQUIRE( db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num).result == true );
+    REQUIRE ( db.CreateEntry(work_entry) == 0 );
+    REQUIRE ( db.CreateErrorEntry(error_entry) == 0 );
+    REQUIRE ( db.DoesEntryUrlExist(work_entry.url).result == true );
+    REQUIRE ( db.DoesEntryUUIDExist(work_entry.uuid).result == true );
+    REQUIRE ( db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num).result == true );
 
     DBEntry work_read = db.ReadEntry(work_entry.uuid);
-    REQUIRE( work_read.uuid == work_entry.uuid );
+    REQUIRE ( work_read.uuid == work_entry.uuid );
 
     work_entry.author = "renamed-author";
-    REQUIRE( db.UpdateEntry(work_entry) == 0 );
+    REQUIRE ( db.UpdateEntry(work_entry) == 0 );
     DBEntry work_update = db.ReadEntry(work_entry.uuid);
-    REQUIRE( work_update.author == work_entry.author );
+    REQUIRE ( work_update.author == work_entry.author );
 
-    REQUIRE( db.DeleteEntry(work_entry.uuid) == 0 );
-    REQUIRE( db.DeleteErrorEntry(error_entry.uuid, error_entry.progress_num) == 0 );
-    REQUIRE( db.DoesEntryUrlExist(work_entry.url).result == false );
-    REQUIRE( db.DoesEntryUUIDExist(work_entry.uuid).result == false );
-    REQUIRE( db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num).result == false );
+    REQUIRE ( db.DeleteEntry(work_entry.uuid) == 0 );
+    REQUIRE ( db.DeleteErrorEntry(error_entry.uuid, error_entry.progress_num) == 0 );
+    REQUIRE ( db.DoesEntryUrlExist(work_entry.url).result == false );
+    REQUIRE ( db.DoesEntryUUIDExist(work_entry.uuid).result == false );
+    REQUIRE ( db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num).result == false );
 }
 
 TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
@@ -92,25 +92,59 @@ TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
     md5.url = "new-md5-url";
     REQUIRE ( db.UpdateMd5Sum(md5) == 0 );
     BlackLibraryCommon::Md5Sum md5_update = db.ReadMd5SumUrl(md5.uuid, md5.url);
-    REQUIRE( md5_update.md5_sum == md5.md5_sum );
-    REQUIRE( md5_update.date == md5.date );
-    REQUIRE( md5_update.version_num == md5.version_num );
-    REQUIRE( md5_update.url == md5.url );
+    REQUIRE ( md5_update.md5_sum == md5.md5_sum );
+    REQUIRE ( md5_update.date == md5.date );
+    REQUIRE ( md5_update.version_num == md5.version_num );
+    REQUIRE ( md5_update.url == md5.url );
 
-    REQUIRE( db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
+    REQUIRE ( db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     md5.index_num = 1000;
     REQUIRE ( db.CreateMd5Sum(md5) == 0 );
     BlackLibraryCommon::Md5Sum md5_update_index_num = db.ReadMd5SumUrl(md5.uuid, md5.url);
 
-    REQUIRE( md5_update_index_num.md5_sum == md5.md5_sum );
-    REQUIRE( md5_update_index_num.date == md5.date );
-    REQUIRE( md5_update_index_num.version_num == md5.version_num );
-    REQUIRE( md5_update_index_num.url == md5.url );
-    REQUIRE( md5_update_index_num.index_num == md5.index_num );
+    REQUIRE ( md5_update_index_num.md5_sum == md5.md5_sum );
+    REQUIRE ( md5_update_index_num.date == md5.date );
+    REQUIRE ( md5_update_index_num.version_num == md5.version_num );
+    REQUIRE ( md5_update_index_num.url == md5.url );
+    REQUIRE ( md5_update_index_num.index_num == md5.index_num );
 
     REQUIRE ( db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     REQUIRE ( db.DoesMd5SumExistIndexNum(md5.uuid, md5.index_num).result == false );
     REQUIRE ( db.DoesMd5SumExistUrl(md5.uuid, md5.url).result == false );
+}
+
+TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single-file]" )
+{
+    SQLiteDB db(DefaultTestDBPath, "1.0");
+
+    BlackLibraryCommon::Md5Sum md5_0 = GenerateTestMd5Sum();
+    md5_0.url = "md5-url-0";
+
+    REQUIRE ( db.CreateMd5Sum(md5_0) == 0 );
+    REQUIRE ( db.DoesMd5SumExistIndexNum(md5_0.uuid, md5_0.index_num).result == true );
+    REQUIRE ( db.DoesMd5SumExistUrl(md5_0.uuid, md5_0.url).result == true );
+
+    BlackLibraryCommon::Md5Sum md5_1 = GenerateTestMd5Sum();
+    BlackLibraryCommon::Md5Sum md5_2 = GenerateTestMd5Sum();
+    md5_2.index_num = 10;
+    md5_1.index_num = 20;
+    md5_1.url = "md5-url-1";
+    md5_2.url = "md5-url-2";
+
+    REQUIRE ( db.CreateMd5Sum(md5_1) == 0 );
+    REQUIRE ( db.CreateMd5Sum(md5_2) == 0 );
+
+    REQUIRE ( db.DoesMd5SumExistIndexNum(md5_1.uuid, md5_1.index_num).result == true );
+    REQUIRE ( db.DoesMd5SumExistIndexNum(md5_2.uuid, md5_2.index_num).result == true );
+
+    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums = db.GetMd5SumsFromUUID(md5_0.uuid);
+
+    size_t lowest = md5_sums.find(md5_2.url)->second.index_num;
+    for (const auto & md5 : md5_sums)
+    {
+        REQUIRE ( lowest <= md5.second.index_num );
+        lowest = md5.second.index_num;
+    }
 }
 
 TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
@@ -126,8 +160,8 @@ TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
     REQUIRE ( db.DoesMinRefreshExist().result == true );
 
     auto read_refresh = db.ReadRefresh(refresh.uuid);
-    REQUIRE( read_refresh.uuid == refresh.uuid );
-    REQUIRE( read_refresh.refresh_date == refresh.refresh_date );
+    REQUIRE ( read_refresh.uuid == refresh.uuid );
+    REQUIRE ( read_refresh.refresh_date == refresh.refresh_date );
 
     auto next_refresh = db.GetRefreshFromMinDate();
 
@@ -138,6 +172,8 @@ TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
 
     REQUIRE ( db.DoesRefreshExist(refresh.uuid).result == false );
     REQUIRE ( db.DoesMinRefreshExist().result == false );
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 TEST_CASE( "Test teardown tmp db" )

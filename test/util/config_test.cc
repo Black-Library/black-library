@@ -32,8 +32,8 @@ TEST_CASE( "Load config generic tests (pass)", "[single-file]" )
     auto empty_config = GenerateEmptyConfig();
     auto flat_config = GenerateFlatTestConfig();
     // TODO: empty config leads to exit, perhaps perfer warning with default config instead
-    // REQUIRE( LoadConfig(empty_config) );
-    REQUIRE( LoadConfig(flat_config) == "flat" );
+    // REQUIRE ( LoadConfig(empty_config) );
+    REQUIRE ( LoadConfig(flat_config) == "flat" );
 }
 
 } // namespace common

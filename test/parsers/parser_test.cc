@@ -31,8 +31,8 @@ TEST_CASE( "RR parser tests (pass)", "[single-file]" )
     auto config = GenerateParserTestConfig();
     RR::ParserRR parser(config);
     parser.SetLocalFilePath("foo");
-    REQUIRE( parser.GetParserType() == parser_t::RR_PARSER );
-    REQUIRE( parser.GetSourceUrl() == BlackLibraryCommon::RR::source_url );
+    REQUIRE ( parser.GetParserType() == parser_t::RR_PARSER );
+    REQUIRE ( parser.GetSourceUrl() == BlackLibraryCommon::RR::source_url );
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
 
