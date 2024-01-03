@@ -76,8 +76,6 @@ Parser::Parser(const Parser &parser) :
 Parser::~Parser()
 {
     done_ = true;
-
-    BlackLibraryCommon::CloseLogger(parser_name_);
 }
 
 ParserResult Parser::Parse(const ParserJob &parser_job)
