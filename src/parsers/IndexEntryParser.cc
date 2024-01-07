@@ -23,7 +23,9 @@ IndexEntryParser::IndexEntryParser(parser_t parser_type, const njson &config) :
     index_entries_(),
     index_entry_queue_(),
     last_url_(),
-    md5_index_num_offset_(0)
+    md5_index_num_offset_(0),
+    check_date_enabled_(false),
+    entry_gap_(false)
 {
     parser_behavior_ = parser_behavior_t::INDEX_ENTRY;
 }
@@ -91,8 +93,8 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         BlackLibraryCommon::LogDebug(parser_name_, "No md5s for {}, md5 list empty", uuid_);
     }
 
-    // get largest index_num if we need it later
-    for (auto const & md5 : md5s_)
+    // get largest index_num for offsets
+    for (const auto & md5 : md5s_)
     {
         if (md5.second.index_num >= md5_index_num_offset_)
         {
@@ -107,18 +109,30 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     std::vector<ParserIndexEntry> truncated_index_entries;
     for (const auto & index_entry : index_entries_)
     {
-        // skip any entries which match url AND date
         if (md5s_.count(index_entry.data_url))
         {
+            if (md5s_.find(index_entry.data_url)->second.index_num != index_entry.index_num)
+            {
+                entry_gap_ = true;
+            }
             if (md5s_.find(index_entry.data_url)->second.date == index_entry.time_published)
+            {
                 continue;
-        }
+            }
+        }      
 
         truncated_index_entries.emplace_back(index_entry);
     }
 
-    BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} index entries size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());
+    BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());
+    BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} - entry gap exists: {}", uuid_, entry_gap_);
+
     index_entries_ = truncated_index_entries;
+
+    for (const auto & truncated : truncated_index_entries)
+    {
+        BlackLibraryCommon::LogDebug(parser_name_, "UUID: {} - {}", uuid_, truncated.data_url);
+    }
 
     for (const auto & index_entry : index_entries_)
     {

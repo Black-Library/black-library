@@ -23,6 +23,12 @@ public:
     size_t GetTargetEndIndex();
 
     int TestCalculateIndexBounds(const ParserJob &parser_job);
+    void TestExpendedAttempts();
+    void TestIndicateNextsection();
+    void TestPreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job);
+    void TestReachedEnd();
+    void TestSaveLastUrl(ParserResult &parser_result);
+    void TestSaveUpdate(ParserResult &parser_result);
 
     std::string TestGetIndexEntryTitle(const ParserIndexEntry &index_entry);
 

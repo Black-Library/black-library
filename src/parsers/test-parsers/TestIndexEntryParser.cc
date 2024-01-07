@@ -46,6 +46,36 @@ int TestIndexEntryParser::TestCalculateIndexBounds(const ParserJob &parser_job)
     return CalculateIndexBounds(parser_job);
 }
 
+void TestIndexEntryParser::TestExpendedAttempts()
+{
+    ExpendedAttempts();
+}
+
+void TestIndexEntryParser::TestIndicateNextsection()
+{
+    IndicateNextSection();
+}
+
+void TestIndexEntryParser::TestPreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job)
+{
+    PreParseLoop(root_node, parser_job);
+}
+
+void TestIndexEntryParser::TestReachedEnd()
+{
+    ReachedEnd();
+}
+
+void TestIndexEntryParser::TestSaveLastUrl(ParserResult &parser_result)
+{
+    SaveLastUrl(parser_result);
+}
+
+void TestIndexEntryParser::TestSaveUpdate(ParserResult &parser_result)
+{
+    SaveUpdateDate(parser_result);
+}
+
 std::string TestIndexEntryParser::TestGetIndexEntryTitle(const ParserIndexEntry &index_entry)
 {
     return GetIndexEntryTitle(index_entry);
