@@ -60,7 +60,7 @@ ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &conten
 
     if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
     {
-        // TODO: remove later, patch
+        // TODO: remove later, patch for allowing new
         // if (md5_check.index_num == 0)
         // {
         //     if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))

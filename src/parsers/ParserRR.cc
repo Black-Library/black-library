@@ -279,11 +279,18 @@ ParseSectionInfo ParserRR::ParseSection()
     // set index_num with offset if new
     // use offset if 
     // if (index_entry.data_url != md5_check.url)
-    //     index_num += md5_index_num_offset_;
-
+    // simple check, if the index_num is new
     uint16_t version_num = 0;
     if (version_read_num_callback_)
         version_num = version_read_num_callback_(uuid_, index_num);
+
+    // if (index_num < md5_index_num_offset_ && version_num == 0)
+    //     index_num += md5_index_num_offset_;
+    
+    // inputs
+    // index_num, offset, indication of gap,
+    // outputs
+    // new index_num
 
     // save file
     const auto section_file_name = GetSectionFileName(index_num, sanatized_section_name, version_num);

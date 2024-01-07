@@ -36,6 +36,8 @@ protected:
     std::queue<ParserIndexEntry> index_entry_queue_;
     std::string last_url_;
     size_t md5_index_num_offset_;
+    bool check_date_enabled_;
+    bool entry_gap_;
 };
 
 } // namespace parsers
