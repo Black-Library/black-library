@@ -276,6 +276,13 @@ ParseSectionInfo ParserRR::ParseSection()
 
     auto index_num = index_entry.index_num;
 
+    // if entry gap and past end of previously seen stuff, use the offset to adjust the index number for the db
+    if (entry_gap_)
+    {
+        // check where the gap is
+        index_num = index_entry.index_num + 
+    }
+
     // set index_num with offset if new
     // use offset if 
     // if (index_entry.data_url != md5_check.url)
@@ -284,8 +291,8 @@ ParseSectionInfo ParserRR::ParseSection()
     if (version_read_num_callback_)
         version_num = version_read_num_callback_(uuid_, index_num);
 
-    // if (index_num < md5_index_num_offset_ && version_num == 0)
-    //     index_num += md5_index_num_offset_;
+    // if (index_num < gap_width_ && version_num == 0)
+    //     index_num += gap_width_;
     
     // inputs
     // index_num, offset, indication of gap,
@@ -300,6 +307,8 @@ ParseSectionInfo ParserRR::ParseSection()
         BlackLibraryCommon::LogError(parser_name_, "Failed section file save with UUID: {}", uuid_);
         return output;
     }
+
+    // TODO consider adding a table or changing the version num/md5 table to track location/name
 
     output.has_error = false;
 
