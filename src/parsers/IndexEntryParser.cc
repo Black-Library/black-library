@@ -23,7 +23,7 @@ IndexEntryParser::IndexEntryParser(parser_t parser_type, const njson &config) :
     index_entries_(),
     index_entry_queue_(),
     last_url_(),
-    md5_index_num_offset_(0),
+    gap_width_(0),
     check_date_enabled_(false),
     entry_gap_(false)
 {
@@ -93,18 +93,19 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         BlackLibraryCommon::LogDebug(parser_name_, "No md5s for {}, md5 list empty", uuid_);
     }
 
-    // get largest index_num for offsets
+    // get largest index_num for last update date and url
+    size_t expected_index = 0;
     for (const auto & md5 : md5s_)
     {
-        if (md5.second.index_num >= md5_index_num_offset_)
+        if (md5.second.index_num >= expected_index)
         {
-            md5_index_num_offset_ = md5.second.index_num + 1;
+            ++expected_index;
             last_update_date_ = md5.second.date;
             last_url_ = md5.second.url;
         }
     }
 
-    BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, md5_index_num_offset_, last_url_);
+    BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, gap_width_, last_url_);
 
     std::vector<ParserIndexEntry> truncated_index_entries;
     for (const auto & index_entry : index_entries_)
@@ -114,25 +115,28 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             if (md5s_.find(index_entry.data_url)->second.index_num != index_entry.index_num)
             {
                 entry_gap_ = true;
+                ++gap_width_;
             }
             if (md5s_.find(index_entry.data_url)->second.date == index_entry.time_published)
             {
                 continue;
             }
-        }      
+        }
+
+        index_entry.index_num = index_entry.index_num + gap_width_;
 
         truncated_index_entries.emplace_back(index_entry);
     }
 
     BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());
-    BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} - entry gap exists: {}", uuid_, entry_gap_);
-
-    index_entries_ = truncated_index_entries;
+    BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} - total entry gap width: {}", uuid_, entry_gap_);
 
     for (const auto & truncated : truncated_index_entries)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "UUID: {} - {}", uuid_, truncated.data_url);
     }
+
+    index_entries_ = truncated_index_entries;
 
     for (const auto & index_entry : index_entries_)
     {
