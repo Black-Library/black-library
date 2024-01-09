@@ -99,10 +99,21 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     {
         if (md5.second.index_num >= expected_index)
         {
-            ++expected_index;
             last_update_date_ = md5.second.date;
             last_url_ = md5.second.url;
         }
+        ++expected_index;
+    }
+
+    size_t expected_index = 0;
+    for (const auto & md5 : md5s_)
+    {
+        // if md5 data url in index_entries, okay to skip
+        // if md5 data url not index_entries note gap
+        // if index_entry url not in md5s check if expected index is less than size of md5s
+            // if less -> new version
+            // if more -> new entry should use expected_index
+        ++expected_index;
     }
 
     BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, gap_width_, last_url_);
