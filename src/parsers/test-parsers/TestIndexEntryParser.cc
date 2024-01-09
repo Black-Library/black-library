@@ -214,7 +214,7 @@ ParseSectionInfo TestIndexEntryParser::ParseSection()
     // set index_num with offset if new
     // use offset if 
     // if (index_entry.data_url != md5_check.url)
-    //     index_num += md5_index_num_offset_;
+    //     index_num += gap_width_;
 
     uint16_t version_num = 0;
     if (version_read_num_callback_)
