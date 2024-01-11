@@ -218,6 +218,7 @@ inline std::ostream& operator << (std::ostream &out, const ParserResult &parser_
 }
 
 struct ParserVersionCheckResult {
+    std::string md5 = "";
     size_t offset = 0;
     bool already_exists = false;
     bool has_error = true;
