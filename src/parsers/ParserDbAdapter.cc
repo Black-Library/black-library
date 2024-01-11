@@ -53,35 +53,19 @@ ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &conten
 {
     ParserVersionCheckResult version_check;
     auto content_md5 = BlackLibraryCommon::GetMD5Hash(content);
-    BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} index: {} checksum hash: {}", uuid, index_num, content_md5);
+    BlackLibraryCommon::LogDebug(logger_name_, "CheckVersion UUID: {} index: {} checksum hash: {}", uuid, index_num, content_md5);
 
-    BlackLibraryCommon::Md5Sum md5_check;
-    md5_check = CheckForMd5(content_md5, uuid);
+    BlackLibraryCommon::Md5Sum md5_check = CheckForMd5(content_md5, uuid);
 
     if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
     {
-        // TODO: remove later, patch for allowing new
-        // if (md5_check.index_num == 0)
-        // {
-        //     if (!UpsertMd5(uuid, index_num, content_md5, time, url, 0))
-        //     {
-        //         return version_check;
-        //     }
-        // }
-
         version_check.already_exists = true;
         version_check.has_error = false;
 
         return version_check;
     }
 
-    uint64_t version = 0;
-
-    if (UpsertMd5(uuid, index_num, content_md5, time, url, version))
-    {
-        BlackLibraryCommon::LogError(logger_name_, "Check Version upsert error: UUID: {} index: {} checksum hash: {} time: {} url: {} version: {}", uuid, index_num, content_md5, time, url, version);
-        return version_check;
-    }
+    version_check.md5 = content_md5;
 
     version_check.has_error = false;
 

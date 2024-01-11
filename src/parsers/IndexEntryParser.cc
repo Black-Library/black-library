@@ -105,16 +105,21 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         ++expected_index;
     }
 
-    size_t expected_index = 0;
-    for (const auto & md5 : md5s_)
-    {
-        // if md5 data url in index_entries, okay to skip
-        // if md5 data url not index_entries note gap
-        // if index_entry url not in md5s check if expected index is less than size of md5s
-            // if less -> new version
-            // if more -> new entry should use expected_index
-        ++expected_index;
-    }
+    // size_t expected_index = 0;
+    // std::vector<ParserIndexEntry> list_of_index_entries;
+    // for (const auto & md5 : md5s_)
+    // {
+    //     // if md5 data url in index_entries, okay to skip, otherwise add to gap width
+    //     if !(DoesUrlExistInIndexEntryVector(index_entries_, md5))
+    //         ++gap_width_;
+    //     // if index_entry url not in md5s check if expected index is less than size of md5s
+    //         // if less -> new version
+    //         // if more -> new entry should use expected_index
+    //     ++expected_index;
+    // }
+    // for (const auto & index_entry : index_entries_)
+    // {
+    // }
 
     BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, gap_width_, last_url_);
 
@@ -132,7 +137,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             {
                 continue;
             }
-        }
+        }       
 
         index_entry.index_num = index_entry.index_num + gap_width_;
 

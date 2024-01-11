@@ -274,14 +274,7 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
-    auto index_num = index_entry.index_num;
-
-    // if entry gap and past end of previously seen stuff, use the offset to adjust the index number for the db
-    if (entry_gap_)
-    {
-        // check where the gap is
-        index_num = index_entry.index_num + 
-    }
+    index_ = index_entry.index_num;
 
     // set index_num with offset if new
     // use offset if 
@@ -289,18 +282,13 @@ ParseSectionInfo ParserRR::ParseSection()
     // simple check, if the index_num is new
     uint16_t version_num = 0;
     if (version_read_num_callback_)
-        version_num = version_read_num_callback_(uuid_, index_num);
+        version_num = version_read_num_callback_(uuid_, index_);
 
     // if (index_num < gap_width_ && version_num == 0)
     //     index_num += gap_width_;
-    
-    // inputs
-    // index_num, offset, indication of gap,
-    // outputs
-    // new index_num
 
     // save file
-    const auto section_file_name = GetSectionFileName(index_num, sanatized_section_name, version_num);
+    const auto section_file_name = GetSectionFileName(index_, sanatized_section_name, version_num);
 
     if (SectionFileSave(section_content, section_file_name))
     {
@@ -308,7 +296,17 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
-    // TODO consider adding a table or changing the version num/md5 table to track location/name
+    // if entry gap and past end of previously seen stuff, use the offset to adjust the index number for the md5 save
+    if (entry_gap_)
+    {
+        // check where the gap is
+        index_num = index_entry.index_num + 
+    }
+
+    if (db_adapter_)
+        db_adapter_->UpsertMd5(uuid_, index_, version_check_result.md5, index_entry.time_published, index_entry.data_url, version_num);
+
+    // TODO consider adding a table or changing the version num/md5 table to track location/name of saved file
 
     output.has_error = false;
 
