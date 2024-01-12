@@ -4,7 +4,7 @@
         "binder_dir": "/mnt/black-library/output",
         "cli_debug_log": true,
         "db_debug_log": false,
-        "db_path": "/mnt/black-library/db/catalog.db",
+        "db_path": "/mnt/black-library/db/test_catalog.db",
         "db_remote": false,
         "db_version": "1.0",
         "factory_debug_log": false,
@@ -14,7 +14,7 @@
         "manager_worker_count": 1,
         "parser_debug_log": true,
         "storage_path": "/mnt/black-library/store",
-        "url_puller_debug": true,
+        "url_puller_debug": false,
         "worker_debug_log": false
     },
     "config_version": "1.0"

@@ -218,7 +218,7 @@ inline std::ostream& operator << (std::ostream &out, const ParserResult &parser_
 }
 
 struct ParserVersionCheckResult {
-    std::string md5 = "";
+    std::string md5 = BlackLibraryCommon::EmptyMD5Version;
     bool already_exists = false;
     bool has_error = true;
 };
