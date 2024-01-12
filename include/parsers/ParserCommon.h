@@ -219,16 +219,15 @@ inline std::ostream& operator << (std::ostream &out, const ParserResult &parser_
 
 struct ParserVersionCheckResult {
     std::string md5 = "";
-    size_t offset = 0;
     bool already_exists = false;
     bool has_error = true;
 };
 
-inline std::ostream& operator << (std::ostream &out, const ParserVersionCheckResult &parser_result)
+inline std::ostream& operator << (std::ostream &out, const ParserVersionCheckResult &version_check_result)
 {
-    out << "offset: " << parser_result.offset << " ";
-    out << "already_exists: " << parser_result.already_exists << " ";
-    out << "has_error: " << parser_result.has_error;
+    out << "md5: " << version_check_result.md5 << " ";
+    out << "already_exists: " << version_check_result.already_exists << " ";
+    out << "has_error: " << version_check_result.has_error;
 
     return out;
 }
