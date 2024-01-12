@@ -276,16 +276,9 @@ ParseSectionInfo ParserRR::ParseSection()
 
     index_ = index_entry.index_num;
 
-    // set index_num with offset if new
-    // use offset if 
-    // if (index_entry.data_url != md5_check.url)
-    // simple check, if the index_num is new
     uint16_t version_num = 0;
     if (version_read_num_callback_)
-        version_num = version_read_num_callback_(uuid_, index_);
-
-    // if (index_num < gap_width_ && version_num == 0)
-    //     index_num += gap_width_;
+        version_num = version_read_num_callback_(uuid_, index_) + 1;
 
     // save file
     const auto section_file_name = GetSectionFileName(index_, sanatized_section_name, version_num);
@@ -294,13 +287,6 @@ ParseSectionInfo ParserRR::ParseSection()
     {
         BlackLibraryCommon::LogError(parser_name_, "Failed section file save with UUID: {}", uuid_);
         return output;
-    }
-
-    // if entry gap and past end of previously seen stuff, use the offset to adjust the index number for the md5 save
-    if (entry_gap_)
-    {
-        // check where the gap is
-        index_num = index_entry.index_num + 
     }
 
     if (db_adapter_)
