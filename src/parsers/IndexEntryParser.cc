@@ -139,9 +139,10 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             }
         }       
 
-        index_entry.index_num = index_entry.index_num + gap_width_;
+        ParserIndexEntry truncated = index_entry;
+        truncated.index_num = index_entry.index_num + gap_width_;
 
-        truncated_index_entries.emplace_back(index_entry);
+        truncated_index_entries.emplace_back(truncated);
     }
 
     BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());

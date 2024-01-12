@@ -57,7 +57,7 @@ ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &conten
 
     BlackLibraryCommon::Md5Sum md5_check = CheckForMd5(content_md5, uuid);
 
-    if (md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version)
+    if (md5_check.md5_sum == content_md5 && md5_check.date == time && md5_check.url == url)
     {
         version_check.already_exists = true;
         version_check.has_error = false;

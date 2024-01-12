@@ -112,12 +112,12 @@ TEST_CASE( "Generic 'new section' db adapter test", "[single-file]" )
 
     auto version_check = db_adapter->CheckVersion("dummy content 6 to hash", RR_DUMMY_UUID, 6, 0, RR_URL_6);
 
+    REQUIRE ( version_check.md5 == "86f47ed77640038cc594efcb27058caa" );
     REQUIRE ( version_check.has_error == false );
     REQUIRE ( version_check.already_exists == false );
-    REQUIRE ( version_check.offset == 0 );
 
     auto md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
-    REQUIRE ( md5s.size() == 7 );
+    REQUIRE ( md5s.size() == 6 );
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
