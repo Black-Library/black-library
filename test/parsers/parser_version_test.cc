@@ -86,7 +86,7 @@ TEST_CASE( "Generic already exists version check tests (pass)", "[single-file]" 
         auto md5 = md5_map.find(i);
         char dest_0[24];
         snprintf(dest_0, sizeof(dest_0), "dummy content %d to hash", md5->first);
-        auto version_check = db_adapter->CheckVersion(std::string(dest_0), md5->second.uuid, md5->second.index_num, md5->second.date, md5->second.url);
+        auto version_check = db_adapter->CheckVersion(std::string(dest_0), md5->second.uuid, md5->second.index_num, md5->second.date);
         REQUIRE ( version_check.already_exists == true );
     }
 

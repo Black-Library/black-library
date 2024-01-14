@@ -53,7 +53,7 @@ TEST_CASE( "Generic db adapter tests (pass)", "[single-file]" )
 
         auto md5_check = db_adapter->CheckForMd5(md5.second.md5_sum, md5.second.uuid);
         REQUIRE ( md5_check.uuid == RR_DUMMY_UUID );
-        REQUIRE ( md5_check.md5_sum != BlackLibraryCommon::EmptyMD5Version );
+        REQUIRE ( md5_check.md5_sum == db_adapter_md5.md5_sum );
     }
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);
@@ -84,7 +84,7 @@ TEST_CASE( "Generic already exists db adapter tests (pass)", "[single-file]" )
         auto md5 = md5_map.find(i);
         char dest_0[24];
         snprintf(dest_0, sizeof(dest_0), "dummy content %d to hash", md5->first);
-        auto version_check = db_adapter->CheckVersion(std::string(dest_0), md5->second.uuid, md5->second.index_num, md5->second.date, md5->second.url);
+        auto version_check = db_adapter->CheckVersion(std::string(dest_0), md5->second.uuid, md5->second.index_num, md5->second.date);
         REQUIRE ( version_check.already_exists == true );
     }
 
@@ -110,7 +110,7 @@ TEST_CASE( "Generic 'new section' db adapter test", "[single-file]" )
         REQUIRE ( blacklibrary_db->CreateMd5Sum(md5.second) == 0 );
     }
 
-    auto version_check = db_adapter->CheckVersion("dummy content 6 to hash", RR_DUMMY_UUID, 6, 0, RR_URL_6);
+    auto version_check = db_adapter->CheckVersion("dummy content 6 to hash", RR_DUMMY_UUID, 6, 0);
 
     REQUIRE ( version_check.md5 == "86f47ed77640038cc594efcb27058caa" );
     REQUIRE ( version_check.has_error == false );

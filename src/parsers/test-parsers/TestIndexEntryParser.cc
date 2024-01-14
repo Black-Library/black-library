@@ -197,7 +197,7 @@ ParseSectionInfo TestIndexEntryParser::ParseSection()
     if (section_content.empty())
         return output;
 
-    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_entry.index_num, index_entry.time_published, index_entry.data_url);
+    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_entry.index_num, index_entry.time_published);
 
     if (version_check_result.has_error)
         return output;
