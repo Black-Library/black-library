@@ -95,10 +95,12 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     // get largest index_num for last update date and url
     size_t expected_index = 0;
+    size_t max_index = 0;
     for (const auto & md5 : md5s_)
     {
-        if (md5.second.index_num >= expected_index)
+        if (md5.second.index_num >= max_index)
         {
+            max_index = md5.second.index_num;
             last_update_date_ = md5.second.date;
             last_url_ = md5.second.url;
         }
@@ -116,10 +118,6 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     //         // if less -> new version
     //         // if more -> new entry should use expected_index
     //     ++expected_index;
-    // }
-    // for (const auto & index_entry : index_entries_)
-    // {
-    // }
 
     BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, gap_width_, last_url_);
 
@@ -137,7 +135,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             {
                 continue;
             }
-        }       
+        }
 
         ParserIndexEntry truncated = index_entry;
         truncated.index_num = index_entry.index_num + gap_width_;
@@ -146,7 +144,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());
-    BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} - total entry gap width: {}", uuid_, entry_gap_);
+    BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} - total entry gap width: {}", uuid_, gap_width_);
 
     for (const auto & truncated : truncated_index_entries)
     {

@@ -30,9 +30,9 @@ ParserDbAdapter::ParserDbAdapter(const njson &config, const std::shared_ptr<Blac
     }
 
     bool logger_level = BlackLibraryCommon::DefaultLogLevel;
-    if (nconfig.contains("db_debug_log"))
+    if (nconfig.contains("parser_db_adapter_debug_log"))
     {
-        logger_level = nconfig["db_debug_log"];
+        logger_level = nconfig["parser_db_adapter_debug_log"];
     }
 
     if (nconfig.contains("db_version"))
@@ -49,7 +49,7 @@ ParserDbAdapter::ParserDbAdapter(const njson &config, const std::shared_ptr<Blac
 // if exists with correct index, skip
 // if 
 
-ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time, const std::string &url)
+ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time)
 {
     ParserVersionCheckResult version_check;
     auto content_md5 = BlackLibraryCommon::GetMD5Hash(content);
@@ -57,7 +57,9 @@ ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &conten
 
     BlackLibraryCommon::Md5Sum md5_check = CheckForMd5(content_md5, uuid);
 
-    if (md5_check.md5_sum == content_md5 && md5_check.date == time && md5_check.url == url)
+    BlackLibraryCommon::LogDebug(logger_name_, "CheckVersion UUID: {} checksum hash: {}", uuid, md5_check.md5_sum);
+
+    if (md5_check.md5_sum == content_md5 && md5_check.date == time)
     {
         version_check.already_exists = true;
         version_check.has_error = false;

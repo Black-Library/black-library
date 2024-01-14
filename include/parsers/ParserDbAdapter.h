@@ -28,7 +28,7 @@ class ParserDbAdapter
 public:
     explicit ParserDbAdapter(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db_);
 
-    ParserVersionCheckResult CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time, const std::string &url);
+    ParserVersionCheckResult CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time);
     // size_t GetVersion();
     // size_t UpsertVersion();
 

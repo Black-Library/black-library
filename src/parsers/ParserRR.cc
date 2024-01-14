@@ -241,8 +241,6 @@ ParseSectionInfo ParserRR::ParseSection()
         ++length;
     }
 
-    output.length = length;
-
     // generate section file name from index entry
     const auto section_name = GetRRIndexEntryTitle(index_entry);
 
@@ -262,7 +260,7 @@ ParseSectionInfo ParserRR::ParseSection()
     if (section_content.empty())
         return output;
 
-    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_entry.index_num, index_entry.time_published, index_entry.data_url);
+    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_entry.index_num, index_entry.time_published);
 
     if (version_check_result.has_error)
         return output;
@@ -293,6 +291,8 @@ ParseSectionInfo ParserRR::ParseSection()
         db_adapter_->UpsertMd5(uuid_, index_, version_check_result.md5, index_entry.time_published, index_entry.data_url, version_num);
 
     // TODO consider adding a table or changing the version num/md5 table to track location/name of saved file
+
+    output.length = section_content.size();
 
     output.has_error = false;
 
