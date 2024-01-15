@@ -22,7 +22,7 @@ struct Md5Sum {
     size_t index_num = 0;
     std::string md5_sum = EmptyMD5Version;
     time_t date = 0;
-    std::string url = "";
+    std::string identifier = "";
     size_t version_num = 0;
 };
 
@@ -32,7 +32,7 @@ inline std::ostream& operator<< (std::ostream &out, const Md5Sum &sum)
     out << "index_num: " << sum.index_num << " ";
     out << "md5_sum: " << sum.md5_sum << " ";
     out << "date: " << sum.date << " ";
-    out << "url: " << sum.url << " ";
+    out << "identifier: " << sum.identifier << " ";
     out << "version_number: " << sum.version_num;
 
     return out;
@@ -49,12 +49,13 @@ enum class DBMd5SumColumnID : uint8_t
     index_num,
     md5_sum,
     date,
-    url,
+    identifier,
     version_num,
 
     _NUM_DB_MD5SUM_COLUMN_ID
 };
 
+std::string GetIdentifierFromUrl(const std::string &url);
 std::string GetMD5Hash(const std::string &input);
 
 } // namespace common
