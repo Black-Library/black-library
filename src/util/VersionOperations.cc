@@ -7,6 +7,7 @@
 
 #include <openssl/evp.h>
 
+#include <SourceInformation.h>
 #include <VersionOperations.h>
 
 namespace black_library {
@@ -43,6 +44,11 @@ std::string CalculateMd5Manual(unsigned char* buf, unsigned int buf_size)
     OPENSSL_free(md5_digest);
 
     return oss.str();
+}
+
+std::string GetIdentifierFromUrl(const std::string &url)
+{
+    return "";
 }
 
 std::string GetMD5Hash(const std::string &input)
