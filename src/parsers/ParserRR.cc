@@ -287,8 +287,10 @@ ParseSectionInfo ParserRR::ParseSection()
         return output;
     }
 
+    std::string identifier = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(index_entry.data_url);
+
     if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_, version_check_result.md5, index_entry.time_published, index_entry.data_url, version_num);
+        db_adapter_->UpsertMd5(uuid_, index_, version_check_result.md5, index_entry.time_published, identifier, version_num);
 
     // TODO consider adding a table or changing the version num/md5 table to track location/name of saved file
 

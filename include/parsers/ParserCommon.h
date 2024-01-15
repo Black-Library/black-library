@@ -32,7 +32,7 @@ enum class job_status_t {
     JOB_WORKING,
     JOB_FINISHED,
 
-    _NUM_JOB_STATUS_TYPES_
+    _NUM_JOB_STATUS_TYPES
 };
 
 std::string GetStatusName(job_status_t job_status);

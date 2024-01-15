@@ -33,9 +33,9 @@ public:
     // size_t UpsertVersion();
 
     BlackLibraryCommon::Md5Sum CheckForMd5(const std::string &md5_sum, const std::string &uuid);
-    BlackLibraryCommon::Md5Sum ReadMd5(const std::string &uuid, const std::string &url);
+    BlackLibraryCommon::Md5Sum ReadMd5(const std::string &uuid, const std::string &identifier);
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> ReadMd5s(const std::string &uuid);
-    int UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num);
+    int UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &identifier, uint64_t version_num);
 
 private:
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;

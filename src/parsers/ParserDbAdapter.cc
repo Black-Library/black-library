@@ -88,7 +88,7 @@ BlackLibraryCommon::Md5Sum ParserDbAdapter::CheckForMd5(const std::string &md5_s
     return md5;
 }
 
-BlackLibraryCommon::Md5Sum ParserDbAdapter::ReadMd5(const std::string &uuid, const std::string &url)
+BlackLibraryCommon::Md5Sum ParserDbAdapter::ReadMd5(const std::string &uuid, const std::string &identifier)
 {
     BlackLibraryCommon::Md5Sum md5;
     if (!blacklibrary_db_->DoesWorkEntryUUIDExist(uuid))
@@ -96,13 +96,13 @@ BlackLibraryCommon::Md5Sum ParserDbAdapter::ReadMd5(const std::string &uuid, con
         BlackLibraryCommon::LogWarn(logger_name_, "Work entry with UUID: {} does not exist for md5 read", uuid);
         return md5;
     }
-    if (!blacklibrary_db_->DoesMd5SumExistUrl(uuid, url))
+    if (!blacklibrary_db_->DoesMd5SumExistIdentifier(uuid, identifier))
     {
-        BlackLibraryCommon::LogDebug(logger_name_, "Read md5 UUID: {} url: {} failed md5 sum does not exist", uuid, url);
+        BlackLibraryCommon::LogDebug(logger_name_, "Read md5 UUID: {} identifier: {} failed md5 sum does not exist", uuid, identifier);
         return md5;
     }
 
-    md5 = blacklibrary_db_->ReadMd5SumUrl(uuid, url);
+    md5 = blacklibrary_db_->ReadMd5SumIdentifier(uuid, identifier);
 
     return md5;
 }
@@ -112,16 +112,16 @@ std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> ParserDbAdapter::Rea
     return blacklibrary_db_->GetMd5SumsFromUUID(uuid);
 }
 
-int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &url, uint64_t version_num)
+int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, time_t date, const std::string &identifier, uint64_t version_num)
 {
     const std::lock_guard<std::mutex> lock(upsert_mutex_);
 
-    BlackLibraryCommon::Md5Sum md5 = { uuid, index_num, md5_sum, date, url, version_num };
+    BlackLibraryCommon::Md5Sum md5 = { uuid, index_num, md5_sum, date, identifier, version_num };
 
     // if exact copy already exists print warning, previous step should have already caught
     // if (blacklibrary_db_->DoesMd5SumExistExact())
     // {
-    //     BlackLibraryCommon::LogError(logger_name_, "Exact copy of md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} already exists", uuid, index_num, md5_sum, date, url);
+    //     BlackLibraryCommon::LogError(logger_name_, "Exact copy of md5 UUID: {} index_num: {} md5_sum: {} date: {} identifier: {} already exists", uuid, index_num, md5_sum, date, url);
     //     return;
     // }
 
@@ -129,7 +129,7 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
     {
         if (blacklibrary_db_->UpdateMd5Sum(md5))
         {
-            BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} already exists", uuid, index_num, md5_sum, date, url, version_num);
+            BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} identifier: {} failed", uuid, index_num, md5_sum, date, identifier, version_num);
             return -1;
         }
         
@@ -139,7 +139,7 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
     // otherwise, create a new one
     if (blacklibrary_db_->CreateMd5Sum(md5))
     {
-        BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} url: {} failed", uuid, index_num, md5_sum, date, url, version_num);
+        BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} identifier: {} failed", uuid, index_num, md5_sum, date, identifier, version_num);
         return -1;
     }
 

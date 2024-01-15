@@ -55,8 +55,9 @@ enum class DBMd5SumColumnID : uint8_t
     _NUM_DB_MD5SUM_COLUMN_ID
 };
 
-std::string GetIdentifierFromUrl(const std::string &url);
 std::string GetMD5Hash(const std::string &input);
+std::string GetWorkChapterIdentifierFromUrl(const std::string &url);
+std::string GetWorkIdentifierFromUrl(const std::string &url);
 
 } // namespace common
 } // namespace core

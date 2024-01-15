@@ -188,7 +188,7 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumIndexNum(const std::string 
     return md5;
 }
 
-BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumUrl(const std::string &uuid, const std::string &url)
+BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumIdentifier(const std::string &uuid, const std::string &identifier)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -199,10 +199,10 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumUrl(const std::string &uuid
         BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with empty UUID");
         return md5;
     }
-    md5 = database_connection_interface_->ReadMd5SumUrl(uuid, url);
+    md5 = database_connection_interface_->ReadMd5SumIdentifier(uuid, identifier);
     if (md5.uuid.empty())
     {
-        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} url: {}", uuid, url);
+        BlackLibraryCommon::LogError(logger_name_, "Failed to read MD5 checksum with UUID: {} identifier: {}", uuid, identifier);
         return md5;
     }
 
@@ -366,11 +366,11 @@ bool BlackLibraryDB::DoesMd5SumExistIndexNum(const std::string &uuid, size_t ind
     return check.result;
 }
 
-bool BlackLibraryDB::DoesMd5SumExistUrl(const std::string &uuid, const std::string &url)
+bool BlackLibraryDB::DoesMd5SumExistIdentifier(const std::string &uuid, const std::string &url)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    DBBoolResult check = database_connection_interface_->DoesMd5SumExistUrl(uuid, url);
+    DBBoolResult check = database_connection_interface_->DoesMd5SumExistIdentifier(uuid, url);
     
     if (check.error != 0)
     {
