@@ -102,7 +102,6 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         {
             max_index = md5.second.index_num;
             last_update_date_ = md5.second.date;
-            last_url_ = md5.second.url;
         }
         ++expected_index;
     }
@@ -119,7 +118,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     //         // if more -> new entry should use expected_index
     //     ++expected_index;
 
-    BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}, last_url: {}", uuid_, gap_width_, last_url_);
+    BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}", uuid_, gap_width_);
 
     std::vector<ParserIndexEntry> truncated_index_entries;
     for (const auto & index_entry : index_entries_)

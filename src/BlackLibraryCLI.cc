@@ -186,26 +186,6 @@ void BlackLibraryCLI::ChangeSizeAll(const std::vector<std::string> &tokens)
     }
 }
 
-void BlackLibraryCLI::ClearUrlFromChecksum(const std::vector<std::string> &tokens)
-{
-    (void) tokens;
-    auto checksums = blacklibrary_db_.GetChecksumList();
-
-    size_t modify_count = 0;
-    for (auto & checksum : checksums) 
-    {
-        if (checksum.url.rfind("/fiction", 0) == 0)
-        {
-            checksum.url.insert(0, "https://www.royalroad.com");
-            std::cout << checksum.url << std::endl;
-            blacklibrary_db_.UpdateMd5Sum(checksum);
-            ++modify_count;
-        }
-    }
-
-    BlackLibraryCommon::LogInfo(logger_name_, "Modified {} checksum rows", modify_count);
-}
-
 void BlackLibraryCLI::DeleteEntry(const std::vector<std::string> &tokens)
 {
     std::string target_entry_type;
@@ -254,6 +234,12 @@ void BlackLibraryCLI::Export(const std::vector<std::string> &tokens)
         ExportChecksums(tokens);
     else if (target_type == "error")
         ExportEntries(tokens, "error");
+    else if (target_type == "all")
+    {
+        ExportEntries(tokens, "work");
+        ExportChecksums(tokens);
+    }
+    
     else
         std::cout << "export [checksum, error, work]" << std::endl;
 }
@@ -277,7 +263,7 @@ void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
         ss << checksum.index_num << ',';
         ss << checksum.md5_sum << ',';
         ss << checksum.date << ',';
-        ss << checksum.url << ',';
+        ss << checksum.identifier << ',';
         ss << checksum.version_num;
         ss << '\n';
     }
@@ -385,8 +371,14 @@ void BlackLibraryCLI::Import(const std::vector<std::string> &tokens)
         ImportEntries(tokens);
     else if (target_type == "checksum")
         ImportChecksums(tokens);
+    else if (target_type == "all")
+    {
+        ImportEntries(tokens);
+        ImportChecksums(tokens);
+    }
+    
     else
-        std::cout << "import [checksum, error, work] path" << std::endl;
+        std::cout << "import [all, checksum, error, work] path" << std::endl;
 }
 
 void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
@@ -445,7 +437,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
             static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
             tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::md5_sum)],
             stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
-            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::url)],
+            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::identifier)],
             static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
         };
 
@@ -719,6 +711,26 @@ void BlackLibraryCLI::SquashMd5Indexes(const std::vector<std::string> &tokens)
     }
 }
 
+void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens)
+{
+    (void) tokens;
+    auto checksums = blacklibrary_db_.GetChecksumList();
+
+    size_t modify_count = 0;
+    for (auto & checksum : checksums) 
+    {
+        if (checksum.identifier.rfind("/fiction", 0) == 0)
+        {
+            checksum.identifier.insert(0, "https://www.royalroad.com");
+            std::cout << checksum.identifier << std::endl;
+            blacklibrary_db_.UpdateMd5Sum(checksum);
+            ++modify_count;
+        }
+    }
+
+    BlackLibraryCommon::LogInfo(logger_name_, "Modified {} checksum rows", modify_count);
+}
+
 void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
 {
     (void) tokens;
@@ -756,10 +768,6 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     {
         BindEntry(tokens);
     }
-    else if (command == "clearurl")
-    {
-        ClearUrlFromChecksum(tokens);
-    }
     else if (command == "delete")
     {
         DeleteEntry(tokens);
@@ -791,6 +799,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "squash")
     {
         SquashMd5Indexes(tokens);
+    }
+    else if (command == "updateidentifier")
+    {
+        UpdateMd5Identifier(tokens);
     }
     else if (command == "versionall")
     {

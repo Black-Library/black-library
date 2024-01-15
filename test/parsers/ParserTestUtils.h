@@ -53,32 +53,32 @@ std::unordered_map<uint8_t, BlackLibraryCommon::Md5Sum> GenerateFullTestMd5Map()
     md5_0.uuid = RR_DUMMY_UUID;
     md5_0.index_num = 0;
     md5_0.md5_sum = RR_MD5_0;
-    md5_0.url = RR_URL_0;
+    md5_0.identifier = RR_IDENTIFIER_0;
 
     md5_1.uuid = RR_DUMMY_UUID;
     md5_1.index_num = 1;
     md5_1.md5_sum = RR_MD5_1;
-    md5_1.url = RR_URL_1;
+    md5_1.identifier = RR_IDENTIFIER_1;
 
     md5_2.uuid = RR_DUMMY_UUID;
     md5_2.index_num = 2;
     md5_2.md5_sum = RR_MD5_2;
-    md5_2.url = RR_URL_2;
+    md5_2.identifier = RR_IDENTIFIER_2;
 
     md5_3.uuid = RR_DUMMY_UUID;
     md5_3.index_num = 3;
     md5_3.md5_sum = RR_MD5_3;
-    md5_3.url = RR_URL_3;
+    md5_3.identifier = RR_IDENTIFIER_3;
 
     md5_4.uuid = RR_DUMMY_UUID;
     md5_4.index_num = 4;
     md5_4.md5_sum = RR_MD5_4;
-    md5_4.url = RR_URL_4;
+    md5_4.identifier = RR_IDENTIFIER_4;
 
     md5_5.uuid = RR_DUMMY_UUID;
     md5_5.index_num = 5;
     md5_5.md5_sum = RR_MD5_5;
-    md5_5.url = RR_URL_5;
+    md5_5.identifier = RR_IDENTIFIER_5;
 
     md5_map.emplace(0, md5_0);
     md5_map.emplace(1, md5_1);

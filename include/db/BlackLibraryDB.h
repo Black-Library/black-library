@@ -37,7 +37,7 @@ public:
 
     int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
     BlackLibraryCommon::Md5Sum ReadMd5SumIndexNum(const std::string &uuid, size_t index_num);
-    BlackLibraryCommon::Md5Sum ReadMd5SumUrl(const std::string &uuid, const std::string &url);
+    BlackLibraryCommon::Md5Sum ReadMd5SumIdentifier(const std::string &uuid, const std::string &identifier);
     int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
     int DeleteMd5Sum(const std::string &uuid, size_t index_num);
 
@@ -50,7 +50,7 @@ public:
 
     bool DoesWorkEntryUrlExist(const std::string &url);
     bool DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num);
-    bool DoesMd5SumExistUrl(const std::string &uuid, const std::string &url);
+    bool DoesMd5SumExistIdentifier(const std::string &uuid, const std::string &identifier);
     bool DoesRefreshExist(const std::string &uuid);
     bool DoesMinRefreshExist();
     bool DoesErrorEntryExist(const std::string &uuid, size_t progress_num);

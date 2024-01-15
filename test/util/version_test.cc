@@ -13,7 +13,7 @@ namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
-TEST_CASE( "Generic version check tests (pass)", "[single-file]" )
+TEST_CASE( "Generic version GetMD5Hash tests (pass)", "[single-file]" )
 {
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
     auto config = GenerateParserTestConfig();
@@ -37,6 +37,20 @@ TEST_CASE( "Generic version check tests (pass)", "[single-file]" )
     REQUIRE ( content_md5_5 == RR_MD5_5 );
 
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
+}
+
+TEST_CASE( "Generic version GetWorkChapterIdentifierFromUrl tests (pass)", "[single-file]" )
+{
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(RR_DUMMY_CHAPTER_URL) == "1234567" );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(SBF_DUMMY_CHAPTER_URL) == "12345678" );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(SVF_DUMMY_CHAPTER_URL) == "12345678" );
+}
+
+TEST_CASE( "Generic version GetWorkIdentifierFromUrl tests (pass)", "[single-file]" )
+{
+    REQUIRE ( BlackLibraryCommon::GetWorkIdentifierFromUrl(RR_DUMMY_CHAPTER_URL) == "12345" );
+    REQUIRE ( BlackLibraryCommon::GetWorkIdentifierFromUrl(SBF_DUMMY_CHAPTER_URL) == "1234567" );
+    REQUIRE ( BlackLibraryCommon::GetWorkIdentifierFromUrl(SVF_DUMMY_CHAPTER_URL) == "123456" );
 }
 
 TEST_CASE( "Clean up in case of failure" )

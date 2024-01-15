@@ -93,21 +93,21 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
 
     REQUIRE ( blacklibrary_db.CreateMd5Sum(md5) == 0 );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistIndexNum(md5.uuid, md5.index_num) == true );
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistUrl(md5.uuid, md5.url) == true );
+    REQUIRE ( blacklibrary_db.DoesMd5SumExistIdentifier(md5.uuid, md5.identifier) == true );
 
     BlackLibraryCommon::Md5Sum md5_read = blacklibrary_db.ReadMd5SumIndexNum(md5.uuid, md5.index_num);
     REQUIRE ( md5_read.uuid == md5.uuid );
     REQUIRE ( md5_read.index_num == md5.index_num );
     REQUIRE ( md5_read.md5_sum == md5.md5_sum );
     REQUIRE ( md5_read.date == md5.date );
-    REQUIRE ( md5_read.url == md5.url );
+    REQUIRE ( md5_read.identifier == md5.identifier );
 
-    md5_read = blacklibrary_db.ReadMd5SumUrl(md5.uuid, md5.url);
+    md5_read = blacklibrary_db.ReadMd5SumIdentifier(md5.uuid, md5.identifier);
     REQUIRE ( md5_read.uuid == md5.uuid );
     REQUIRE ( md5_read.index_num == md5.index_num );
     REQUIRE ( md5_read.md5_sum == md5.md5_sum );
     REQUIRE ( md5_read.date == md5.date );
-    REQUIRE ( md5_read.url == md5.url );
+    REQUIRE ( md5_read.identifier == md5.identifier );
 
     size_t version_num_0 = blacklibrary_db.GetVersionFromMd5(md5.uuid, md5.index_num);
     REQUIRE ( version_num_0 == md5.version_num );
@@ -118,28 +118,28 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
     md5.md5_sum = "17e8f0b4718aa78060a067fcee68513c";
     md5.date = 101;
     md5.version_num = 5;
-    md5.url = "new-md5-url";
+    md5.identifier = "new-md5-identifier";
     REQUIRE ( blacklibrary_db.UpdateMd5Sum(md5) == 0 );
-    BlackLibraryCommon::Md5Sum md5_update = blacklibrary_db.ReadMd5SumUrl(md5.uuid, md5.url);
+    BlackLibraryCommon::Md5Sum md5_update = blacklibrary_db.ReadMd5SumIdentifier(md5.uuid, md5.identifier);
     REQUIRE ( md5_update.md5_sum == md5.md5_sum );
     REQUIRE ( md5_update.date == md5.date );
     REQUIRE ( md5_update.version_num == md5.version_num );
-    REQUIRE ( md5_update.url == md5.url );
+    REQUIRE ( md5_update.identifier == md5.identifier );
 
     REQUIRE ( blacklibrary_db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     md5.index_num = 1000;
     REQUIRE ( blacklibrary_db.CreateMd5Sum(md5) == 0 );
-    BlackLibraryCommon::Md5Sum md5_update_index_num = blacklibrary_db.ReadMd5SumUrl(md5.uuid, md5.url);
+    BlackLibraryCommon::Md5Sum md5_update_index_num = blacklibrary_db.ReadMd5SumIdentifier(md5.uuid, md5.identifier);
 
     REQUIRE ( md5_update_index_num.md5_sum == md5.md5_sum );
     REQUIRE ( md5_update_index_num.date == md5.date );
     REQUIRE ( md5_update_index_num.version_num == md5.version_num );
-    REQUIRE ( md5_update_index_num.url == md5.url );
+    REQUIRE ( md5_update_index_num.identifier == md5.identifier );
     REQUIRE ( md5_update_index_num.index_num == md5.index_num );
 
     REQUIRE ( blacklibrary_db.DeleteMd5Sum(md5.uuid, md5.index_num) == 0 );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistIndexNum(md5.uuid, md5.index_num) == false );
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistUrl(md5.uuid, md5.url) == false );
+    REQUIRE ( blacklibrary_db.DoesMd5SumExistIdentifier(md5.uuid, md5.identifier) == false );
 }
 
 TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single-file]" )
@@ -151,14 +151,14 @@ TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single
 
     REQUIRE ( blacklibrary_db.CreateMd5Sum(md5_0) == 0 );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistIndexNum(md5_0.uuid, md5_0.index_num) == true );
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistUrl(md5_0.uuid, md5_0.url) == true );
+    REQUIRE ( blacklibrary_db.DoesMd5SumExistIdentifier(md5_0.uuid, md5_0.identifier) == true );
 
     BlackLibraryCommon::Md5Sum md5_1 = GenerateTestMd5Sum();
     BlackLibraryCommon::Md5Sum md5_2 = GenerateTestMd5Sum();
     md5_2.index_num = 10;
     md5_1.index_num = 20;
-    md5_1.url = "md5-url-1";
-    md5_2.url = "md5-url-2";
+    md5_1.identifier = "md5-identifier-1";
+    md5_2.identifier = "md5-identifier-2";
 
     REQUIRE ( blacklibrary_db.CreateMd5Sum(md5_1) == 0 );
     REQUIRE ( blacklibrary_db.CreateMd5Sum(md5_2) == 0 );
@@ -168,7 +168,7 @@ TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single
 
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUID(md5_0.uuid);
 
-    size_t lowest = md5_sums.find(md5_2.url)->second.index_num;
+    size_t lowest = md5_sums.find(md5_2.identifier)->second.index_num;
     for (const auto & md5 : md5_sums)
     {
         REQUIRE ( lowest <= md5.second.index_num );

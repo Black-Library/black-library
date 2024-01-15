@@ -229,7 +229,9 @@ ParseSectionInfo ParserXF::ParseSection()
     auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
     BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, section_md5);
 
-    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.url == working_url)
+    std::string identifier = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(working_url);
+
+    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.identifier == identifier)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
         skip_file_check = true;
@@ -239,7 +241,7 @@ ParseSectionInfo ParserXF::ParseSection()
     if (saved_md5.md5_sum == section_md5)
     {
         if (db_adapter_)
-            db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, working_url, 0);
+            db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, identifier, 0);
 
         output.has_error = false;
         return output;
@@ -266,7 +268,7 @@ ParseSectionInfo ParserXF::ParseSection()
     }
 
     if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, working_url, version_num);
+        db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, identifier, version_num);
 
     output.has_error = false;
 

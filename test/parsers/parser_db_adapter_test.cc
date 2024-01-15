@@ -41,13 +41,13 @@ TEST_CASE( "Generic db adapter tests (pass)", "[single-file]" )
 
     for (const auto & md5 : md5_map)
     {
-        auto db_md5 = blacklibrary_db->ReadMd5SumUrl(md5.second.uuid, md5.second.url);
-        REQUIRE (blacklibrary_db->DoesMd5SumExistUrl(md5.second.uuid, md5.second.url) == true);
+        auto db_md5 = blacklibrary_db->ReadMd5SumIdentifier(md5.second.uuid, md5.second.identifier);
+        REQUIRE (blacklibrary_db->DoesMd5SumExistIdentifier(md5.second.uuid, md5.second.identifier) == true);
         REQUIRE (blacklibrary_db->DoesWorkEntryUUIDExist(md5.second.uuid));
 
-        auto db_adapter_md5 = db_adapter->ReadMd5(md5.second.uuid, md5.second.url);
+        auto db_adapter_md5 = db_adapter->ReadMd5(md5.second.uuid, md5.second.identifier);
         REQUIRE ( db_md5.uuid == db_adapter_md5.uuid );
-        REQUIRE ( db_md5.url == db_adapter_md5.url );
+        REQUIRE ( db_md5.identifier == db_adapter_md5.identifier );
         REQUIRE ( db_md5.index_num == db_adapter_md5.index_num );
         REQUIRE ( db_md5.md5_sum == db_adapter_md5.md5_sum );
 

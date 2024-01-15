@@ -29,7 +29,7 @@ static constexpr const char CreateBookGenreTable[]                = "CREATE TABL
 static constexpr const char CreateDocumentTagTable[]              = "CREATE TABLE IF NOT EXISTS document_tag(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateSourceTable[]                   = "CREATE TABLE IF NOT EXISTS source(name TEXT NOT NULL PRIMARY KEY, media_type TEXT, media_subtype TEXT, FOREIGN KEY(media_type) REFERENCES media_type(name) FOREIGN KEY(media_subtype) REFERENCES media_subtype(name))";
 static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, processing INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
-static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), date INTERGER, url TEXT, version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), date INTERGER, identifier TEXT, version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) NOT NULL PRIMARY KEY, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 
@@ -39,7 +39,7 @@ static constexpr const char CreateMediaTypeStatement[]            = "INSERT INTO
 static constexpr const char CreateMediaSubtypeStatement[]         = "INSERT INTO media_subtype(name, media_type_name) VALUES (:name, :media_type_name)";
 static constexpr const char CreateSourceStatement[]               = "INSERT INTO source(name, media_type, media_subtype) VALUES (:name, :media_type, :media_subtype)";
 static constexpr const char CreateWorkEntryStatement[]            = "INSERT INTO work_entry(UUID, title, author, nickname, source, url, last_url, series, series_length, version, media_path, birth_date, check_date, update_date, user_contributed, processing) VALUES (:UUID, :title, :author, :nickname, :source, :url, :last_url, :series, :series_length, :version, :media_path, :birth_date, :check_date, :update_date, :user_contributed, :processing)";
-static constexpr const char CreateMd5SumStatement[]               = "INSERT INTO md5_sum(UUID, index_num, md5_sum, date, url, version_num) VALUES (:UUID, :index_num, :md5_sum, :date, :url, :version_num)";
+static constexpr const char CreateMd5SumStatement[]               = "INSERT INTO md5_sum(UUID, index_num, md5_sum, date, identifier, version_num) VALUES (:UUID, :index_num, :md5_sum, :date, :identifier, :version_num)";
 static constexpr const char CreateRefreshStatement[]              = "INSERT INTO refresh(UUID, refresh_date) VALUES (:UUID, :refresh_date)";
 static constexpr const char CreateErrorEntryStatement[]           = "INSERT INTO error_entry(UUID, progress_num) VALUES (:UUID, :progress_num)";
 
@@ -47,12 +47,12 @@ static constexpr const char ReadWorkEntryStatement[]              = "SELECT * FR
 static constexpr const char ReadWorkEntryUrlStatement[]           = "SELECT * FROM work_entry WHERE url = :url";
 static constexpr const char ReadWorkEntryUUIDStatement[]          = "SELECT * FROM work_entry WHERE UUID = :UUID";
 static constexpr const char ReadMd5SumIndexNumStatement[]         = "SELECT * FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
-static constexpr const char ReadMd5SumUrlStatement[]              = "SELECT * FROM md5_sum WHERE UUID = :UUID AND url = :url";
+static constexpr const char ReadMd5SumIdentifierStatement[]       = "SELECT * FROM md5_sum WHERE UUID = :UUID AND identifier = :identifier";
 static constexpr const char ReadRefreshStatement[]                = "SELECT * FROM refresh WHERE UUID = :UUID";
 static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
 static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed, processing = :processing WHERE UUID = :UUID";
-static constexpr const char UpdateMd5SumStatement[]               = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, url = :url, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
+static constexpr const char UpdateMd5SumStatement[]               = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, identifier = :identifier, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
 
 static constexpr const char DeleteWorkEntryStatement[]            = "DELETE FROM work_entry WHERE UUID = :UUID";
 static constexpr const char DeleteMd5SumStatement[]               = "DELETE FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
@@ -87,7 +87,7 @@ typedef enum {
     READ_WORK_ENTRY_URL_STATEMENT,
     READ_WORK_ENTRY_UUID_STATEMENT,
     READ_MD5_SUM_INDEX_NUM_STATEMENT,
-    READ_MD5_SUM_URL_STATEMENT,
+    READ_MD5_SUM_IDENTIFIER_STATEMENT,
     READ_REFRESH_STATEMENT,
     READ_ERROR_ENTRY_STATEMENT,
 
@@ -274,7 +274,7 @@ std::vector<BlackLibraryCommon::Md5Sum> SQLiteDB::ListChecksums() const
         md5_sum.index_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::index_num));
         md5_sum.md5_sum = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::md5_sum))));
         md5_sum.date = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::date));
-        md5_sum.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::url))));
+        md5_sum.identifier = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::identifier))));
         md5_sum.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
 
         md5_sums.emplace_back(md5_sum);
@@ -744,7 +744,7 @@ int SQLiteDB::CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const
         return -1;
     if (BindInt(stmt, "date", md5.date))
         return -1;
-    if (BindText(stmt, "url", md5.url))
+    if (BindText(stmt, "identifier", md5.identifier))
         return -1;
     if (BindInt(stmt, "version_num", md5.version_num))
         return -1;
@@ -807,7 +807,7 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumIndexNum(const std::string &uuid,
     checksum.index_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::index_num));
     checksum.md5_sum = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::md5_sum))));
     checksum.date = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::date));
-    checksum.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::url))));
+    checksum.identifier = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::identifier))));
     checksum.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
 
 
@@ -819,9 +819,9 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumIndexNum(const std::string &uuid,
     return checksum;
 }
 
-BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumUrl(const std::string &uuid, const std::string &url) const
+BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumIdentifier(const std::string &uuid, const std::string &identifier) const
 {
-    BlackLibraryCommon::LogDebug(logger_name_, "Read MD5 checksum with UUID: {} url: {}", uuid, url);
+    BlackLibraryCommon::LogDebug(logger_name_, "Read MD5 checksum with UUID: {} identifier: {}", uuid, identifier);
 
     BlackLibraryCommon::Md5Sum checksum;
 
@@ -831,12 +831,12 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumUrl(const std::string &uuid, cons
     if (BeginTransaction())
         return checksum;
 
-    sqlite3_stmt *stmt = prepared_statements_[READ_MD5_SUM_URL_STATEMENT];
+    sqlite3_stmt *stmt = prepared_statements_[READ_MD5_SUM_IDENTIFIER_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
         return checksum;
-    if (BindText(stmt, "url", url))
+    if (BindText(stmt, "identifier", identifier))
         return checksum;
 
     LogTraceStatement(stmt);
@@ -856,7 +856,7 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumUrl(const std::string &uuid, cons
     checksum.index_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::index_num));
     checksum.md5_sum = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::md5_sum))));
     checksum.date = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::date));
-    checksum.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::url))));
+    checksum.identifier = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::identifier))));
     checksum.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
 
 
@@ -889,7 +889,7 @@ int SQLiteDB::UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const
         return -1;
     if (BindInt(stmt, "date", md5.date))
         return -1;
-    if (BindText(stmt, "url", md5.url))
+    if (BindText(stmt, "identifier", md5.identifier))
         return -1;
     if (BindInt(stmt, "version_num", md5.version_num))
         return -1;
@@ -1336,13 +1336,13 @@ DBBoolResult SQLiteDB::DoesMd5SumExistIndexNum(const std::string &uuid, size_t i
     return check;
 }
 
-DBBoolResult SQLiteDB::DoesMd5SumExistUrl(const std::string &uuid, const std::string &url) const
+DBBoolResult SQLiteDB::DoesMd5SumExistIdentifier(const std::string &uuid, const std::string &identifier) const
 {
-    BlackLibraryCommon::LogDebug(logger_name_, "Check MD5 checksum for UUID: {}, url: {}", uuid, url);
+    BlackLibraryCommon::LogDebug(logger_name_, "Check MD5 checksum for UUID: {}, identifier: {}", uuid, identifier);
 
     DBBoolResult check;
 
-    if (uuid.empty() || url.empty())
+    if (uuid.empty() || identifier.empty())
     {
         check.result = false;
         return check;
@@ -1360,7 +1360,7 @@ DBBoolResult SQLiteDB::DoesMd5SumExistUrl(const std::string &uuid, const std::st
         return check;
     }
 
-    sqlite3_stmt *stmt = prepared_statements_[READ_MD5_SUM_URL_STATEMENT];
+    sqlite3_stmt *stmt = prepared_statements_[READ_MD5_SUM_IDENTIFIER_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", uuid))
@@ -1368,7 +1368,7 @@ DBBoolResult SQLiteDB::DoesMd5SumExistUrl(const std::string &uuid, const std::st
         check.error = sqlite3_errcode(database_conn_);
         return check;
     }
-    if (BindText(stmt, "url", url))
+    if (BindText(stmt, "identifier", identifier))
     {
         check.error = sqlite3_errcode(database_conn_);
         return check;
@@ -1381,7 +1381,7 @@ DBBoolResult SQLiteDB::DoesMd5SumExistUrl(const std::string &uuid, const std::st
     ret = sqlite3_step(stmt);
     if (ret != SQLITE_ROW)
     {
-        BlackLibraryCommon::LogDebug(logger_name_, "MD5 checksum UUID: {} url: {} does not exist", uuid, url);
+        BlackLibraryCommon::LogDebug(logger_name_, "MD5 checksum UUID: {} identifier: {} does not exist", uuid, identifier);
         check.result = false;
         ResetStatement(stmt);
         EndTransaction();
@@ -1742,7 +1742,7 @@ BlackLibraryCommon::Md5Sum SQLiteDB::GetMd5SumFromMd5Sum(const std::string &md5_
     md5.index_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::index_num));
     md5.md5_sum = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::md5_sum))));
     md5.date = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::date));
-    md5.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::url))));
+    md5.identifier = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::identifier))));
     md5.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
 
     ResetStatement(stmt);
@@ -1782,10 +1782,10 @@ std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5Sums
         md5_sum.index_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::index_num));
         md5_sum.md5_sum = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::md5_sum))));
         md5_sum.date = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::date));
-        md5_sum.url = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::url))));
+        md5_sum.identifier = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::identifier))));
         md5_sum.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
 
-        md5_sums.emplace(md5_sum.url, md5_sum);
+        md5_sums.emplace(md5_sum.identifier, md5_sum);
     }
 
     ResetStatement(stmt);
@@ -2030,7 +2030,7 @@ int SQLiteDB::PrepareStatements()
     res += PrepareStatement(ReadWorkEntryUrlStatement, READ_WORK_ENTRY_URL_STATEMENT);
     res += PrepareStatement(ReadWorkEntryUUIDStatement, READ_WORK_ENTRY_UUID_STATEMENT);
     res += PrepareStatement(ReadMd5SumIndexNumStatement, READ_MD5_SUM_INDEX_NUM_STATEMENT);
-    res += PrepareStatement(ReadMd5SumUrlStatement, READ_MD5_SUM_URL_STATEMENT);
+    res += PrepareStatement(ReadMd5SumIdentifierStatement, READ_MD5_SUM_IDENTIFIER_STATEMENT);
     res += PrepareStatement(ReadRefreshStatement, READ_REFRESH_STATEMENT);
     res += PrepareStatement(ReadErrorEntryStatement, READ_ERROR_ENTRY_STATEMENT);
 
