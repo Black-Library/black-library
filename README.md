@@ -41,14 +41,26 @@ then
 ## Running the main application
 If installed in ./install
 
-```./install/bin/blacklibrary_app -d /mnt/black-library/db/catalog.db -s /mnt/black-library/store/```
+```./install/bin/blacklibrary_app --config black-library-config.json```
 
 ## Running the CLI interface
 If installed in ./install
 
-```./install/bin/blacklibrary_cli -d /mnt/black-library/db/catalog.db -s /mnt/black-library/store/```
+```./install/bin/blacklibrary_cli --config black-library-config.json```
 
 supported commands are listed under the `help` command
+
+## Db migration summary
+
+this will use default export/import locations
+
+```./install/bin/blacklibrary_cli --config black-library-config.json```
+```export all```
+
+modify db
+
+```./install/bin/blacklibrary_cli --config black-library-config.json```
+```import all```
 
 ## Syntax guidelines
 
