@@ -121,7 +121,7 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
     // if exact copy already exists print warning, previous step should have already caught
     // if (blacklibrary_db_->DoesMd5SumExistExact())
     // {
-    //     BlackLibraryCommon::LogError(logger_name_, "Exact copy of md5 UUID: {} index_num: {} md5_sum: {} date: {} identifier: {} already exists", uuid, index_num, md5_sum, date, url);
+    //     BlackLibraryCommon::LogError(logger_name_, "Exact copy of md5 UUID: {} index_num: {} md5_sum: {} date: {} identifier: {} already exists", uuid, index_num, md5_sum, date, identifier);
     //     return;
     // }
 
