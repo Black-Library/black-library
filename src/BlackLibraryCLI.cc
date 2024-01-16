@@ -384,7 +384,9 @@ void BlackLibraryCLI::Import(const std::vector<std::string> &tokens)
 void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryCommon::Md5Sum> checksum_list;
-    std::string target_path = DefaultExportEntryFileName;
+    std::string target_path = DefaultExportChecksumFileName;
+
+    BlackLibraryCommon::LogDebug(logger_name_, "Start ImportChecksums");
 
     if (tokens.size() >= 3)
     {
@@ -432,22 +434,34 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
             continue;
         }
 
-        BlackLibraryCommon::Md5Sum checksum = {
-            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::uuid)],
-            static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
-            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::md5_sum)],
-            stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
-            tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::identifier)],
-            static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
-        };
+        try
+        {
+            BlackLibraryCommon::Md5Sum checksum = {
+                tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::uuid)],
+                static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
+                tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::md5_sum)],
+                stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
+                tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::identifier)],
+                static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
+            };
 
-        if (blacklibrary_db_.DoesMd5SumExistIndexNum(checksum.uuid, checksum.index_num))
-        {
-            blacklibrary_db_.UpdateMd5Sum(checksum);
+            if (blacklibrary_db_.DoesMd5SumExistIndexNum(checksum.uuid, checksum.index_num))
+            {
+                blacklibrary_db_.UpdateMd5Sum(checksum);
+            }
+            else
+            {
+                blacklibrary_db_.CreateMd5Sum(checksum);
+            }
         }
-        else
+        catch(const std::invalid_argument& ex)
         {
-            blacklibrary_db_.CreateMd5Sum(checksum);
+            BlackLibraryCommon::LogError(logger_name_, "ImportChecksums error: {}", std::string(ex.what()));
+            for (const auto & token : tokens)
+            {
+                BlackLibraryCommon::LogError(logger_name_, "ImportChecksums error: {}", token);
+            }
+            return;
         }
     }
 }
@@ -456,6 +470,8 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens)
 {
     std::vector<BlackLibraryDB::DBEntry> entry_list;
     std::string target_path = DefaultExportEntryFileName;
+
+    BlackLibraryCommon::LogDebug(logger_name_, "Start ImportEntries");
 
     if (tokens.size() >= 3)
     {
@@ -719,10 +735,10 @@ void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens
     size_t modify_count = 0;
     for (auto & checksum : checksums) 
     {
-        if (checksum.identifier.rfind("/fiction", 0) == 0)
+        if (BlackLibraryCommon::ContainsString(checksum.identifier, "https://www.royalroad.com") || BlackLibraryCommon::ContainsString(checksum.identifier, "forums.spacebattles") || BlackLibraryCommon::ContainsString(checksum.identifier, "forums.sufficientvelocity"))
         {
-            checksum.identifier.insert(0, "https://www.royalroad.com");
-            std::cout << checksum.identifier << std::endl;
+            std::string updated_identifier = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(checksum.identifier);
+            checksum.identifier = updated_identifier;
             blacklibrary_db_.UpdateMd5Sum(checksum);
             ++modify_count;
         }
