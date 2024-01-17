@@ -472,7 +472,7 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::GetMd5SumFromMd5Sum(const std::string
     return md5;
 }
 
-std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUID(const std::string &uuid)
+std::vector<BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUID(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 

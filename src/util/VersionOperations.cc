@@ -18,14 +18,6 @@ namespace core {
 
 namespace common {
 
-enum class version_extract_t
-{
-    CHAPTER,
-    WORK,
-
-    _NUM_VERSION_EXTRACT_TYPE
-};
-
 static constexpr const char RR_CHAPTER_IDENTIFIER[] = "/chapter/";
 
 std::string CalculateMd5Manual(unsigned char* buf, unsigned int buf_size)
