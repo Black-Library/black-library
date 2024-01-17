@@ -60,7 +60,7 @@ public:
     virtual DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const = 0;
 
     virtual BlackLibraryCommon::Md5Sum GetMd5SumFromMd5Sum(const std::string &md5_sum, const std::string &uuid) const = 0;
-    virtual std::vector<BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid) const = 0;
+    virtual std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid) const = 0;
 
     virtual uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num) const = 0;
 

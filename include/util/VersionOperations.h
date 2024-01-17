@@ -43,7 +43,7 @@ inline bool operator < (const Md5Sum &left, const Md5Sum &right)
     return left.index_num < right.index_num;
 }
 
-struct LessThanByIdentifier
+struct Md5SumLessThanByIdentifier
 {
     bool operator()(const Md5Sum& lhs, const Md5Sum& rhs) const
     {
