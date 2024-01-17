@@ -1753,11 +1753,11 @@ BlackLibraryCommon::Md5Sum SQLiteDB::GetMd5SumFromMd5Sum(const std::string &md5_
     return md5;
 }
 
-std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5SumsFromUUID(const std::string &uuid) const
+std::vector<BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5SumsFromUUID(const std::string &uuid) const
 {
     BlackLibraryCommon::LogDebug(logger_name_, "Get md5 sums from: {}", uuid);
 
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums;
+    std::vector<BlackLibraryCommon::Md5Sum> md5_sums;
 
     if (CheckInitialized())
         return md5_sums;

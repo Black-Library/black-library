@@ -107,7 +107,7 @@ BlackLibraryCommon::Md5Sum ParserDbAdapter::ReadMd5(const std::string &uuid, con
     return md5;
 }
 
-std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> ParserDbAdapter::ReadMd5s(const std::string &uuid)
+std::vector<BlackLibraryCommon::Md5Sum> ParserDbAdapter::ReadMd5s(const std::string &uuid)
 {
     return blacklibrary_db_->GetMd5SumsFromUUID(uuid);
 }

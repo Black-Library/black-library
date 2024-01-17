@@ -166,13 +166,13 @@ TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single
     REQUIRE ( blacklibrary_db.DoesMd5SumExistIndexNum(md5_1.uuid, md5_1.index_num) == true );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistIndexNum(md5_2.uuid, md5_2.index_num) == true );
 
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUID(md5_0.uuid);
+    std::vector<BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUID(md5_0.uuid);
 
-    size_t lowest = md5_sums.find(md5_2.identifier)->second.index_num;
+    size_t lowest = md5_sums[0].index_num;
     for (const auto & md5 : md5_sums)
     {
-        REQUIRE ( lowest <= md5.second.index_num );
-        lowest = md5.second.index_num;
+        REQUIRE ( lowest <= md5.index_num );
+        lowest = md5.index_num;
     }
 }
 

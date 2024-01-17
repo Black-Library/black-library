@@ -43,6 +43,14 @@ inline bool operator < (const Md5Sum &left, const Md5Sum &right)
     return left.index_num < right.index_num;
 }
 
+struct LessThanByIdentifier
+{
+    bool operator()(const Md5Sum& lhs, const Md5Sum& rhs) const
+    {
+        return std::stoi(lhs.identifier) < std::stoi(rhs.identifier);
+    }
+};
+
 enum class DBMd5SumColumnID : uint8_t
 {
     uuid,
@@ -53,6 +61,14 @@ enum class DBMd5SumColumnID : uint8_t
     version_num,
 
     _NUM_DB_MD5SUM_COLUMN_ID
+};
+
+enum class version_extract_t
+{
+    CHAPTER,
+    WORK,
+
+    _NUM_VERSION_EXTRACT_TYPE
 };
 
 std::string GetMD5Hash(const std::string &input);

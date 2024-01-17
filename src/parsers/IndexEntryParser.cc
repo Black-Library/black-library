@@ -120,17 +120,20 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}", uuid_, gap_width_);
 
+    std::priority_queue<BlackLibraryCommon::Md5Sum, > md5_queue;
+
     std::vector<ParserIndexEntry> truncated_index_entries;
     for (const auto & index_entry : index_entries_)
     {
-        if (md5s_.count(index_entry.data_url))
+        std::string index_entry_identifier = BlackLibraryCommon::GetWorkIdentifierFromUrl(index_entry.data_url);
+        if (md5s_.count(index_entry_identifier))
         {
-            if (md5s_.find(index_entry.data_url)->second.index_num != index_entry.index_num)
+            if (md5s_.find(index_entry_identifier)->second.index_num != index_entry.index_num)
             {
                 entry_gap_ = true;
                 ++gap_width_;
             }
-            if (md5s_.find(index_entry.data_url)->second.date == index_entry.time_published)
+            if (md5s_.find(index_entry_identifier)->second.date == index_entry.time_published)
             {
                 continue;
             }
