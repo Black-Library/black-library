@@ -77,6 +77,14 @@ struct ParserIndexEntry {
     size_t index_num;
 };
 
+struct ParserIndexEntryLessThanByIdentifier
+{
+    bool operator()(const ParserIndexEntry& lhs, const ParserIndexEntry& rhs) const
+    {
+        return std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(lhs.data_url)) < std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(rhs.data_url));
+    }
+};
+
 typedef bool error_job_rep;
 
 struct ParserJob {
