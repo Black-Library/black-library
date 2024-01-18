@@ -16,6 +16,7 @@ namespace core {
 namespace common {
 
 static constexpr const char EmptyMD5Version[] = "NO_MD5_VERSION";
+static const size_t MaxIdentifier = (size_t) - 1;
 
 struct Md5Sum {
     std::string uuid = "";

@@ -23,7 +23,6 @@ IndexEntryParser::IndexEntryParser(parser_t parser_type, const njson &config) :
     index_entries_(),
     index_entry_queue_(),
     last_url_(),
-    gap_width_(0),
     check_date_enabled_(false),
     entry_gap_(false)
 {
@@ -95,7 +94,6 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     // get largest index_num for last update date and url
     std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumLessThanByIdentifier> md5_identifier_queue;
-    size_t expected_index = 0;
     size_t max_index = 0;
     for (const auto & md5 : md5s_)
     {
@@ -105,54 +103,56 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             last_update_date_ = md5.second.date;
         }
         md5_identifier_queue.push(md5.second);
-        ++expected_index;
     }
 
-    // size_t expected_index = 0;
-    // std::vector<ParserIndexEntry> list_of_index_entries;
-    // for (const auto & md5 : md5s_)
-    // {
-    //     // if md5 data url in index_entries, okay to skip, otherwise add to gap width
-    //     if !(DoesUrlExistInIndexEntryVector(index_entries_, md5))
-    //         ++gap_width_;
-    //     // if index_entry url not in md5s check if expected index is less than size of md5s
-    //         // if less -> new version
-    //         // if more -> new entry should use expected_index
-    //     ++expected_index;
-
-    BlackLibraryCommon::LogDebug(parser_name_, "Info from md5s_ UUID: {} md5_index_num_offset: {}", uuid_, gap_width_);
     std::vector<ParserIndexEntry> truncated_index_entries;
     std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryLessThanByIdentifier> index_entry_identifier_queue;
     for (const auto & index_entry : index_entries_)
     {
         index_entry_identifier_queue.push(index_entry);
         std::string index_entry_identifier = BlackLibraryCommon::GetWorkIdentifierFromUrl(index_entry.data_url);
-        if (md5s_.count(index_entry_identifier))
-        {
-            if (md5s_.find(index_entry_identifier)->second.index_num != index_entry.index_num)
-            {
-                entry_gap_ = true;
-                ++gap_width_;
-            }
-            if (md5s_.find(index_entry_identifier)->second.date == index_entry.time_published)
-            {
-                continue;
-            }
-        }
-
-        ParserIndexEntry truncated = index_entry;
-        truncated.index_num = index_entry.index_num + gap_width_;
-
-        truncated_index_entries.emplace_back(truncated);
     }
 
-    BlackLibraryCommon::LogWarn(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}", uuid_, truncated_index_entries.size(), index_entries_.size());
-    BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} - total entry gap width: {}", uuid_, gap_width_);
-
-    for (const auto & truncated : truncated_index_entries)
+    size_t expected_index = 0;
+    while (!md5_identifier_queue.empty() && !index_entry_identifier_queue.empty())
     {
-        BlackLibraryCommon::LogDebug(parser_name_, "UUID: {} - {}", uuid_, truncated.data_url);
+        size_t md5_identifier = BlackLibraryCommon::MaxIdentifier;
+        size_t index_entry_identifier = BlackLibraryCommon::MaxIdentifier;
+        if (!md5_identifier_queue.empty())
+        {
+            std::stringstream ss(md5_identifier_queue.top().identifier);
+            size_t md5_identifier;
+            ss >> md5_identifier;
+        }
+        if (!index_entry_identifier_queue.empty())
+        {
+            std::string index_entry_data_url = index_entry_identifier_queue.top().data_url;
+            std::string index_entry_identifier_str = BlackLibraryCommon::GetWorkIdentifierFromUrl(index_entry_data_url);
+            std::stringstream ss(index_entry_identifier_str);
+            size_t index_entry_identifier;
+            ss >> index_entry_identifier;
+        }
+        if (md5_identifier <= index_entry_identifier)
+        {
+            BlackLibraryCommon::Md5Sum md5_sum = md5_identifier_queue.top();
+            if (md5_sum.index_num != expected_index)
+            {
+                BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
+            }
+            md5_identifier_queue.pop();
+        }
+        else
+        {
+            ParserIndexEntry index_entry = index_entry_identifier_queue.top();
+            index_entry.index_num = expected_index;
+            truncated_index_entries.emplace_back(index_entry);
+            index_entry_identifier_queue.pop();
+        }
+        ++expected_index;
     }
+    
+
+    BlackLibraryCommon::LogDebug(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}, md5_sum size: {}", uuid_, truncated_index_entries.size(), index_entries_.size(), md5s_.size());
 
     index_entries_ = truncated_index_entries;
 
