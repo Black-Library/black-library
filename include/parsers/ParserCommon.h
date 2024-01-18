@@ -77,11 +77,11 @@ struct ParserIndexEntry {
     size_t index_num;
 };
 
-struct ParserIndexEntryLessThanByIdentifier
+struct ParserIndexEntryGreaterThanByIdentifier
 {
     bool operator()(const ParserIndexEntry& lhs, const ParserIndexEntry& rhs) const
     {
-        return std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(lhs.data_url)) < std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(rhs.data_url));
+        return std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(lhs.data_url)) > std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(rhs.data_url));
     }
 };
 

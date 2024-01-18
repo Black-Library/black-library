@@ -93,7 +93,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     // get largest index_num for last update date and url
-    std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumLessThanByIdentifier> md5_identifier_queue;
+    std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanByIdentifier> md5_identifier_queue;
     size_t max_index = 0;
     for (const auto & md5 : md5s_)
     {
@@ -106,11 +106,10 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     std::vector<ParserIndexEntry> truncated_index_entries;
-    std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryLessThanByIdentifier> index_entry_identifier_queue;
+    std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryGreaterThanByIdentifier> index_entry_identifier_queue;
     for (const auto & index_entry : index_entries_)
     {
         index_entry_identifier_queue.push(index_entry);
-        std::string index_entry_identifier = BlackLibraryCommon::GetWorkIdentifierFromUrl(index_entry.data_url);
     }
 
     size_t expected_index = 0;
@@ -127,7 +126,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
         if (!index_entry_identifier_queue.empty())
         {
             std::string index_entry_data_url = index_entry_identifier_queue.top().data_url;
-            std::string index_entry_identifier_str = BlackLibraryCommon::GetWorkIdentifierFromUrl(index_entry_data_url);
+            std::string index_entry_identifier_str = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(index_entry_data_url);
             std::stringstream ss(index_entry_identifier_str);
             size_t index_entry_identifier;
             ss >> index_entry_identifier;

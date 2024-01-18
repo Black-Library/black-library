@@ -1,3 +1,5 @@
+#include <queue>
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <FileOperations.h>
@@ -12,6 +14,22 @@ namespace core {
 namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
+
+TEST_CASE( "Generic Md5Sum tests (pass)", "[single-file]" )
+{
+    BlackLibraryCommon::Md5Sum md5_0;
+    BlackLibraryCommon::Md5Sum md5_1;
+
+    md5_0.identifier = "0";
+    md5_1.identifier = "1";
+
+    std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanByIdentifier> md5_identifier_queue;
+
+    md5_identifier_queue.push(md5_0);
+    md5_identifier_queue.push(md5_1);
+
+    REQUIRE (md5_identifier_queue.top().identifier == "0" );
+}
 
 TEST_CASE( "Generic version GetMD5Hash tests (pass)", "[single-file]" )
 {
