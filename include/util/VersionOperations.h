@@ -44,11 +44,11 @@ inline bool operator < (const Md5Sum &left, const Md5Sum &right)
     return left.index_num < right.index_num;
 }
 
-struct Md5SumLessThanByIdentifier
+struct Md5SumGreaterThanByIdentifier
 {
     bool operator()(const Md5Sum& lhs, const Md5Sum& rhs) const
     {
-        return std::stoi(lhs.identifier) < std::stoi(rhs.identifier);
+        return std::stoi(lhs.identifier) > std::stoi(rhs.identifier);
     }
 };
 
