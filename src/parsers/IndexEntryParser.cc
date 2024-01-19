@@ -113,14 +113,13 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     size_t expected_index = 0;
-    while (!md5_identifier_queue.empty() && !index_entry_identifier_queue.empty())
+    while (!md5_identifier_queue.empty() || !index_entry_identifier_queue.empty())
     {
         size_t md5_identifier = BlackLibraryCommon::MaxIdentifier;
         size_t index_entry_identifier = BlackLibraryCommon::MaxIdentifier;
         if (!md5_identifier_queue.empty())
         {
             std::stringstream ss(md5_identifier_queue.top().identifier);
-            size_t md5_identifier;
             ss >> md5_identifier;
         }
         if (!index_entry_identifier_queue.empty())
@@ -128,10 +127,9 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             std::string index_entry_data_url = index_entry_identifier_queue.top().data_url;
             std::string index_entry_identifier_str = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(index_entry_data_url);
             std::stringstream ss(index_entry_identifier_str);
-            size_t index_entry_identifier;
             ss >> index_entry_identifier;
         }
-        if (md5_identifier <= index_entry_identifier)
+        if (md5_identifier == index_entry_identifier)
         {
             BlackLibraryCommon::Md5Sum md5_sum = md5_identifier_queue.top();
             if (md5_sum.index_num != expected_index)
@@ -139,6 +137,16 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
                 BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
             }
             md5_identifier_queue.pop();
+            index_entry_identifier_queue.pop();
+        }
+        else if (md5_identifier <= index_entry_identifier)
+        {
+            BlackLibraryCommon::Md5Sum md5_sum = md5_identifier_queue.top();
+            if (md5_sum.index_num != expected_index)
+            {
+                BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
+            }
+            md5_identifier_queue.pop();        
         }
         else
         {
