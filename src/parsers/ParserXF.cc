@@ -209,7 +209,7 @@ ParseSectionInfo ParserXF::ParseSection()
     bool skip_file_check = false;
 
     if (db_adapter_)
-        saved_md5 = db_adapter_->ReadMd5(uuid_, working_url);
+        saved_md5 = db_adapter_->ReadMd5ByUrl(uuid_, working_url);
 
     if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
     {
@@ -229,9 +229,9 @@ ParseSectionInfo ParserXF::ParseSection()
     auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
     BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, section_md5);
 
-    std::string identifier = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(working_url);
+    std::string sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(working_url);
 
-    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.identifier == identifier)
+    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.sec_id == sec_id)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
         skip_file_check = true;
@@ -241,7 +241,7 @@ ParseSectionInfo ParserXF::ParseSection()
     if (saved_md5.md5_sum == section_md5)
     {
         if (db_adapter_)
-            db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, identifier, 0);
+            db_adapter_->UpsertMd5(uuid_, index_, section_md5, working_url, last_update_date_, 0);
 
         output.has_error = false;
         return output;
@@ -268,7 +268,7 @@ ParseSectionInfo ParserXF::ParseSection()
     }
 
     if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_, section_md5, last_update_date_, identifier, version_num);
+        db_adapter_->UpsertMd5(uuid_, index_, section_md5, working_url, last_update_date_, version_num);
 
     output.has_error = false;
 

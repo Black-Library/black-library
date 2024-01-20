@@ -50,17 +50,17 @@ std::string CalculateMd5Manual(unsigned char* buf, unsigned int buf_size)
     return oss.str();
 }
 
-std::string RRIdentifierExtract(const std::string &url, version_extract_t extract_type)
+size_t RRIdNumExtract(const std::string &url, version_extract_t extract_type)
 {
     // royal road pattern is https://www.royalroad.com/fiction/12345/some-fiction/chapter/1234567/chapter-name
     
-    if (extract_type == black_library::core::common::version_extract_t::CHAPTER)
+    if (extract_type == black_library::core::common::version_extract_t::CHAPTER_SEQ_NUM)
     {
         size_t chapter_find = url.rfind(RR_CHAPTER_IDENTIFIER) + 9;
         size_t slash_find = url.rfind("/");
-        return url.substr(chapter_find, slash_find - chapter_find);
+        return std::stoul(url.substr(chapter_find, slash_find - chapter_find));
     }
-    else if (extract_type == black_library::core::common::version_extract_t::WORK)
+    else if (extract_type == black_library::core::common::version_extract_t::WORK_NUM)
     {
         std::vector<std::string> tokens;
         std::stringstream ss;
@@ -75,34 +75,53 @@ std::string RRIdentifierExtract(const std::string &url, version_extract_t extrac
 
         if (tokens.size() >= 4)
         {
-            return tokens[4];
+            return std::stoul(tokens[4]);
         }
 
-        return "";
+        return 0;
     }
     else
     {
-        return "";
+        return 0;
     }
 }
 
-std::string XFIdentifierExtract(const std::string &url, version_extract_t extract_type)
+std::string RRSecIdExtract(const std::string &url)
 {
-    // xen foro pattern is https://forums.spacebattles.com/threads/some-fiction-name.1234567/#post-12345678
-    if (extract_type == black_library::core::common::version_extract_t::CHAPTER)
+    // royal road pattern is https://www.royalroad.com/fiction/12345/some-fiction/chapter/1234567/chapter-name
+
+    size_t slash_find = url.rfind("/") + 1;
+
+    return url.substr(slash_find);
+}
+
+std::string XFSecIdExtract(const std::string &url)
+{
+    // xen foro pattern is https://forums.spacebattles.com/threads/some-fiction-name.1234567/page-1#post-12345678
+    // sometimes without the page-1
+    size_t slash_find = url.rfind("/") + 1;
+    size_t hash_find = url.rfind("#");
+
+    return url.substr(slash_find, hash_find - slash_find);
+}
+
+size_t XFIdNumExtract(const std::string &url, version_extract_t extract_type)
+{
+    // xen foro pattern is https://forums.spacebattles.com/threads/some-fiction-name.1234567/page-1#post-12345678
+    if (extract_type == black_library::core::common::version_extract_t::CHAPTER_SEQ_NUM)
     {
         size_t dash_find = url.rfind("-");
-        return url.substr(dash_find + 1);
+        return std::stoul(url.substr(dash_find + 1));
     }
-    else if (extract_type == black_library::core::common::version_extract_t::WORK)
+    else if (extract_type == black_library::core::common::version_extract_t::WORK_NUM)
     {
         size_t period_find = url.rfind(".") + 1;
         size_t slash_find = url.rfind("/");
-        return url.substr(period_find, slash_find - period_find);
+        return std::stoul(url.substr(period_find, slash_find - period_find));
     }
     else
     {
-        return "";
+        return 0;
     }
 }
 
@@ -111,49 +130,69 @@ std::string GetMD5Hash(const std::string &input)
     return CalculateMd5Manual((unsigned char*)input.c_str(), input.size());
 }
 
-std::string GetWorkChapterIdentifierFromUrl(const std::string &url)
+std::string GetWorkChapterSecIdFromUrl(const std::string &url)
 {
-    std::string identifier = "";
-
+    std::string sec_id = "unknown-source-sec-id";
 
     if (ContainsString(url, SBF::source_url))
     {
-        return XFIdentifierExtract(url, black_library::core::common::version_extract_t::CHAPTER);
+        return XFSecIdExtract(url);
     }
     else if (ContainsString(url, SVF::source_url))
     {
-        return XFIdentifierExtract(url, black_library::core::common::version_extract_t::CHAPTER);
+        return XFSecIdExtract(url);
     }
     else if (ContainsString(url, RR::source_url))
     {
-        return RRIdentifierExtract(url, black_library::core::common::version_extract_t::CHAPTER);
+        return RRSecIdExtract(url);
     }
     else
     {
-        return "";
+        return sec_id;
     }
 }
 
-std::string GetWorkIdentifierFromUrl(const std::string &url)
+size_t GetWorkChapterSeqNumFromUrl(const std::string &url)
 {
-    std::string identifier = "";
-
+    size_t seq_num = MaxSeqNum;
 
     if (ContainsString(url, SBF::source_url))
     {
-        return XFIdentifierExtract(url, black_library::core::common::version_extract_t::WORK);
+        return XFIdNumExtract(url, black_library::core::common::version_extract_t::CHAPTER_SEQ_NUM);
     }
     else if (ContainsString(url, SVF::source_url))
     {
-        return XFIdentifierExtract(url, black_library::core::common::version_extract_t::WORK);
+        return XFIdNumExtract(url, black_library::core::common::version_extract_t::CHAPTER_SEQ_NUM);
     }
     else if (ContainsString(url, RR::source_url))
     {
-        return RRIdentifierExtract(url, black_library::core::common::version_extract_t::WORK);
+        return RRIdNumExtract(url, black_library::core::common::version_extract_t::CHAPTER_SEQ_NUM);
     }
     else
     {
-        return "";
+        return seq_num;
+    }
+}
+
+size_t GetWorkNumFromUrl(const std::string &url)
+{
+    size_t work_num = 0;
+
+    if (ContainsString(url, SBF::source_url))
+    {
+        return XFIdNumExtract(url, black_library::core::common::version_extract_t::WORK_NUM);
+    }
+    else if (ContainsString(url, SVF::source_url))
+    {
+        return XFIdNumExtract(url, black_library::core::common::version_extract_t::WORK_NUM);
+    }
+    else if (ContainsString(url, RR::source_url))
+    {
+        return RRIdNumExtract(url, black_library::core::common::version_extract_t::WORK_NUM);
+    }
+    else
+    {
+        return work_num;
     }
 }
 

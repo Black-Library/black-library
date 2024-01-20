@@ -155,7 +155,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
                 BlackLibraryCommon::LogWarn(logger_name_, "Register version read num entry with UUID: {} does not exist", uuid);
                 return version_num;
             }
-            if (!blacklibrary_db_->DoesMd5SumExistIndexNum(uuid, index_num))
+            if (!blacklibrary_db_->DoesMd5SumExistByIndexNum(uuid, index_num))
             {
                 BlackLibraryCommon::LogDebug(logger_name_, "Read version num with UUID: {} index_num: {} failed, MD5 sum does not exist", uuid, index_num);
                 return version_num;

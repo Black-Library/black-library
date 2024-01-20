@@ -47,21 +47,29 @@ static constexpr const char RR_MD5_3[] = "2ec57486c6a83b95695815fb90760ee3";
 static constexpr const char RR_MD5_4[] = "2182958d369511a4e3e703f47facfd25";
 static constexpr const char RR_MD5_5[] = "0c67eaf291a40b9d6e2f1b1d1c8d4d4e";
 
-static constexpr const char RR_URL_0[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/1/chapter-name";
-static constexpr const char RR_URL_1[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/2/chapter-name";
-static constexpr const char RR_URL_2[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/3/chapter-name";
-static constexpr const char RR_URL_3[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/4/chapter-name";
-static constexpr const char RR_URL_4[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/5/chapter-name";
-static constexpr const char RR_URL_5[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/6/chapter-name";
-static constexpr const char RR_URL_6[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/7/chapter-name";
+static constexpr const char RR_URL_0[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/1/chapter-name-1";
+static constexpr const char RR_URL_1[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/2/chapter-name-2";
+static constexpr const char RR_URL_2[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/3/chapter-name-3";
+static constexpr const char RR_URL_3[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/4/chapter-name-4";
+static constexpr const char RR_URL_4[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/5/chapter-name-5";
+static constexpr const char RR_URL_5[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/6/chapter-name-6";
+static constexpr const char RR_URL_6[] = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/7/chapter-name-7";
 
-static constexpr const char RR_IDENTIFIER_0[] = "1";
-static constexpr const char RR_IDENTIFIER_1[] = "2";
-static constexpr const char RR_IDENTIFIER_2[] = "3";
-static constexpr const char RR_IDENTIFIER_3[] = "4";
-static constexpr const char RR_IDENTIFIER_4[] = "5";
-static constexpr const char RR_IDENTIFIER_5[] = "6";
-static constexpr const char RR_IDENTIFIER_6[] = "7";
+static constexpr const char RR_SEC_ID_0[] = "chapter-name-1";
+static constexpr const char RR_SEC_ID_1[] = "chapter-name-2";
+static constexpr const char RR_SEC_ID_2[] = "chapter-name-3";
+static constexpr const char RR_SEC_ID_3[] = "chapter-name-4";
+static constexpr const char RR_SEC_ID_4[] = "chapter-name-5";
+static constexpr const char RR_SEC_ID_5[] = "chapter-name-6";
+static constexpr const char RR_SEC_ID_6[] = "chapter-name-7";
+
+static const size_t RR_SEQ_NUM_0 = 1;
+static const size_t RR_SEQ_NUM_1 = 2;
+static const size_t RR_SEQ_NUM_2 = 3;
+static const size_t RR_SEQ_NUM_3 = 4;
+static const size_t RR_SEQ_NUM_4 = 5;
+static const size_t RR_SEQ_NUM_5 = 6;
+static const size_t RR_SEQ_NUM_6 = 7;
 
 njson GenerateParserTestConfig()
 {

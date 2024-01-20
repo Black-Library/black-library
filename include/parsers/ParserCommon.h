@@ -77,11 +77,11 @@ struct ParserIndexEntry {
     size_t index_num;
 };
 
-struct ParserIndexEntryGreaterThanByIdentifier
+struct ParserIndexEntryGreaterThanBySeqNum
 {
     bool operator()(const ParserIndexEntry& lhs, const ParserIndexEntry& rhs) const
     {
-        return std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(lhs.data_url)) > std::stoi(BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(rhs.data_url));
+        return BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(lhs.data_url) > BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(rhs.data_url);
     }
 };
 

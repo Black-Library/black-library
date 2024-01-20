@@ -61,7 +61,8 @@ BlackLibraryCommon::Md5Sum GenerateTestMd5Sum()
     md5.index_num = 18;
     md5.md5_sum = "c1b30f495b8d0def09e0f6a25728cbfc";
     md5.date = 100;
-    md5.identifier = "md5-identifier";
+    md5.sec_id = "section-identifier";
+    md5.seq_num = 3;
     md5.version_num = 4;
 
     return md5;

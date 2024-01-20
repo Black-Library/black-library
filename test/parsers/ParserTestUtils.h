@@ -53,32 +53,38 @@ std::unordered_map<uint8_t, BlackLibraryCommon::Md5Sum> GenerateFullTestMd5Map()
     md5_0.uuid = RR_DUMMY_UUID;
     md5_0.index_num = 0;
     md5_0.md5_sum = RR_MD5_0;
-    md5_0.identifier = RR_IDENTIFIER_0;
+    md5_0.sec_id = RR_SEC_ID_0;
+    md5_0.seq_num = RR_SEQ_NUM_0;
 
     md5_1.uuid = RR_DUMMY_UUID;
     md5_1.index_num = 1;
     md5_1.md5_sum = RR_MD5_1;
-    md5_1.identifier = RR_IDENTIFIER_1;
+    md5_1.sec_id = RR_SEC_ID_1;
+    md5_1.seq_num = RR_SEQ_NUM_1;
 
     md5_2.uuid = RR_DUMMY_UUID;
     md5_2.index_num = 2;
     md5_2.md5_sum = RR_MD5_2;
-    md5_2.identifier = RR_IDENTIFIER_2;
+    md5_2.sec_id = RR_SEC_ID_2;
+    md5_2.seq_num = RR_SEQ_NUM_2;
 
     md5_3.uuid = RR_DUMMY_UUID;
     md5_3.index_num = 3;
     md5_3.md5_sum = RR_MD5_3;
-    md5_3.identifier = RR_IDENTIFIER_3;
+    md5_3.sec_id = RR_SEC_ID_3;
+    md5_3.seq_num = RR_SEQ_NUM_3;
 
     md5_4.uuid = RR_DUMMY_UUID;
     md5_4.index_num = 4;
     md5_4.md5_sum = RR_MD5_4;
-    md5_4.identifier = RR_IDENTIFIER_4;
+    md5_4.sec_id = RR_SEC_ID_4;
+    md5_4.seq_num = RR_SEQ_NUM_4;
 
     md5_5.uuid = RR_DUMMY_UUID;
     md5_5.index_num = 5;
     md5_5.md5_sum = RR_MD5_5;
-    md5_5.identifier = RR_IDENTIFIER_5;
+    md5_5.sec_id = RR_SEC_ID_5;
+    md5_5.seq_num = RR_SEQ_NUM_5;
 
     md5_map.emplace(0, md5_0);
     md5_map.emplace(1, md5_1);
