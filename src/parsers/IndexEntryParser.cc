@@ -3,7 +3,6 @@
  */
 
 #include <functional>
-#include <iostream>
 
 #include <LogOperations.h>
 
@@ -93,7 +92,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     // get largest index_num for last update date and url
-    std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanByIdentifier> md5_identifier_queue;
+    std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanBySeqNum> md5_seq_num_queue;
     size_t max_index = 0;
     for (const auto & md5 : md5s_)
     {
@@ -102,58 +101,55 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             max_index = md5.second.index_num;
             last_update_date_ = md5.second.date;
         }
-        md5_identifier_queue.push(md5.second);
+        md5_seq_num_queue.push(md5.second);
     }
 
     std::vector<ParserIndexEntry> truncated_index_entries;
-    std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryGreaterThanByIdentifier> index_entry_identifier_queue;
+    std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryGreaterThanBySeqNum> index_entry_seq_num_queue;
     for (const auto & index_entry : index_entries_)
     {
-        index_entry_identifier_queue.push(index_entry);
+        index_entry_seq_num_queue.push(index_entry);
     }
 
     size_t expected_index = 0;
-    while (!md5_identifier_queue.empty() || !index_entry_identifier_queue.empty())
+    while (!md5_seq_num_queue.empty() || !index_entry_seq_num_queue.empty())
     {
-        size_t md5_identifier = BlackLibraryCommon::MaxIdentifier;
-        size_t index_entry_identifier = BlackLibraryCommon::MaxIdentifier;
-        if (!md5_identifier_queue.empty())
+        size_t md5_seq_num = BlackLibraryCommon::MaxSeqNum;
+        size_t index_entry_seq_num = BlackLibraryCommon::MaxSeqNum;
+        if (!md5_seq_num_queue.empty())
         {
-            std::stringstream ss(md5_identifier_queue.top().identifier);
-            ss >> md5_identifier;
+            md5_seq_num = md5_seq_num_queue.top().seq_num;
         }
-        if (!index_entry_identifier_queue.empty())
+        if (!index_entry_seq_num_queue.empty())
         {
-            std::string index_entry_data_url = index_entry_identifier_queue.top().data_url;
-            std::string index_entry_identifier_str = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(index_entry_data_url);
-            std::stringstream ss(index_entry_identifier_str);
-            ss >> index_entry_identifier;
+            std::string index_entry_data_url = index_entry_seq_num_queue.top().data_url;
+            index_entry_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(index_entry_data_url);
         }
-        if (md5_identifier == index_entry_identifier)
+        if (md5_seq_num == index_entry_seq_num)
         {
-            BlackLibraryCommon::Md5Sum md5_sum = md5_identifier_queue.top();
+            BlackLibraryCommon::Md5Sum md5_sum = md5_seq_num_queue.top();
             if (md5_sum.index_num != expected_index)
             {
                 BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
             }
-            md5_identifier_queue.pop();
-            index_entry_identifier_queue.pop();
+            md5_seq_num_queue.pop();
+            index_entry_seq_num_queue.pop();
         }
-        else if (md5_identifier <= index_entry_identifier)
+        else if (md5_seq_num <= index_entry_seq_num)
         {
-            BlackLibraryCommon::Md5Sum md5_sum = md5_identifier_queue.top();
+            BlackLibraryCommon::Md5Sum md5_sum = md5_seq_num_queue.top();
             if (md5_sum.index_num != expected_index)
             {
                 BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
             }
-            md5_identifier_queue.pop();        
+            md5_seq_num_queue.pop();        
         }
         else
         {
-            ParserIndexEntry index_entry = index_entry_identifier_queue.top();
+            ParserIndexEntry index_entry = index_entry_seq_num_queue.top();
             index_entry.index_num = expected_index;
             truncated_index_entries.emplace_back(index_entry);
-            index_entry_identifier_queue.pop();
+            index_entry_seq_num_queue.pop();
         }
         ++expected_index;
     }

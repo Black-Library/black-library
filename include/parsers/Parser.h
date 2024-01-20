@@ -73,7 +73,7 @@ protected:
     virtual void SaveMetaData(ParserResult &parser_result);
     virtual void SaveUpdateDate(ParserResult &parser_result);
 
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5s_;
+    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> md5s_;
 
     progress_number_callback progress_number_callback_;
     version_read_num_callback version_read_num_callback_;

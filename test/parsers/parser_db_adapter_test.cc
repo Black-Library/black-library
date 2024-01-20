@@ -36,18 +36,20 @@ TEST_CASE( "Generic db adapter tests (pass)", "[single-file]" )
     }
 
     // check to make sure md5s are in the table
-    auto md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
+    auto md5s = blacklibrary_db->GetMd5SumsFromUUIDSeqNum(RR_DUMMY_UUID);
     REQUIRE ( md5s.size() == 6 );
 
     for (const auto & md5 : md5_map)
     {
-        auto db_md5 = blacklibrary_db->ReadMd5SumIdentifier(md5.second.uuid, md5.second.identifier);
-        REQUIRE (blacklibrary_db->DoesMd5SumExistIdentifier(md5.second.uuid, md5.second.identifier) == true);
+        auto db_md5 = blacklibrary_db->ReadMd5SumBySeqNum(md5.second.uuid, md5.second.seq_num);
+        REQUIRE (blacklibrary_db->DoesMd5SumExistBySecId(md5.second.uuid, md5.second.sec_id) == true);
+        REQUIRE (blacklibrary_db->DoesMd5SumExistBySeqNum(md5.second.uuid, md5.second.seq_num) == true);
         REQUIRE (blacklibrary_db->DoesWorkEntryUUIDExist(md5.second.uuid));
 
-        auto db_adapter_md5 = db_adapter->ReadMd5(md5.second.uuid, md5.second.identifier);
+        auto db_adapter_md5 = db_adapter->ReadMd5BySeqNum(md5.second.uuid, md5.second.seq_num);
         REQUIRE ( db_md5.uuid == db_adapter_md5.uuid );
-        REQUIRE ( db_md5.identifier == db_adapter_md5.identifier );
+        REQUIRE ( db_md5.sec_id == db_adapter_md5.sec_id );
+        REQUIRE ( db_md5.seq_num == db_adapter_md5.seq_num );
         REQUIRE ( db_md5.index_num == db_adapter_md5.index_num );
         REQUIRE ( db_md5.md5_sum == db_adapter_md5.md5_sum );
 
@@ -116,7 +118,7 @@ TEST_CASE( "Generic 'new section' db adapter test", "[single-file]" )
     REQUIRE ( version_check.has_error == false );
     REQUIRE ( version_check.already_exists == false );
 
-    auto md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
+    auto md5s = blacklibrary_db->GetMd5SumsFromUUIDSeqNum(RR_DUMMY_UUID);
     REQUIRE ( md5s.size() == 6 );
 
     BlackLibraryCommon::RemovePath(DefaultTestDbPath);

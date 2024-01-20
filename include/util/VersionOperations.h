@@ -16,14 +16,15 @@ namespace core {
 namespace common {
 
 static constexpr const char EmptyMD5Version[] = "NO_MD5_VERSION";
-static const size_t MaxIdentifier = (size_t) - 1;
+static const size_t MaxSeqNum = (size_t) - 1;
 
 struct Md5Sum {
     std::string uuid = "";
     size_t index_num = 0;
     std::string md5_sum = EmptyMD5Version;
     time_t date = 0;
-    std::string identifier = "";
+    std::string sec_id = "";
+    size_t seq_num = MaxSeqNum;
     size_t version_num = 0;
 };
 
@@ -33,7 +34,8 @@ inline std::ostream& operator<< (std::ostream &out, const Md5Sum &sum)
     out << "index_num: " << sum.index_num << " ";
     out << "md5_sum: " << sum.md5_sum << " ";
     out << "date: " << sum.date << " ";
-    out << "identifier: " << sum.identifier << " ";
+    out << "sec_id: " << sum.sec_id << " ";
+    out << "seq_num: " << sum.seq_num << " ";
     out << "version_number: " << sum.version_num;
 
     return out;
@@ -44,11 +46,11 @@ inline bool operator < (const Md5Sum &left, const Md5Sum &right)
     return left.index_num < right.index_num;
 }
 
-struct Md5SumGreaterThanByIdentifier
+struct Md5SumGreaterThanBySeqNum
 {
     bool operator()(const Md5Sum& lhs, const Md5Sum& rhs) const
     {
-        return std::stoi(lhs.identifier) > std::stoi(rhs.identifier);
+        return lhs.seq_num > rhs.seq_num;
     }
 };
 
@@ -58,7 +60,8 @@ enum class DBMd5SumColumnID : uint8_t
     index_num,
     md5_sum,
     date,
-    identifier,
+    sec_id,
+    seq_num,
     version_num,
 
     _NUM_DB_MD5SUM_COLUMN_ID
@@ -66,15 +69,16 @@ enum class DBMd5SumColumnID : uint8_t
 
 enum class version_extract_t
 {
-    CHAPTER,
-    WORK,
+    CHAPTER_SEQ_NUM,
+    WORK_NUM,
 
     _NUM_VERSION_EXTRACT_TYPE
 };
 
 std::string GetMD5Hash(const std::string &input);
-std::string GetWorkChapterIdentifierFromUrl(const std::string &url);
-std::string GetWorkIdentifierFromUrl(const std::string &url);
+std::string GetWorkChapterSecIdFromUrl(const std::string &url);
+size_t GetWorkChapterSeqNumFromUrl(const std::string &url);
+size_t GetWorkNumFromUrl(const std::string &url);
 
 } // namespace common
 } // namespace core

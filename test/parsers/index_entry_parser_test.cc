@@ -27,14 +27,16 @@ TEST_CASE( "Generic ParserIndexEntry tests (pass)", "[single-file]" )
     index_entry_0.data_url = RR_URL_0;
     index_entry_1.data_url = RR_URL_1;
 
-    std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryGreaterThanByIdentifier> index_entry_identifier_queue;
+    std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryGreaterThanBySeqNum> index_entry_seq_num_queue;
 
-    index_entry_identifier_queue.push(index_entry_0);
-    index_entry_identifier_queue.push(index_entry_1);
+    index_entry_seq_num_queue.push(index_entry_0);
+    index_entry_seq_num_queue.push(index_entry_1);
 
-    ParserIndexEntry index_entry_check = index_entry_identifier_queue.top();
-    std::string index_entry_identifier_str = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(index_entry_check.data_url);
-    REQUIRE ( index_entry_identifier_str == "1" );
+    ParserIndexEntry index_entry_check = index_entry_seq_num_queue.top();
+    std::string index_entry_sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(index_entry_check.data_url);
+    size_t index_entry_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(index_entry_check.data_url);
+    REQUIRE ( index_entry_sec_id == "chapter-name-1" );
+    REQUIRE ( index_entry_seq_num == 1 );
 }
 
 TEST_CASE( "Generic parser tests (pass)", "[single-file]" )

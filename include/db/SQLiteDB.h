@@ -40,9 +40,10 @@ public:
     int UpdateEntry(const DBEntry &entry) const override;
     int DeleteEntry(const std::string &uuid) const override;
 
-    int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
-    BlackLibraryCommon::Md5Sum ReadMd5SumIndexNum(const std::string &uuid, size_t index_num) const override;
-    BlackLibraryCommon::Md5Sum ReadMd5SumIdentifier(const std::string &uuid, const std::string &identifier) const override;
+    int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;\
+    BlackLibraryCommon::Md5Sum ReadMd5SumByIndexNum(const std::string &uuid, size_t index_num) const override;
+    BlackLibraryCommon::Md5Sum ReadMd5SumBySecId(const std::string &uuid, const std::string &sec_id) const override;
+    BlackLibraryCommon::Md5Sum ReadMd5SumBySeqNum(const std::string &uuid, const size_t &seq_num) const override;
     int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
     int DeleteMd5Sum(const std::string &uuid, size_t index_num) const override;
 
@@ -55,8 +56,9 @@ public:
 
     DBBoolResult DoesEntryUrlExist(const std::string &url) const override;
     DBBoolResult DoesEntryUUIDExist(const std::string &uuid) const override;
-    DBBoolResult DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num) const override;
-    DBBoolResult DoesMd5SumExistIdentifier(const std::string &uuid, const std::string &identifier) const override;
+    DBBoolResult DoesMd5SumExistByIndexNum(const std::string &uuid, size_t index_num) const override;
+    DBBoolResult DoesMd5SumExistBySecId(const std::string &uuid, const std::string &sec_id) const override;
+    DBBoolResult DoesMd5SumExistBySeqNum(const std::string &uuid, const size_t &seq_num) const override;
     DBBoolResult DoesRefreshExist(const std::string &uuid) const override;
     DBBoolResult DoesMinRefreshExist() const override;
     DBBoolResult DoesErrorEntryExist(const std::string &uuid, size_t progress_num) const override;
@@ -66,7 +68,8 @@ public:
     DBStringResult GetEntryUrlFromUUID(const std::string &uuid) const override;
 
     BlackLibraryCommon::Md5Sum GetMd5SumFromMd5Sum(const std::string &md5_sum, const std::string &uuid) const override;
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid) const override;
+    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUIDSecId(const std::string &uuid) const override;
+    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUIDSeqNum(const std::string &uuid) const override;
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num) const override;
 

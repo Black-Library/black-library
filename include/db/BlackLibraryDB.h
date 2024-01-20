@@ -36,8 +36,9 @@ public:
     int DeleteWorkEntry(const std::string &uuid);
 
     int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
-    BlackLibraryCommon::Md5Sum ReadMd5SumIndexNum(const std::string &uuid, size_t index_num);
-    BlackLibraryCommon::Md5Sum ReadMd5SumIdentifier(const std::string &uuid, const std::string &identifier);
+    BlackLibraryCommon::Md5Sum ReadMd5SumByIndexNum(const std::string &uuid, size_t index_num);
+    BlackLibraryCommon::Md5Sum ReadMd5SumBySecId(const std::string &uuid, const std::string &sec_id);
+    BlackLibraryCommon::Md5Sum ReadMd5SumBySeqNum(const std::string &uuid, const size_t &seq_num);
     int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5);
     int DeleteMd5Sum(const std::string &uuid, size_t index_num);
 
@@ -49,8 +50,9 @@ public:
     int DeleteErrorEntry(const std::string &uuid, size_t progress_num);
 
     bool DoesWorkEntryUrlExist(const std::string &url);
-    bool DoesMd5SumExistIndexNum(const std::string &uuid, size_t index_num);
-    bool DoesMd5SumExistIdentifier(const std::string &uuid, const std::string &identifier);
+    bool DoesMd5SumExistByIndexNum(const std::string &uuid, size_t index_num);
+    bool DoesMd5SumExistBySecId(const std::string &uuid, const std::string &sec_id);
+    bool DoesMd5SumExistBySeqNum(const std::string &uuid, const size_t &seq_num);
     bool DoesRefreshExist(const std::string &uuid);
     bool DoesMinRefreshExist();
     bool DoesErrorEntryExist(const std::string &uuid, size_t progress_num);
@@ -62,7 +64,8 @@ public:
     DBStringResult GetWorkEntryUrlFromUUID(const std::string &uuid);
 
     BlackLibraryCommon::Md5Sum GetMd5SumFromMd5Sum(const std::string &md5_sum, const std::string &uuid);
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUID(const std::string &uuid);
+    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUIDSecId(const std::string &uuid);
+    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> GetMd5SumsFromUUIDSeqNum(const std::string &uuid);
 
     uint16_t GetVersionFromMd5(const std::string &uuid, size_t index_num);
 

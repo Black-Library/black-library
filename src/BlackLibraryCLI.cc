@@ -263,7 +263,8 @@ void BlackLibraryCLI::ExportChecksums(const std::vector<std::string> &tokens)
         ss << checksum.index_num << ',';
         ss << checksum.md5_sum << ',';
         ss << checksum.date << ',';
-        ss << checksum.identifier << ',';
+        ss << checksum.sec_id << ',';
+        ss << checksum.seq_num << ',';
         ss << checksum.version_num;
         ss << '\n';
     }
@@ -441,11 +442,12 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
                 static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
                 tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::md5_sum)],
                 stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
-                tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::identifier)],
+                tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::sec_id)],
+                static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::seq_num)])),
                 static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
             };
 
-            if (blacklibrary_db_.DoesMd5SumExistIndexNum(checksum.uuid, checksum.index_num))
+            if (blacklibrary_db_.DoesMd5SumExistByIndexNum(checksum.uuid, checksum.index_num))
             {
                 blacklibrary_db_.UpdateMd5Sum(checksum);
             }
@@ -735,10 +737,12 @@ void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens
     size_t modify_count = 0;
     for (auto & checksum : checksums) 
     {
-        if (BlackLibraryCommon::ContainsString(checksum.identifier, "https://www.royalroad.com") || BlackLibraryCommon::ContainsString(checksum.identifier, "forums.spacebattles") || BlackLibraryCommon::ContainsString(checksum.identifier, "forums.sufficientvelocity"))
+        if (BlackLibraryCommon::ContainsString(checksum.sec_id, "https://www.royalroad.com") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.spacebattles") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.sufficientvelocity"))
         {
-            std::string updated_identifier = BlackLibraryCommon::GetWorkChapterIdentifierFromUrl(checksum.identifier);
-            checksum.identifier = updated_identifier;
+            std::string updated_sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(checksum.sec_id);
+            size_t updated_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(checksum.sec_id);
+            checksum.sec_id = updated_sec_id;
+            checksum.seq_num = updated_seq_num;
             blacklibrary_db_.UpdateMd5Sum(checksum);
             ++modify_count;
         }
@@ -759,7 +763,7 @@ void BlackLibraryCLI::VersionAll(const std::vector<std::string> &tokens)
         // series_length is uint16_t
         for (uint16_t i = 0; i < entry.series_length - 1; ++i)
         {
-            if (blacklibrary_db_.DoesMd5SumExistIndexNum(entry.uuid, i))
+            if (blacklibrary_db_.DoesMd5SumExistByIndexNum(entry.uuid, i))
                 continue;
 
             BlackLibraryCommon::Md5Sum checksum;
