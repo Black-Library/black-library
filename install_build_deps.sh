@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 sudo apt install libcurl4-openssl-dev
 sudo apt install libsqlite3-dev
