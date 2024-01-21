@@ -21,7 +21,7 @@ static constexpr const char DefaultTestLogPath[] = "/tmp/log";
 static constexpr const char DefaultTestStoragePath[] = "/tmp/store";
 
 static constexpr const char AO3_DUMMY_URL[] = "https://archiveofourown.org/works/0000000";
-static constexpr const char RR_DUMMY_URL[]  = "https://www.royalroad.com/fiction/12345/some-fiction";
+static constexpr const char RR_DUMMY_URL[]  = "https://www.royalroad.com/fiction/1/some-fiction";
 static constexpr const char SBF_DUMMY_URL[] = "https://forums.spacebattles.com/threads/some-fiction-name.1234567/";
 static constexpr const char SVF_DUMMY_URL[] = "https://forums.sufficientvelocity.com/threads/some-fiction-name.123456/";
 static constexpr const char WP_DUMMY_URL[]  = "https://some-name.wordpress.com/";

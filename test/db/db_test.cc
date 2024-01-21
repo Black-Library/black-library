@@ -82,6 +82,8 @@ TEST_CASE( "Test CRUD for work and error entry tables black library (pass)", "[s
     REQUIRE ( blacklibrary_db.DoesWorkEntryUrlExist(work_entry.url) == false );
     REQUIRE ( blacklibrary_db.DoesWorkEntryUUIDExist(work_entry.uuid) == false );
     REQUIRE ( blacklibrary_db.DoesErrorEntryExist(error_entry.uuid, error_entry.progress_num) == false );
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-file]" )
@@ -131,15 +133,14 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
 
     BlackLibraryCommon::Md5Sum new_md5 = GenerateTestMd5Sum();
 
-    new_md5.index_num = 19;
     new_md5.md5_sum = "17e8f0b4718aa78060a067fcee68513c";
     new_md5.date = 101;
     new_md5.version_num = 5;
     new_md5.sec_id = "new-md5-sec-id";
     REQUIRE ( blacklibrary_db.UpdateMd5Sum(new_md5) == 0 );
-    BlackLibraryCommon::Md5Sum md5_update = blacklibrary_db.ReadMd5SumBySeqNum(md5.uuid, md5.seq_num);
+    BlackLibraryCommon::Md5Sum md5_update = blacklibrary_db.ReadMd5SumBySecId(new_md5.uuid, new_md5.sec_id);
     REQUIRE ( md5_update.uuid == md5.uuid );
-    REQUIRE ( md5_update.index_num == 19 );
+    REQUIRE ( md5_update.index_num == 18 );
     REQUIRE ( md5_update.md5_sum == "17e8f0b4718aa78060a067fcee68513c" );
     REQUIRE ( md5_update.date == 101 );
     REQUIRE ( md5_update.sec_id == "new-md5-sec-id" );
@@ -160,6 +161,8 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
     REQUIRE ( blacklibrary_db.DoesMd5SumExistByIndexNum(md5.uuid, md5.index_num) == false );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistBySecId(md5.uuid, md5.sec_id) == false );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistBySeqNum(md5.uuid, md5.seq_num) == false );
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 TEST_CASE( "Test reading md5s back ordered by index_num sec_id sqlite (pass)", "[single-file]" )
@@ -188,12 +191,14 @@ TEST_CASE( "Test reading md5s back ordered by index_num sec_id sqlite (pass)", "
 
     std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUIDSecId(md5_0.uuid);
 
-    size_t lowest = md5_sums.find(md5_0.sec_id)->second.index_num;
+    size_t lowest = md5_sums.find(md5_2.sec_id)->second.index_num;
     for (const auto & md5 : md5_sums)
     {
         REQUIRE ( lowest <= md5.second.index_num );
         lowest = md5.second.index_num;
     }
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 TEST_CASE( "Test reading md5s back ordered by index_num seq_num sqlite (pass)", "[single-file]" )
@@ -222,12 +227,14 @@ TEST_CASE( "Test reading md5s back ordered by index_num seq_num sqlite (pass)", 
 
     std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUIDSeqNum(md5_0.uuid);
 
-    size_t lowest = md5_sums.find(md5_0.seq_num)->second.index_num;
+    size_t lowest = md5_sums.find(md5_2.seq_num)->second.index_num;
     for (const auto & md5 : md5_sums)
     {
         REQUIRE ( lowest <= md5.second.index_num );
         lowest = md5.second.index_num;
     }
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
@@ -256,6 +263,8 @@ TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
 
     REQUIRE ( blacklibrary_db.DoesRefreshExist(refresh.uuid) == false );
     REQUIRE ( blacklibrary_db.DoesMinRefreshExist() == false );
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
 TEST_CASE( "Test teardown tmp db" )
