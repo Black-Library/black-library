@@ -431,7 +431,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 
         if (tokens.size() < static_cast<size_t>(BlackLibraryCommon::DBMd5SumColumnID::_NUM_DB_MD5SUM_COLUMN_ID))
         {
-            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", checksum_line);
+            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read md5sum: {}, size", checksum_line);
             continue;
         }
 
@@ -517,7 +517,7 @@ void BlackLibraryCLI::ImportEntries(const std::vector<std::string> &tokens)
 
         if (tokens.size() < static_cast<size_t>(BlackLibraryDB::DBEntryColumnID::_NUM_DB_ENTRY_COLUMN_ID))
         {
-            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read: {}", entry_line);
+            BlackLibraryCommon::LogWarn(logger_name_, "Failed to read entry: {}, size", entry_line);
             continue;
         }
 
@@ -739,10 +739,12 @@ void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens
     {
         if (BlackLibraryCommon::ContainsString(checksum.sec_id, "https://www.royalroad.com") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.spacebattles") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.sufficientvelocity"))
         {
+            std::string old_sec_id = checksum.sec_id;
             std::string updated_sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(checksum.sec_id);
             size_t updated_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(checksum.sec_id);
             checksum.sec_id = updated_sec_id;
             checksum.seq_num = updated_seq_num;
+            BlackLibraryCommon::LogTrace(logger_name_, "change {} to {} and {}", old_sec_id, checksum.sec_id, checksum.seq_num);
             blacklibrary_db_.UpdateMd5Sum(checksum);
             ++modify_count;
         }
