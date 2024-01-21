@@ -737,17 +737,17 @@ void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens
     size_t modify_count = 0;
     for (auto & checksum : checksums) 
     {
-        // if (BlackLibraryCommon::ContainsString(checksum.sec_id, "https://www.royalroad.com") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.spacebattles") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.sufficientvelocity"))
-        // {
-        //     std::string old_sec_id = checksum.sec_id;
-        //     std::string updated_sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(checksum.sec_id);
-        //     size_t updated_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(checksum.sec_id);
-        //     checksum.sec_id = updated_sec_id;
-        //     checksum.seq_num = updated_seq_num;
-        //     BlackLibraryCommon::LogTrace(logger_name_, "change {} to {} and {}", old_sec_id, checksum.sec_id, checksum.seq_num);
-        //     blacklibrary_db_.UpdateMd5Sum(checksum);
-        //     ++modify_count;
-        // }
+        if (BlackLibraryCommon::ContainsString(checksum.sec_id, "https://www.royalroad.com") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.spacebattles") || BlackLibraryCommon::ContainsString(checksum.sec_id, "forums.sufficientvelocity"))
+        {
+            std::string old_sec_id = checksum.sec_id;
+            std::string updated_sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(checksum.sec_id);
+            size_t updated_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(checksum.sec_id);
+            checksum.sec_id = updated_sec_id;
+            checksum.seq_num = updated_seq_num;
+            BlackLibraryCommon::LogTrace(logger_name_, "change {} to {} and {}", old_sec_id, checksum.sec_id, checksum.seq_num);
+            blacklibrary_db_.UpdateMd5Sum(checksum);
+            ++modify_count;
+        }
 
         // for updating md5 sum with page-1 from messed up tests
         // if (!(checksum.sec_id.empty() && checksum.seq_num < BlackLibraryCommon::MaxSeqNum))
