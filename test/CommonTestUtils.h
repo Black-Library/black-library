@@ -27,9 +27,9 @@ static constexpr const char SVF_DUMMY_URL[] = "https://forums.sufficientvelocity
 static constexpr const char WP_DUMMY_URL[]  = "https://some-name.wordpress.com/";
 
 static constexpr const char RR_DUMMY_CHAPTER_URL[]  = "https://www.royalroad.com/fiction/12345/some-fiction/chapter/1234567/chapter-name";
-static constexpr const char SBF_DUMMY_CHAPTER_URL[] = "https://forums.spacebattles.com/threads/some-fiction-name.1234567/#post-12345678";
+static constexpr const char SBF_DUMMY_CHAPTER_URL_0[] = "https://forums.spacebattles.com/threads/some-fiction-name.1234567/#post-12345678";
+static constexpr const char SBF_DUMMY_CHAPTER_URL_1[] = "https://forums.spacebattles.com/threads/some-fiction-name.1234567/page-2#post-12345678";
 static constexpr const char SVF_DUMMY_CHAPTER_URL[] = "https://forums.sufficientvelocity.com/threads/some-fiction-name.123456/#post-12345678";
-
 
 static constexpr const char RR_DUMMY_UUID[] = "b0ad76bc-39d9-40ac-8de7-c5020568526d";
 

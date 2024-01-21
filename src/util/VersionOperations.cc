@@ -102,7 +102,13 @@ std::string XFSecIdExtract(const std::string &url)
     size_t slash_find = url.rfind("/") + 1;
     size_t hash_find = url.rfind("#");
 
-    return url.substr(slash_find, hash_find - slash_find);
+    std::string sec_id = url.substr(slash_find, hash_find - slash_find);
+
+    // if empty return default xf sec id
+    if (sec_id.empty())
+        return "page-1";
+
+    return sec_id;
 }
 
 size_t XFIdNumExtract(const std::string &url, version_extract_t extract_type)

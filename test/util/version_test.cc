@@ -59,22 +59,23 @@ TEST_CASE( "Generic version GetMD5Hash tests (pass)", "[single-file]" )
 
 TEST_CASE( "Generic version GetWorkChapterSecIdFromUrl tests (pass)", "[single-file]" )
 {
-    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(RR_DUMMY_CHAPTER_URL) == "12345" );
-    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(SBF_DUMMY_CHAPTER_URL) == "1234567" );
-    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(SVF_DUMMY_CHAPTER_URL) == "123456" );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(RR_DUMMY_CHAPTER_URL) == "chapter-name" );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(SBF_DUMMY_CHAPTER_URL_0) == "page-1" );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(SBF_DUMMY_CHAPTER_URL_1) == "page-2" );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterSecIdFromUrl(SVF_DUMMY_CHAPTER_URL) == "page-1" );
 }
 
 TEST_CASE( "Generic version GetWorkChapterSeqNumFromUrl tests (pass)", "[single-file]" )
 {
     REQUIRE ( BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(RR_DUMMY_CHAPTER_URL) == 1234567 );
-    REQUIRE ( BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(SBF_DUMMY_CHAPTER_URL) == 12345678 );
+    REQUIRE ( BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(SBF_DUMMY_CHAPTER_URL_0) == 12345678 );
     REQUIRE ( BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(SVF_DUMMY_CHAPTER_URL) == 12345678 );
 }
 
 TEST_CASE( "Generic version GetWorkNumFromUrl tests (pass)", "[single-file]" )
 {
     REQUIRE ( BlackLibraryCommon::GetWorkNumFromUrl(RR_DUMMY_CHAPTER_URL) == 12345 );
-    REQUIRE ( BlackLibraryCommon::GetWorkNumFromUrl(SBF_DUMMY_CHAPTER_URL) == 1234567 );
+    REQUIRE ( BlackLibraryCommon::GetWorkNumFromUrl(SBF_DUMMY_CHAPTER_URL_0) == 1234567 );
     REQUIRE ( BlackLibraryCommon::GetWorkNumFromUrl(SVF_DUMMY_CHAPTER_URL) == 123456 );
 }
 
