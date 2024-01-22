@@ -19,6 +19,7 @@ namespace db {
 namespace BlackLibraryCommon = black_library::core::common;
 
 static constexpr const char DefaultTestDBPath[] = "/tmp/catalog.db";
+static constexpr const char DefaultTestUUID[] = "55ee59ad-2feb-4196-960b-3226c65c80d5";
 
 njson GenerateDBTestConfig()
 {
@@ -34,7 +35,7 @@ DBEntry GenerateTestWorkEntry()
 {
     DBEntry work_entry;
 
-    work_entry.uuid = "55ee59ad-2feb-4196-960b-3226c65c80d5";
+    work_entry.uuid = DefaultTestUUID;
     work_entry.title = "black-title";
     work_entry.author = "black-author";
     work_entry.nickname = "black-nickname";
@@ -57,10 +58,10 @@ BlackLibraryCommon::Md5Sum GenerateTestMd5Sum()
 {
     BlackLibraryCommon::Md5Sum md5;
 
-    md5.uuid = "55ee59ad-2feb-4196-960b-3226c65c80d5";
+    md5.uuid = DefaultTestUUID;
     md5.index_num = 18;
     md5.md5_sum = "c1b30f495b8d0def09e0f6a25728cbfc";
-    md5.date = 100;
+    md5.date = 0;
     md5.sec_id = "section-identifier";
     md5.seq_num = 3;
     md5.version_num = 4;
@@ -72,7 +73,7 @@ DBRefresh GenerateTestRefresh()
 {
     DBRefresh refresh;
 
-    refresh.uuid = "50470924-7e39-46cb-997c-aa8d882e1c59";
+    refresh.uuid = DefaultTestUUID;
     refresh.refresh_date = 946598400;
 
     return refresh;
@@ -82,7 +83,7 @@ DBErrorEntry GenerateTestErrorEntry()
 {
     DBErrorEntry error_entry;
 
-    error_entry.uuid = "55ee59ad-2feb-4196-960b-3226c65c80d5";
+    error_entry.uuid = DefaultTestUUID;
     error_entry.progress_num = 12;
 
     return error_entry;
