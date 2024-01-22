@@ -212,6 +212,33 @@ TEST_CASE( "Test reading md5s back ordered by index_num seq_num sqlite (pass)", 
     BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
+TEST_CASE( "Test reading md5s back big sqlite (pass)", "[single-file]" )
+{
+    SQLiteDB db(DefaultTestDBPath, "1.0");
+
+    DBEntry work_entry = GenerateTestWorkEntry();
+    REQUIRE ( db.CreateEntry(work_entry) == 0 );
+
+    // REQUIRE ( db.DoesMd5SumExistByIndexNum(md5_0.uuid, md5_0.index_num).result == true );
+    // REQUIRE ( db.DoesMd5SumExistBySecId(md5_0.uuid, md5_0.sec_id).result == true );
+    // REQUIRE ( db.DoesMd5SumExistBySeqNum(md5_0.uuid, md5_0.seq_num).result == true );
+
+    for (size_t i = 0; i < 1000; ++i)
+    {
+        BlackLibraryCommon::Md5Sum md5_add = GenerateTestMd5Sum();
+        md5_add.index_num = i;
+        md5_add.seq_num = i;
+        REQUIRE ( db.CreateMd5Sum(md5_add) == 0 );
+        REQUIRE ( db.DoesMd5SumExistByIndexNum(md5_add.uuid, i).result == true );
+    }
+
+    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> md5_sums = db.GetMd5SumsFromUUIDSeqNum(DefaultTestUUID);
+
+    REQUIRE ( md5_sums.size() == 1000 );
+
+    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
+}
+
 TEST_CASE( "Test basic func for refresh table sqlite (pass)", "[single-file]" )
 {
     SQLiteDB db(DefaultTestDBPath, "1.0");
