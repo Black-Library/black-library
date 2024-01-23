@@ -41,6 +41,7 @@ private:
     void ListChecksums(const std::vector<std::string> &tokens);
     void ListEntries(const std::vector<std::string> &tokens, const std::string &type);
     void PrintUsage(const std::vector<std::string> &tokens);
+    void ReorderMd5(const std::vector<std::string> &tokens);
     void SquashMd5Indexes(const std::vector<std::string> &tokens);
     void VersionAll(const std::vector<std::string> &tokens);
 
