@@ -4,10 +4,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <queue>
 #include <sstream>
 
 #include <FileOperations.h>
 #include <LogOperations.h>
+#include <SourceInformation.h>
 #include <StringOperations.h>
 #include <VersionOperations.h>
 
@@ -653,7 +655,7 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, clearurl, delete, export, help, import, list, size, sizeall, versionall]";
+    ss << "Usage: [bind, delete, export, help, import, list, reorder, size, sizeall, squash, updateidentifier, versionall]";
 
     // TODO make some kind of command mapping/register
 
@@ -728,6 +730,57 @@ void BlackLibraryCLI::SquashMd5Indexes(const std::vector<std::string> &tokens)
         }
     }
 }
+
+void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
+{
+    BlackLibraryCommon::LogDebug(logger_name_, "Start ReorderMd5");
+
+    std::string reorder_target = BlackLibraryCommon::RR::source_name;
+
+    if (tokens.size() >= 3)
+    {
+        reorder_target = tokens[2];
+    }
+
+    std::vector<BlackLibraryDB::DBEntry> work_entries = blacklibrary_db_.GetWorkEntryList();
+    std::vector<BlackLibraryDB::DBEntry> target_entries;
+
+    for (const auto & work_entry : work_entries)
+    {
+        if (work_entry.source == reorder_target)
+            target_entries.emplace_back(work_entry);
+    }
+
+    BlackLibraryCommon::LogDebug(logger_name_, "Targeting {} work entries", target_entries.size());
+
+    for (const auto & target_entry : target_entries)
+    {
+        std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanBySeqNum> md5_seq_num_queue;
+        auto md5s = blacklibrary_db_.GetMd5SumsFromUUIDSeqNum(target_entry.uuid);
+
+        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} md5s", target_entry.uuid, md5s.size());
+
+        size_t max_seq_count = 0;
+        for (const auto & md5 : md5s)
+        {
+
+            if (md5.second.seq_num == BlackLibraryCommon::MaxSeqNum)
+            {
+                ++max_seq_count;
+                continue;
+            }
+            md5_seq_num_queue.push(md5.second);
+        }
+        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} max seq instances", target_entry.uuid, max_seq_count);
+        // while(!md5_seq_num_queue.empty())
+        // {
+        //     BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
+        //     BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
+        //     md5_seq_num_queue.pop();
+        // }
+    }
+}
+
 
 void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens)
 {
@@ -823,6 +876,10 @@ void BlackLibraryCLI::ProcessInput(const std::vector<std::string> &tokens)
     else if (command == "list")
     {
         List(tokens);
+    }
+    else if (command == "reorder")
+    {
+        ReorderMd5(tokens);
     }
     else if (command == "size")
     {
