@@ -100,6 +100,7 @@ private:
     int BindInt(sqlite3_stmt* stmt, const std::string &parameter_name, const int &bind_int) const;
     int BindText(sqlite3_stmt* stmt, const std::string &parameter_name, const std::string &bind_text) const;
 
+    int LogDebugStatement(sqlite3_stmt* stmt) const;
     int LogTraceStatement(sqlite3_stmt* stmt) const;
 
     sqlite3 *database_conn_;
