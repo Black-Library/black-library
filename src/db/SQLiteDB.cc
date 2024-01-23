@@ -2391,6 +2391,15 @@ int SQLiteDB::BindText(sqlite3_stmt* stmt, const std::string &parameter_name, co
     return 0;
 }
 
+int SQLiteDB::LogDebugStatement(sqlite3_stmt* stmt) const
+{
+    char *debug_sql = sqlite3_expanded_sql(stmt);
+    BlackLibraryCommon::LogDebug(logger_name_, "{}", std::string(debug_sql));
+    sqlite3_free(debug_sql);
+
+    return 0;
+}
+
 int SQLiteDB::LogTraceStatement(sqlite3_stmt* stmt) const
 {
     char *trace_sql = sqlite3_expanded_sql(stmt);
