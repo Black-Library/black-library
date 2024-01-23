@@ -77,6 +77,16 @@ struct ParserIndexEntry {
     size_t index_num;
 };
 
+inline std::ostream& operator << (std::ostream &out, const ParserIndexEntry &parser_index_entry)
+{
+    out << "data_url: " << parser_index_entry.data_url << " ";
+    out << "name: " << parser_index_entry.name << " ";
+    out << "time_published: " << parser_index_entry.time_published << " ";
+    out << "index_num: " << parser_index_entry.index_num;
+
+    return out;
+}
+
 struct ParserIndexEntryGreaterThanBySeqNum
 {
     bool operator()(const ParserIndexEntry& lhs, const ParserIndexEntry& rhs) const
