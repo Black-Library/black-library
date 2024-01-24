@@ -70,7 +70,7 @@ static constexpr const char GetWorkEntryUUIDFromUrlStatement[]    = "SELECT UUID
 static constexpr const char GetWorkEntryUrlFromUUIDStatement[]    = "SELECT url, last_url FROM work_entry WHERE UUID = :UUID";
 static constexpr const char GetMd5SumFromMd5SumStatement[]        = "SELECT * FROM md5_sum WHERE UUID = :UUID AND md5_sum = :md5_sum";
 static constexpr const char GetMd5SumFromUUIDAndIndexStatement[]  = "SELECT * FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
-static constexpr const char GetMd5SumsFromUUIDStatement[]         = "SELECT * FROM md5_sum WHERE UUID = :UUID ORDER BY index_num DESC";
+static constexpr const char GetMd5SumsFromUUIDStatement[]         = "SELECT * FROM md5_sum WHERE UUID = :UUID ORDER BY index_num ASC";
 static constexpr const char GetRefreshFromMinDateStatement[]      = "SELECT * FROM refresh WHERE refresh_date=(SELECT MIN(refresh_date) FROM refresh)";
 
 typedef enum {
@@ -1871,11 +1871,11 @@ BlackLibraryCommon::Md5Sum SQLiteDB::GetMd5SumFromMd5Sum(const std::string &md5_
     return md5;
 }
 
-std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5SumsFromUUIDSecId(const std::string &uuid) const
+std::vector<BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5SumsFromUUID(const std::string &uuid) const
 {
     BlackLibraryCommon::LogDebug(logger_name_, "Get md5 sums from: {}", uuid);
 
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums;
+    std::vector<BlackLibraryCommon::Md5Sum> md5_sums;
 
     if (CheckInitialized())
         return md5_sums;
@@ -1904,51 +1904,7 @@ std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5Sums
         md5_sum.seq_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::seq_num));
         md5_sum.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
 
-        md5_sums.emplace(md5_sum.sec_id, md5_sum);
-    }
-
-    ResetStatement(stmt);
-
-    if (EndTransaction())
-        return md5_sums;
-
-    return md5_sums;
-}
-
-std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> SQLiteDB::GetMd5SumsFromUUIDSeqNum(const std::string &uuid) const
-{
-    BlackLibraryCommon::LogDebug(logger_name_, "Get md5 sums from: {}", uuid);
-
-    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> md5_sums;
-
-    if (CheckInitialized())
-        return md5_sums;
-
-    if (BeginTransaction())
-        return md5_sums;
-
-    sqlite3_stmt *stmt = prepared_statements_[GET_MD5_SUMS_FROM_UUID_STATEMENT];
-
-    // bind statement variables
-    if (BindText(stmt, "UUID", uuid))
-        return md5_sums;
-
-    LogTraceStatement(stmt);
-
-    // run statement in loop until done
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-        BlackLibraryCommon::Md5Sum md5_sum;
-
-        md5_sum.uuid = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::uuid))));
-        md5_sum.index_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::index_num));
-        md5_sum.md5_sum = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::md5_sum))));
-        md5_sum.date = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::date));
-        md5_sum.sec_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::sec_id))));
-        md5_sum.seq_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::seq_num));
-        md5_sum.version_num = sqlite3_column_int(stmt, static_cast<unsigned int>(BlackLibraryCommon::DBMd5SumColumnID::version_num));
-
-        md5_sums.emplace(md5_sum.seq_num, md5_sum);
+        md5_sums.emplace_back(md5_sum);
     }
 
     ResetStatement(stmt);

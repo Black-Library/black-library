@@ -165,7 +165,7 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
     BlackLibraryCommon::RemovePath(DefaultTestDBPath);
 }
 
-TEST_CASE( "Test reading md5s back ordered by index_num sec_id sqlite (pass)", "[single-file]" )
+TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single-file]" )
 {
     njson config = GenerateDBTestConfig();
     BlackLibraryDB blacklibrary_db(config);
@@ -189,49 +189,13 @@ TEST_CASE( "Test reading md5s back ordered by index_num sec_id sqlite (pass)", "
     REQUIRE ( blacklibrary_db.DoesMd5SumExistByIndexNum(md5_1.uuid, md5_1.index_num) == true );
     REQUIRE ( blacklibrary_db.DoesMd5SumExistByIndexNum(md5_2.uuid, md5_2.index_num) == true );
 
-    std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUIDSecId(md5_0.uuid);
+    std::vector<BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUID(md5_0.uuid);
 
-    size_t lowest = md5_sums.find(md5_2.sec_id)->second.index_num;
+    size_t lowest = md5_2.index_num;
     for (const auto & md5 : md5_sums)
     {
-        REQUIRE ( lowest <= md5.second.index_num );
-        lowest = md5.second.index_num;
-    }
-
-    BlackLibraryCommon::RemovePath(DefaultTestDBPath);
-}
-
-TEST_CASE( "Test reading md5s back ordered by index_num seq_num sqlite (pass)", "[single-file]" )
-{
-    njson config = GenerateDBTestConfig();
-    BlackLibraryDB blacklibrary_db(config);
-
-    BlackLibraryCommon::Md5Sum md5_0 = GenerateTestMd5Sum();
-
-    REQUIRE ( blacklibrary_db.CreateMd5Sum(md5_0) == 0 );
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistByIndexNum(md5_0.uuid, md5_0.index_num) == true );
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistBySeqNum(md5_0.uuid, md5_0.seq_num) == true );
-
-    BlackLibraryCommon::Md5Sum md5_1 = GenerateTestMd5Sum();
-    BlackLibraryCommon::Md5Sum md5_2 = GenerateTestMd5Sum();
-    md5_2.index_num = 10;
-    md5_1.index_num = 20;
-    md5_1.seq_num = 1;
-    md5_2.seq_num = 2;
-
-    REQUIRE ( blacklibrary_db.CreateMd5Sum(md5_1) == 0 );
-    REQUIRE ( blacklibrary_db.CreateMd5Sum(md5_2) == 0 );
-
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistByIndexNum(md5_1.uuid, md5_1.index_num) == true );
-    REQUIRE ( blacklibrary_db.DoesMd5SumExistByIndexNum(md5_2.uuid, md5_2.index_num) == true );
-
-    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> md5_sums = blacklibrary_db.GetMd5SumsFromUUIDSeqNum(md5_0.uuid);
-
-    size_t lowest = md5_sums.find(md5_2.seq_num)->second.index_num;
-    for (const auto & md5 : md5_sums)
-    {
-        REQUIRE ( lowest <= md5.second.index_num );
-        lowest = md5.second.index_num;
+        REQUIRE ( lowest <= md5.index_num );
+        lowest = md5.index_num;
     }
 
     BlackLibraryCommon::RemovePath(DefaultTestDBPath);
