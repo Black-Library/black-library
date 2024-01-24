@@ -96,13 +96,21 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     size_t max_index = 0;
     for (const auto & md5 : md5s_)
     {
-        if (md5.second.index_num >= max_index)
+        if (md5.index_num >= max_index)
         {
-            max_index = md5.second.index_num;
-            last_update_date_ = md5.second.date;
+            max_index = md5.index_num;
+            last_update_date_ = md5.date;
         }
-        md5_seq_num_queue.push(md5.second);
+        if (md5.seq_num == BlackLibraryCommon::MaxSeqNum)
+        {
+            BlackLibraryCommon::LogWarn(parser_name_, "md5 has MaxSeqNum as seq_num!: {}", md5);
+            continue;
+        }
+        // BlackLibraryCommon::LogDebug(parser_name_, "pushing {} into queue", md5);
+        md5_seq_num_queue.push(md5);
     }
+
+    BlackLibraryCommon::LogDebug(parser_name_, "md5_seq_num_queue size: {}", md5_seq_num_queue.size());
 
     std::vector<ParserIndexEntry> truncated_index_entries;
     std::priority_queue<ParserIndexEntry, std::vector<ParserIndexEntry>, ParserIndexEntryGreaterThanBySeqNum> index_entry_seq_num_queue;
@@ -112,36 +120,46 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     size_t expected_index = 0;
+    bool skip_download = false;
     while (!md5_seq_num_queue.empty() || !index_entry_seq_num_queue.empty())
     {
         size_t md5_seq_num = BlackLibraryCommon::MaxSeqNum;
         size_t index_entry_seq_num = BlackLibraryCommon::MaxSeqNum;
+        bool replace_md5_seq_num = false;
         if (!md5_seq_num_queue.empty())
         {
             md5_seq_num = md5_seq_num_queue.top().seq_num;
+            if (md5_seq_num == BlackLibraryCommon::MaxSeqNum)
+                replace_md5_seq_num = true;
         }
         if (!index_entry_seq_num_queue.empty())
         {
             std::string index_entry_data_url = index_entry_seq_num_queue.top().data_url;
             index_entry_seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(index_entry_data_url);
         }
-        if (md5_seq_num == index_entry_seq_num)
+        if (md5_seq_num == index_entry_seq_num && !replace_md5_seq_num)
         {
             BlackLibraryCommon::Md5Sum md5_sum = md5_seq_num_queue.top();
             if (md5_sum.index_num != expected_index)
             {
-                BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
+                // skip_download = true;
+                BlackLibraryCommon::LogWarn(parser_name_, "eq unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
             }
+            if (md5_seq_num_queue.empty() || index_entry_seq_num_queue.empty())
+                BlackLibraryCommon::LogError(parser_name_, "attempting to pop empty md5_seq_num_queue and index_entry_seq_num_queue!");
             md5_seq_num_queue.pop();
             index_entry_seq_num_queue.pop();
         }
-        else if (md5_seq_num <= index_entry_seq_num)
+        else if (md5_seq_num < index_entry_seq_num && !replace_md5_seq_num)
         {
             BlackLibraryCommon::Md5Sum md5_sum = md5_seq_num_queue.top();
             if (md5_sum.index_num != expected_index)
             {
-                BlackLibraryCommon::LogWarn(parser_name_, "unexpected md5 index number UUID: {} index_num: {}, expected: {}", uuid_, md5_sum.index_num, expected_index);
+                // skip_download = true;
+                BlackLibraryCommon::LogWarn(parser_name_, "lt unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
             }
+            if (md5_seq_num_queue.empty())
+                BlackLibraryCommon::LogError(parser_name_, "attempting to pop empty md5_seq_num_queue!");
             md5_seq_num_queue.pop();        
         }
         else
@@ -149,6 +167,14 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             ParserIndexEntry index_entry = index_entry_seq_num_queue.top();
             index_entry.index_num = expected_index;
             truncated_index_entries.emplace_back(index_entry);
+            if (index_entry_seq_num_queue.empty())
+            {
+                for (const auto & truncated : truncated_index_entries)
+                {
+                    BlackLibraryCommon::LogError(parser_name_, "truncated: {}", truncated.data_url);
+                }
+                BlackLibraryCommon::LogError(parser_name_, "attempting to pop empty index_entry_seq_num_queue! {} and {} - flag: {} {} vs {}", index_entry_seq_num_queue.size(), md5_seq_num_queue.size(), replace_md5_seq_num, md5_seq_num, index_entry_seq_num);
+            }
             index_entry_seq_num_queue.pop();
         }
         ++expected_index;
@@ -156,6 +182,13 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     
 
     BlackLibraryCommon::LogDebug(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}, md5_sum size: {}", uuid_, truncated_index_entries.size(), index_entries_.size(), md5s_.size());
+
+    // TODO remove hack for detecting weird index entries
+    if (skip_download)
+    {
+        BlackLibraryCommon::LogWarn(parser_name_, "clearing entries to skip actual filesave");
+        truncated_index_entries.clear();
+    }
 
     index_entries_ = truncated_index_entries;
 

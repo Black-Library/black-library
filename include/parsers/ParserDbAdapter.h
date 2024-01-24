@@ -36,7 +36,7 @@ public:
     BlackLibraryCommon::Md5Sum ReadMd5BySecId(const std::string &uuid, const std::string &sec_id);
     BlackLibraryCommon::Md5Sum ReadMd5BySeqNum(const std::string &uuid, const size_t &seq_num);
     BlackLibraryCommon::Md5Sum ReadMd5ByUrl(const std::string &uuid, const std::string &url);
-    std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> ReadMd5s(const std::string &uuid);
+    std::vector<BlackLibraryCommon::Md5Sum> ReadMd5s(const std::string &uuid);
     int UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, const std::string &surl, time_t date, uint64_t version_num);
 
 private:

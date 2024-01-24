@@ -508,18 +508,11 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::GetMd5SumFromMd5Sum(const std::string
     return md5;
 }
 
-std::unordered_map<std::string, BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUIDSecId(const std::string &uuid)
+std::vector<BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUID(const std::string &uuid)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    return database_connection_interface_->GetMd5SumsFromUUIDSecId(uuid);
-}
-
-std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> BlackLibraryDB::GetMd5SumsFromUUIDSeqNum(const std::string &uuid)
-{
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    return database_connection_interface_->GetMd5SumsFromUUIDSeqNum(uuid);
+    return database_connection_interface_->GetMd5SumsFromUUID(uuid);
 }
 
 uint16_t BlackLibraryDB::GetVersionFromMd5(const std::string &uuid, size_t index_num)

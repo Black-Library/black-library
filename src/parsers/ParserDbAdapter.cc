@@ -143,9 +143,9 @@ BlackLibraryCommon::Md5Sum ParserDbAdapter::ReadMd5ByUrl(const std::string &uuid
     return md5;
 }
 
-std::unordered_map<size_t, BlackLibraryCommon::Md5Sum> ParserDbAdapter::ReadMd5s(const std::string &uuid)
+std::vector<BlackLibraryCommon::Md5Sum> ParserDbAdapter::ReadMd5s(const std::string &uuid)
 {
-    return blacklibrary_db_->GetMd5SumsFromUUIDSeqNum(uuid);
+    return blacklibrary_db_->GetMd5SumsFromUUID(uuid);
 }
 
 int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, const std::string &url, time_t date, uint64_t version_num)

@@ -38,7 +38,7 @@ TEST_CASE( "Generic version check tests (pass)", "[single-file]" )
     }
 
     // check to make sure md5s are in the table
-    auto md5s = blacklibrary_db->GetMd5SumsFromUUIDSeqNum(RR_DUMMY_UUID);
+    auto md5s = blacklibrary_db->GetMd5SumsFromUUID(RR_DUMMY_UUID);
     REQUIRE ( md5s.size() == 6 );
 
     for (const auto & md5 : md5_map)
