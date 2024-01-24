@@ -758,7 +758,7 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
         std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanBySeqNum> md5_seq_num_queue;
         auto md5s = blacklibrary_db_.GetMd5SumsFromUUID(target_entry.uuid);
 
-        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} md5s", target_entry.uuid, md5s.size());
+        // BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} md5s", target_entry.uuid, md5s.size());
 
         size_t max_seq_count = 0;
         for (const auto & md5 : md5s)
@@ -771,7 +771,8 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
             }
             md5_seq_num_queue.push(md5);
         }
-        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} max seq instances", target_entry.uuid, max_seq_count);
+        if (max_seq_count > 0)
+            BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} max seq instances", target_entry.uuid, max_seq_count);
         // while(!md5_seq_num_queue.empty())
         // {
         //     BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
