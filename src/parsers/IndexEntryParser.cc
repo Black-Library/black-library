@@ -120,7 +120,7 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     }
 
     size_t expected_index = 0;
-    bool skip_download = false;
+    bool warn_about_order = false;
     while (!md5_seq_num_queue.empty() || !index_entry_seq_num_queue.empty())
     {
         size_t md5_seq_num = BlackLibraryCommon::MaxSeqNum;
@@ -142,8 +142,8 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             BlackLibraryCommon::Md5Sum md5_sum = md5_seq_num_queue.top();
             if (md5_sum.index_num != expected_index)
             {
-                // skip_download = true;
-                BlackLibraryCommon::LogWarn(parser_name_, "eq unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
+                warn_about_order = true;
+                BlackLibraryCommon::LogDebug(parser_name_, "eq unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
             }
             if (md5_seq_num_queue.empty() || index_entry_seq_num_queue.empty())
                 BlackLibraryCommon::LogError(parser_name_, "attempting to pop empty md5_seq_num_queue and index_entry_seq_num_queue!");
@@ -155,8 +155,8 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             BlackLibraryCommon::Md5Sum md5_sum = md5_seq_num_queue.top();
             if (md5_sum.index_num != expected_index)
             {
-                // skip_download = true;
-                BlackLibraryCommon::LogWarn(parser_name_, "lt unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
+                warn_about_order = true;
+                BlackLibraryCommon::LogDebug(parser_name_, "lt unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
             }
             if (md5_seq_num_queue.empty())
                 BlackLibraryCommon::LogError(parser_name_, "attempting to pop empty md5_seq_num_queue!");
@@ -183,11 +183,9 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
     BlackLibraryCommon::LogDebug(parser_name_, "Truncated UUID: {} truncated size: {}, index entries size: {}, md5_sum size: {}", uuid_, truncated_index_entries.size(), index_entries_.size(), md5s_.size());
 
-    // TODO remove hack for detecting weird index entries
-    if (skip_download)
+    if (warn_about_order)
     {
-        BlackLibraryCommon::LogWarn(parser_name_, "clearing entries to skip actual filesave");
-        truncated_index_entries.clear();
+        BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} has ordering issues", uuid_);
     }
 
     index_entries_ = truncated_index_entries;
