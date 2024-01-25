@@ -736,11 +736,24 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
     BlackLibraryCommon::LogDebug(logger_name_, "Start ReorderMd5");
 
     std::string reorder_target = BlackLibraryCommon::RR::source_name;
+    std::string exact_target = "";
+
+    if (tokens.size() >= 2)
+    {
+        reorder_target = tokens[1];
+    }
 
     if (tokens.size() >= 3)
     {
-        reorder_target = tokens[2];
+        exact_target = tokens[2];
     }
+
+    if (!exact_target.empty())
+    {
+        BlackLibraryCommon::LogDebug(logger_name_, "exact_target: {}", exact_target);
+    }
+
+    BlackLibraryCommon::LogDebug(logger_name_, "Reordering {}", BlackLibraryCommon::RR::source_name);
 
     std::vector<BlackLibraryDB::DBEntry> work_entries = blacklibrary_db_.GetWorkEntryList();
     std::vector<BlackLibraryDB::DBEntry> target_entries;
@@ -748,7 +761,18 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
     for (const auto & work_entry : work_entries)
     {
         if (work_entry.source == reorder_target)
-            target_entries.emplace_back(work_entry);
+        {
+            if (exact_target.empty())
+            {
+                target_entries.emplace_back(work_entry);
+            }
+            else
+            {
+                if (work_entry.uuid != exact_target)
+                    continue;
+                target_entries.emplace_back(work_entry);
+            }
+        }
     }
 
     BlackLibraryCommon::LogDebug(logger_name_, "Targeting {} work entries", target_entries.size());
@@ -773,12 +797,21 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
         }
         if (max_seq_count > 0)
             BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} max seq instances", target_entry.uuid, max_seq_count);
-        // while(!md5_seq_num_queue.empty())
-        // {
-        //     BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
-        //     BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
-        //     md5_seq_num_queue.pop();
-        // }
+
+        size_t expected_index = 0;
+        while(!md5_seq_num_queue.empty())
+        {
+            BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
+            // BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
+            if (md5_update.index_num != expected_index)
+            {
+                BlackLibraryCommon::LogDebug(logger_name_, "index: {} - expected index: {}", md5_update.index_num, expected_index);
+                // md5_update.index_num = expected_index;
+                // blacklibrary_db_.UpdateMd5SumBySeqNum()
+            }
+            ++expected_index;
+            md5_seq_num_queue.pop();
+        }
     }
 }
 
