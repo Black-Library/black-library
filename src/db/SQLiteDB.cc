@@ -54,6 +54,7 @@ static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FR
 
 static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed, processing = :processing WHERE UUID = :UUID";
 static constexpr const char UpdateMd5SumStatement[]               = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
+static constexpr const char UpdateMd5SumStatementBySeqNum[]       = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND seq_num = :seq_num";
 
 static constexpr const char DeleteWorkEntryStatement[]            = "DELETE FROM work_entry WHERE UUID = :UUID";
 static constexpr const char DeleteMd5SumStatement[]               = "DELETE FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
