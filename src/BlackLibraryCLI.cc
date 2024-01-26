@@ -451,11 +451,19 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 
             if (blacklibrary_db_.DoesMd5SumExistByIndexNum(checksum.uuid, checksum.index_num))
             {
-                blacklibrary_db_.UpdateMd5SumBySeqNum(checksum);
+                if (blacklibrary_db_.UpdateMd5SumBySeqNum(checksum))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "ImportChecksums UpdateMd5SumBySeqNum failure: {} - {} - {}", checksum.uuid, checksum.index_num, checksum.md5_sum);
+                    break;
+                }
             }
             else
             {
-                blacklibrary_db_.CreateMd5Sum(checksum);
+                if(blacklibrary_db_.CreateMd5Sum(checksum))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "ImportChecksums CreateMd5Sum failure: {} - {} - {}", checksum.uuid, checksum.index_num, checksum.md5_sum);
+                    break;
+                }
             }
         }
         catch(const std::invalid_argument& ex)
