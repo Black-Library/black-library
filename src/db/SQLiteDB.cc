@@ -54,7 +54,7 @@ static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FR
 
 static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed, processing = :processing WHERE UUID = :UUID";
 static constexpr const char UpdateMd5SumStatementByIndexNum[]     = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
-static constexpr const char UpdateMd5SumStatementBySeqNum[]       = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND seq_num = :seq_num";
+static constexpr const char UpdateMd5SumStatementBySeqNum[]       = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, index_num = :index_num, version_num = :version_num WHERE UUID = :UUID AND seq_num = :seq_num";
 
 static constexpr const char DeleteWorkEntryStatement[]            = "DELETE FROM work_entry WHERE UUID = :UUID";
 static constexpr const char DeleteMd5SumStatement[]               = "DELETE FROM md5_sum WHERE UUID = :UUID AND index_num = :index_num";
@@ -926,7 +926,7 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumBySeqNum(const std::string &uuid,
 
 int SQLiteDB::UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5) const
 {
-    BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+    BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum by index num with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
 
     if (CheckInitialized())
         return -1;
@@ -939,9 +939,9 @@ int SQLiteDB::UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5) cons
     // bind statement variables
     if (BindText(stmt, "UUID", md5.uuid))
         return -1;
-    if (BindInt(stmt, "index_num", md5.index_num))
-        return -1;
     if (BindText(stmt, "md5_sum", md5.md5_sum))
+        return -1;
+    if (BindInt(stmt, "index_num", md5.index_num))
         return -1;
     if (BindInt(stmt, "date", md5.date))
         return -1;
@@ -975,7 +975,7 @@ int SQLiteDB::UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5) cons
 
 int SQLiteDB::UpdateMd5SumBySeqNum(const BlackLibraryCommon::Md5Sum &md5) const
 {
-    BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+    BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum by seq num with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
 
     if (CheckInitialized())
         return -1;
@@ -988,9 +988,9 @@ int SQLiteDB::UpdateMd5SumBySeqNum(const BlackLibraryCommon::Md5Sum &md5) const
     // bind statement variables
     if (BindText(stmt, "UUID", md5.uuid))
         return -1;
-    if (BindInt(stmt, "index_num", md5.index_num))
-        return -1;
     if (BindText(stmt, "md5_sum", md5.md5_sum))
+        return -1;
+    if (BindInt(stmt, "index_num", md5.index_num))
         return -1;
     if (BindInt(stmt, "date", md5.date))
         return -1;
@@ -2373,7 +2373,7 @@ int SQLiteDB::BindInt(sqlite3_stmt* stmt, const std::string &parameter_name, con
     int ret = sqlite3_bind_int(stmt, sqlite3_bind_parameter_index(stmt, parameter_index_name.c_str()), bind_int);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError(logger_name_, "Bind of {}: {} failed: {}", parameter_name, bind_int, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Bind of int {}: {} failed: {}", parameter_name, bind_int, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
@@ -2390,7 +2390,7 @@ int SQLiteDB::BindText(sqlite3_stmt* stmt, const std::string &parameter_name, co
     int ret = sqlite3_bind_text(stmt, index, bind_text.c_str(), bind_text.length(), SQLITE_STATIC);
     if (ret != SQLITE_OK)
     {
-        BlackLibraryCommon::LogError(logger_name_, "Bind of {}: {} failed: {}", parameter_name, bind_text, sqlite3_errmsg(database_conn_));
+        BlackLibraryCommon::LogError(logger_name_, "Bind of text {}: {} failed: {}", parameter_name, bind_text, sqlite3_errmsg(database_conn_));
         ResetStatement(stmt);
         EndTransaction();
         return -1;
