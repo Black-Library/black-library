@@ -806,8 +806,12 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
             if (md5_update.index_num != expected_index)
             {
                 BlackLibraryCommon::LogDebug(logger_name_, "index: {} - expected index: {}", md5_update.index_num, expected_index);
-                // md5_update.index_num = expected_index;
-                // blacklibrary_db_.UpdateMd5SumBySeqNum()
+                md5_update.index_num = expected_index;
+                if (blacklibrary_db_.UpdateMd5SumBySeqNum(md5_update))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "Failed update md5 sum by seq num");
+                    break;
+                }
             }
             ++expected_index;
             md5_seq_num_queue.pop();
