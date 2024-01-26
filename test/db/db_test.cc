@@ -137,7 +137,7 @@ TEST_CASE( "Test CRUD for md5 checksum table black library (pass)", "[single-fil
     new_md5.date = 101;
     new_md5.version_num = 5;
     new_md5.sec_id = "new-md5-sec-id";
-    REQUIRE ( blacklibrary_db.UpdateMd5Sum(new_md5) == 0 );
+    REQUIRE ( blacklibrary_db.UpdateMd5SumByIndexNum(new_md5) == 0 );
     BlackLibraryCommon::Md5Sum md5_update = blacklibrary_db.ReadMd5SumBySecId(new_md5.uuid, new_md5.sec_id);
     REQUIRE ( md5_update.uuid == md5.uuid );
     REQUIRE ( md5_update.index_num == 18 );
@@ -178,8 +178,10 @@ TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single
 
     BlackLibraryCommon::Md5Sum md5_1 = GenerateTestMd5Sum();
     BlackLibraryCommon::Md5Sum md5_2 = GenerateTestMd5Sum();
-    md5_2.index_num = 10;
+    md5_1.md5_sum = DefaultTestMd5_1;
+    md5_2.md5_sum = DefaultTestMd5_2;
     md5_1.index_num = 20;
+    md5_2.index_num = 10;
     md5_1.sec_id = "md5-sec-id-1";
     md5_2.sec_id = "md5-sec-id-2";
 

@@ -441,8 +441,8 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
         {
             BlackLibraryCommon::Md5Sum checksum = {
                 tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::uuid)],
-                static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
                 tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::md5_sum)],
+                static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
                 stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
                 tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::sec_id)],
                 static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::seq_num)])),
@@ -451,7 +451,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
 
             if (blacklibrary_db_.DoesMd5SumExistByIndexNum(checksum.uuid, checksum.index_num))
             {
-                blacklibrary_db_.UpdateMd5Sum(checksum);
+                blacklibrary_db_.UpdateMd5SumBySeqNum(checksum);
             }
             else
             {
@@ -832,7 +832,7 @@ void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens
             checksum.sec_id = updated_sec_id;
             checksum.seq_num = updated_seq_num;
             BlackLibraryCommon::LogTrace(logger_name_, "change {} to {} and {}", old_sec_id, checksum.sec_id, checksum.seq_num);
-            blacklibrary_db_.UpdateMd5Sum(checksum);
+            blacklibrary_db_.UpdateMd5SumByIndexNum(checksum);
             ++modify_count;
         }
 
@@ -847,7 +847,7 @@ void BlackLibraryCLI::UpdateMd5Identifier(const std::vector<std::string> &tokens
         //     continue;
 
         // checksum.sec_id = "page-1";
-        // blacklibrary_db_.UpdateMd5Sum(checksum);
+        // blacklibrary_db_.UpdateMd5SumByIndexNum(checksum);
         // ++modify_count;
     }
 

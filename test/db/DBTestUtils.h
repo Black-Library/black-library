@@ -20,6 +20,9 @@ namespace BlackLibraryCommon = black_library::core::common;
 
 static constexpr const char DefaultTestDBPath[] = "/tmp/catalog.db";
 static constexpr const char DefaultTestUUID[] = "55ee59ad-2feb-4196-960b-3226c65c80d5";
+static constexpr const char DefaultTestMd5_0[] = "e3369f7882e827dfaabb8e0aad854f26";
+static constexpr const char DefaultTestMd5_1[] = "5732cace2d9e3f1a1ad774b35ff2948b";
+static constexpr const char DefaultTestMd5_2[] = "7262cace2d9e3f1a1ad774b55ff2928a";
 
 njson GenerateDBTestConfig()
 {
@@ -59,8 +62,8 @@ BlackLibraryCommon::Md5Sum GenerateTestMd5Sum()
     BlackLibraryCommon::Md5Sum md5;
 
     md5.uuid = DefaultTestUUID;
+    md5.md5_sum = DefaultTestMd5_0;
     md5.index_num = 18;
-    md5.md5_sum = "c1b30f495b8d0def09e0f6a25728cbfc";
     md5.date = 0;
     md5.sec_id = "section-identifier";
     md5.seq_num = 3;

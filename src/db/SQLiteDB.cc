@@ -29,7 +29,7 @@ static constexpr const char CreateBookGenreTable[]                = "CREATE TABL
 static constexpr const char CreateDocumentTagTable[]              = "CREATE TABLE IF NOT EXISTS document_tag(name TEXT NOT NULL PRIMARY KEY)";
 static constexpr const char CreateSourceTable[]                   = "CREATE TABLE IF NOT EXISTS source(name TEXT NOT NULL PRIMARY KEY, media_type TEXT, media_subtype TEXT, FOREIGN KEY(media_type) REFERENCES media_type(name) FOREIGN KEY(media_subtype) REFERENCES media_subtype(name))";
 static constexpr const char CreateWorkEntryTable[]                = "CREATE TABLE IF NOT EXISTS work_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, title TEXT NOT NULL, author TEXT NOT NULL, nickname TEXT, source TEXT, url TEXT, last_url TEXT, series TEXT, series_length DEFAULT 1, version INTEGER, media_path TEXT NOT NULL, birth_date INTEGER, check_date INTEGER, update_date INTEGER, user_contributed INTEGER NOT NULL, processing INTEGER NOT NULL, FOREIGN KEY(source) REFERENCES source(name), FOREIGN KEY(user_contributed) REFERENCES user(UID))";
-static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, index_num INTERGER, md5_sum VARCHAR(32), date INTERGER, sec_id TEXT, seq_num INTERGER, version_num INTERGER, PRIMARY KEY (UUID, index_num), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
+static constexpr const char CreateMd5SumTable[]                   = "CREATE TABLE IF NOT EXISTS md5_sum(UUID VARCHAR(36) NOT NULL, md5_sum VARCHAR(32) NOT NULL, index_num INTERGER, date INTERGER, sec_id TEXT, seq_num INTERGER, version_num INTERGER, PRIMARY KEY (UUID, md5_sum), FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateRefreshTable[]                  = "CREATE TABLE IF NOT EXISTS refresh(UUID VARCHAR(36) NOT NULL PRIMARY KEY, refresh_date INTERGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 static constexpr const char CreateErrorEntryTable[]               = "CREATE TABLE IF NOT EXISTS error_entry(UUID VARCHAR(36) NOT NULL PRIMARY KEY, progress_num INTEGER, FOREIGN KEY(UUID) REFERENCES work_entry(UUID))";
 
@@ -53,7 +53,7 @@ static constexpr const char ReadRefreshStatement[]                = "SELECT * FR
 static constexpr const char ReadErrorEntryStatement[]             = "SELECT * FROM error_entry WHERE UUID = :UUID AND progress_num = :progress_num";
 
 static constexpr const char UpdateWorkEntryStatement[]            = "UPDATE work_entry SET title = :title, author = :author, nickname = :nickname, source = :source, url = :url, last_url = :last_url, series = :series, series_length = :series_length, version = :version, media_path = :media_path, birth_date = :birth_date, check_date = :check_date, update_date = :update_date, user_contributed = :user_contributed, processing = :processing WHERE UUID = :UUID";
-static constexpr const char UpdateMd5SumStatement[]               = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
+static constexpr const char UpdateMd5SumStatementByIndexNum[]     = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND index_num = :index_num";
 static constexpr const char UpdateMd5SumStatementBySeqNum[]       = "UPDATE md5_sum SET md5_sum = :md5_sum, date = :date, sec_id = :sec_id, seq_num = :seq_num, version_num = :version_num WHERE UUID = :UUID AND seq_num = :seq_num";
 
 static constexpr const char DeleteWorkEntryStatement[]            = "DELETE FROM work_entry WHERE UUID = :UUID";
@@ -95,7 +95,8 @@ typedef enum {
     READ_ERROR_ENTRY_STATEMENT,
 
     UPDATE_WORK_ENTRY_STATEMENT,
-    UPDATE_MD5_SUM_STATEMENT,
+    UPDATE_MD5_SUM_BY_INDEX_NUM_STATEMENT,
+    UPDATE_MD5_SUM_BY_SEQ_NUM_STATEMENT,
 
     DELETE_WORK_ENTRY_STATEMENT,
     DELETE_MD5_SUM_STATEMENT,
@@ -923,7 +924,7 @@ BlackLibraryCommon::Md5Sum SQLiteDB::ReadMd5SumBySeqNum(const std::string &uuid,
     return checksum;
 }
 
-int SQLiteDB::UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const
+int SQLiteDB::UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5) const
 {
     BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
 
@@ -933,7 +934,56 @@ int SQLiteDB::UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const
     if (BeginTransaction())
         return -1;
 
-    sqlite3_stmt *stmt = prepared_statements_[UPDATE_MD5_SUM_STATEMENT];
+    sqlite3_stmt *stmt = prepared_statements_[UPDATE_MD5_SUM_BY_INDEX_NUM_STATEMENT];
+
+    // bind statement variables
+    if (BindText(stmt, "UUID", md5.uuid))
+        return -1;
+    if (BindInt(stmt, "index_num", md5.index_num))
+        return -1;
+    if (BindText(stmt, "md5_sum", md5.md5_sum))
+        return -1;
+    if (BindInt(stmt, "date", md5.date))
+        return -1;
+    if (BindText(stmt, "sec_id", md5.sec_id))
+        return -1;
+    if (BindInt(stmt, "seq_num", md5.seq_num))
+        return -1;
+    if (BindInt(stmt, "version_num", md5.version_num))
+        return -1;
+
+    LogTraceStatement(stmt);
+
+    // run statement
+    int ret = SQLITE_OK;
+    ret = sqlite3_step(stmt);
+    if (ret != SQLITE_DONE)
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Update MD5 checksum failed: {}", sqlite3_errmsg(database_conn_));
+        ResetStatement(stmt);
+        EndTransaction();
+        return -1;
+    }
+
+    ResetStatement(stmt);
+
+    if (EndTransaction())
+        return -1;
+
+    return 0;
+}
+
+int SQLiteDB::UpdateMd5SumBySeqNum(const BlackLibraryCommon::Md5Sum &md5) const
+{
+    BlackLibraryCommon::LogDebug(logger_name_, "Update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+
+    if (CheckInitialized())
+        return -1;
+
+    if (BeginTransaction())
+        return -1;
+
+    sqlite3_stmt *stmt = prepared_statements_[UPDATE_MD5_SUM_BY_SEQ_NUM_STATEMENT];
 
     // bind statement variables
     if (BindText(stmt, "UUID", md5.uuid))
@@ -2156,7 +2206,8 @@ int SQLiteDB::PrepareStatements()
     res += PrepareStatement(ReadErrorEntryStatement, READ_ERROR_ENTRY_STATEMENT);
 
     res += PrepareStatement(UpdateWorkEntryStatement, UPDATE_WORK_ENTRY_STATEMENT);
-    res += PrepareStatement(UpdateMd5SumStatement, UPDATE_MD5_SUM_STATEMENT);
+    res += PrepareStatement(UpdateMd5SumStatementByIndexNum, UPDATE_MD5_SUM_BY_INDEX_NUM_STATEMENT);
+    res += PrepareStatement(UpdateMd5SumStatementBySeqNum, UPDATE_MD5_SUM_BY_SEQ_NUM_STATEMENT);
 
     res += PrepareStatement(DeleteWorkEntryStatement, DELETE_WORK_ENTRY_STATEMENT);
     res += PrepareStatement(DeleteMd5SumStatement, DELETE_MD5_SUM_STATEMENT);

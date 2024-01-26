@@ -155,7 +155,7 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
     std::string sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(url);
     size_t seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(url);
 
-    BlackLibraryCommon::Md5Sum md5 = { uuid, index_num, md5_sum, date, sec_id, seq_num, version_num };
+    BlackLibraryCommon::Md5Sum md5 = { uuid, md5_sum, index_num, date, sec_id, seq_num, version_num };
 
     // if (blacklibrary_db_->DoesMd5SumExistExact())
     // {
@@ -165,7 +165,7 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
 
     if (blacklibrary_db_->DoesMd5SumExistByIndexNum(uuid, index_num))
     {
-        if (blacklibrary_db_->UpdateMd5Sum(md5))
+        if (blacklibrary_db_->UpdateMd5SumByIndexNum(md5))
         {
             BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} sec_id: {} seq_num: {} failed", uuid, index_num, md5_sum, date, sec_id, seq_num);
             return -1;

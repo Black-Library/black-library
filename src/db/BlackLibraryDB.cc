@@ -230,11 +230,11 @@ BlackLibraryCommon::Md5Sum BlackLibraryDB::ReadMd5SumBySeqNum(const std::string 
     return md5;
 }
 
-int BlackLibraryDB::UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5)
+int BlackLibraryDB::UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
-    if (md5.uuid.empty() || database_connection_interface_->UpdateMd5Sum(md5))
+    if (md5.uuid.empty() || database_connection_interface_->UpdateMd5SumByIndexNum(md5))
     {
         BlackLibraryCommon::LogError(logger_name_, "Failed to update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
         return -1;
@@ -242,6 +242,20 @@ int BlackLibraryDB::UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5)
 
     return 0;
 }
+
+int BlackLibraryDB::UpdateMd5SumBySeqNum(const BlackLibraryCommon::Md5Sum &md5)
+{
+    const std::lock_guard<std::mutex> lock(mutex_);
+
+    if (md5.uuid.empty() || database_connection_interface_->UpdateMd5SumBySeqNum(md5))
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Failed to update MD5 checksum with UUID: {} index_num: {} sum: {}", md5.uuid, md5.index_num, md5.md5_sum);
+        return -1;
+    }
+
+    return 0;
+}
+
 
 int BlackLibraryDB::DeleteMd5Sum(const std::string &uuid, size_t index_num)
 {
