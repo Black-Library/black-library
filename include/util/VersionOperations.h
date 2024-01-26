@@ -20,8 +20,8 @@ static const size_t MaxSeqNum = (size_t) - 1;
 
 struct Md5Sum {
     std::string uuid = "";
-    size_t index_num = 0;
     std::string md5_sum = EmptyMD5Version;
+    size_t index_num = 0;
     time_t date = 0;
     std::string sec_id = "";
     size_t seq_num = MaxSeqNum;
@@ -31,8 +31,8 @@ struct Md5Sum {
 inline std::ostream& operator<< (std::ostream &out, const Md5Sum &sum)
 {
     out << "UUID: " << sum.uuid << " ";
-    out << "index_num: " << sum.index_num << " ";
     out << "md5_sum: " << sum.md5_sum << " ";
+    out << "index_num: " << sum.index_num << " ";
     out << "date: " << sum.date << " ";
     out << "sec_id: " << sum.sec_id << " ";
     out << "seq_num: " << sum.seq_num << " ";
@@ -57,8 +57,8 @@ struct Md5SumGreaterThanBySeqNum
 enum class DBMd5SumColumnID : uint8_t
 {
     uuid,
-    index_num,
     md5_sum,
+    index_num,
     date,
     sec_id,
     seq_num,

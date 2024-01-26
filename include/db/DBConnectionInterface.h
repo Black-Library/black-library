@@ -38,7 +38,8 @@ public:
     virtual BlackLibraryCommon::Md5Sum ReadMd5SumByIndexNum(const std::string &uuid, size_t index_num) const = 0;
     virtual BlackLibraryCommon::Md5Sum ReadMd5SumBySecId(const std::string &uuid, const std::string &sec_id) const = 0;
     virtual BlackLibraryCommon::Md5Sum ReadMd5SumBySeqNum(const std::string &uuid, const size_t &seq_num) const = 0;
-    virtual int UpdateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const = 0;
+    virtual int UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5) const = 0;
+    virtual int UpdateMd5SumBySeqNum(const BlackLibraryCommon::Md5Sum &md5) const = 0;
     virtual int DeleteMd5Sum(const std::string &uuid, size_t index_num) const = 0;
 
     virtual int CreateRefresh(const DBRefresh &refresh) const = 0;

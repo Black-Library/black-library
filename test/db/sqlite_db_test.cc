@@ -110,7 +110,7 @@ TEST_CASE( "Test CRUD for md5 checksum table sqlite (pass)", "[single-file]" )
     new_md5.date = 101;
     new_md5.version_num = 5;
     new_md5.sec_id = "new-md5-sec-id";
-    REQUIRE ( db.UpdateMd5Sum(new_md5) == 0 );
+    REQUIRE ( db.UpdateMd5SumByIndexNum(new_md5) == 0 );
     BlackLibraryCommon::Md5Sum md5_update = db.ReadMd5SumBySecId(new_md5.uuid, new_md5.sec_id);
     REQUIRE ( md5_update.uuid == md5.uuid );
     REQUIRE ( md5_update.index_num == 18 );
@@ -152,8 +152,10 @@ TEST_CASE( "Test reading md5s back ordered by index_num sqlite (pass)", "[single
 
     BlackLibraryCommon::Md5Sum md5_1 = GenerateTestMd5Sum();
     BlackLibraryCommon::Md5Sum md5_2 = GenerateTestMd5Sum();
-    md5_2.index_num = 10;
+    md5_1.md5_sum = DefaultTestMd5_1;
+    md5_2.md5_sum = DefaultTestMd5_2;
     md5_1.index_num = 20;
+    md5_2.index_num = 10;
     md5_1.sec_id = "md5-sec-id-1";
     md5_2.sec_id = "md5-sec-id-2";
 
@@ -185,6 +187,7 @@ TEST_CASE( "Test reading md5s back max seq num sqlite (pass)", "[single-file]" )
     for (size_t i = 0; i < 10; ++i)
     {
         BlackLibraryCommon::Md5Sum md5_add = GenerateTestMd5Sum();
+        md5_add.md5_sum = BlackLibraryCommon::GetMD5Hash(std::to_string(i));
         md5_add.index_num = i;
         md5_add.seq_num = i;
         if ( i >= 5 )
