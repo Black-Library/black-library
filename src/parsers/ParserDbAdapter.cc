@@ -148,7 +148,7 @@ std::vector<BlackLibraryCommon::Md5Sum> ParserDbAdapter::ReadMd5s(const std::str
     return blacklibrary_db_->GetMd5SumsFromUUID(uuid);
 }
 
-int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, const std::string &url, time_t date, uint64_t version_num)
+int ParserDbAdapter::UpsertMd5ByIndexNum(const std::string &uuid, size_t index_num, const std::string &md5_sum, const std::string &url, time_t date, uint64_t version_num)
 {
     const std::lock_guard<std::mutex> lock(upsert_mutex_);
 
@@ -157,7 +157,7 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
 
     BlackLibraryCommon::Md5Sum md5 = { uuid, md5_sum, index_num, date, sec_id, seq_num, version_num };
 
-    // if (blacklibrary_db_->DoesMd5SumExistExact())
+    // if (blacklibrary_db_->DoesMd5SumExist())
     // {
     //     BlackLibraryCommon::LogWarn(logger_name_, "Exact copy of md5 UUID: {} index_num: {} md5_sum: {} date: {} sec_id: {} seq_num: {} already exists", uuid, index_num, md5_sum, date, sec_id, seq_num);
     //     return;
@@ -178,6 +178,25 @@ int ParserDbAdapter::UpsertMd5(const std::string &uuid, size_t index_num, const 
     if (blacklibrary_db_->CreateMd5Sum(md5))
     {
         BlackLibraryCommon::LogError(logger_name_, "Create md5 UUID: {} index_num: {} md5_sum: {} date: {} sec_id: {} seq_num: {} failed", uuid, index_num, md5_sum, date, sec_id, seq_num);
+        return -1;
+    }
+
+    return 0;
+}
+
+int ParserDbAdapter::UpdateMd5BySeqNum(const BlackLibraryCommon::Md5Sum &md5_sum)
+{
+    const std::lock_guard<std::mutex> lock(upsert_mutex_);
+
+    if (!blacklibrary_db_->DoesMd5SumExistBySeqNum(md5_sum.uuid, md5_sum.seq_num))
+    {
+        BlackLibraryCommon::LogError(logger_name_, "UpdateMd5BySeqNum could not update, md5 does not exist");
+        return -1;
+    }
+
+    if (blacklibrary_db_->UpdateMd5SumBySeqNum(md5_sum))
+    {
+        BlackLibraryCommon::LogError(logger_name_, "Update md5 UUID: {} index_num: {} md5_sum: {} date: {} sec_id: {} seq_num: {} failed", md5_sum.uuid, md5_sum.index_num, md5_sum.md5_sum, md5_sum.date, md5_sum.sec_id, md5_sum.seq_num);
         return -1;
     }
 

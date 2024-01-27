@@ -37,7 +37,8 @@ public:
     BlackLibraryCommon::Md5Sum ReadMd5BySeqNum(const std::string &uuid, const size_t &seq_num);
     BlackLibraryCommon::Md5Sum ReadMd5ByUrl(const std::string &uuid, const std::string &url);
     std::vector<BlackLibraryCommon::Md5Sum> ReadMd5s(const std::string &uuid);
-    int UpsertMd5(const std::string &uuid, size_t index_num, const std::string &md5_sum, const std::string &surl, time_t date, uint64_t version_num);
+    int UpsertMd5ByIndexNum(const std::string &uuid, size_t index_num, const std::string &md5_sum, const std::string &surl, time_t date, uint64_t version_num);
+    int UpdateMd5BySeqNum(const BlackLibraryCommon::Md5Sum &md5_sum);
 
 private:
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;

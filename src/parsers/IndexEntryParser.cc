@@ -144,6 +144,9 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
             {
                 warn_about_order = true;
                 BlackLibraryCommon::LogDebug(parser_name_, "eq unexpected md5 index number UUID: {} index_num: {}, expected: {} {}", uuid_, md5_sum.index_num, expected_index, md5_sum);
+                // change md5 index_num to match
+                md5_sum.index_num = expected_index;
+                db_adapter_->UpdateMd5BySeqNum(md5_sum);
             }
             if (md5_seq_num_queue.empty() || index_entry_seq_num_queue.empty())
                 BlackLibraryCommon::LogError(parser_name_, "attempting to pop empty md5_seq_num_queue and index_entry_seq_num_queue!");
@@ -186,6 +189,10 @@ int IndexEntryParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
     if (warn_about_order)
     {
         BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} has ordering issues", uuid_);
+        for (const auto & truncated : truncated_index_entries)
+        {
+            BlackLibraryCommon::LogDebug(parser_name_, "UUID: {} truncated index_num: {}", uuid_, truncated.index_num);
+        }
     }
 
     index_entries_ = truncated_index_entries;
