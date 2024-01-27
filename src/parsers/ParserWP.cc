@@ -238,7 +238,7 @@ ParseSectionInfo ParserWP::ParseSection()
     }
 
     if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_, section_md5, working_url, last_update_date_, version_num);
+        db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, section_md5, working_url, last_update_date_, version_num);
 
     output.has_error = false;
 

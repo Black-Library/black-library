@@ -806,24 +806,24 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
         if (max_seq_count > 0)
             BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} max seq instances", target_entry.uuid, max_seq_count);
 
-        size_t expected_index = 0;
-        while(!md5_seq_num_queue.empty())
-        {
-            BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
-            // BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
-            if (md5_update.index_num != expected_index)
-            {
-                BlackLibraryCommon::LogDebug(logger_name_, "index: {} - expected index: {}", md5_update.index_num, expected_index);
-                md5_update.index_num = expected_index;
-                if (blacklibrary_db_.UpdateMd5SumBySeqNum(md5_update))
-                {
-                    BlackLibraryCommon::LogError(logger_name_, "Failed update md5 sum by seq num");
-                    break;
-                }
-            }
-            ++expected_index;
-            md5_seq_num_queue.pop();
-        }
+        // size_t expected_index = 0;
+        // while(!md5_seq_num_queue.empty())
+        // {
+        //     BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
+        //     // BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
+        //     if (md5_update.index_num != expected_index)
+        //     {
+        //         BlackLibraryCommon::LogDebug(logger_name_, "index: {} - expected index: {}", md5_update.index_num, expected_index);
+        //         md5_update.index_num = expected_index;
+        //         if (blacklibrary_db_.UpdateMd5SumBySeqNum(md5_update))
+        //         {
+        //             BlackLibraryCommon::LogError(logger_name_, "Failed update md5 sum by seq num");
+        //             break;
+        //         }
+        //     }
+        //     ++expected_index;
+        //     md5_seq_num_queue.pop();
+        // }
     }
 }
 

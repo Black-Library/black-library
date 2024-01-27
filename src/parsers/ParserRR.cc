@@ -288,7 +288,7 @@ ParseSectionInfo ParserRR::ParseSection()
     }
 
     if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_, version_check_result.md5, index_entry.data_url, index_entry.time_published, version_num);
+        db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, version_check_result.md5, index_entry.data_url, index_entry.time_published, version_num);
 
     // TODO consider adding a table or changing the version num/md5 table to track location/name of saved file
 

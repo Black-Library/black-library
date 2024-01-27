@@ -241,7 +241,7 @@ ParseSectionInfo ParserXF::ParseSection()
     if (saved_md5.md5_sum == section_md5)
     {
         if (db_adapter_)
-            db_adapter_->UpsertMd5(uuid_, index_, section_md5, working_url, last_update_date_, 0);
+            db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, section_md5, working_url, last_update_date_, 0);
 
         output.has_error = false;
         return output;
@@ -268,7 +268,7 @@ ParseSectionInfo ParserXF::ParseSection()
     }
 
     if (db_adapter_)
-        db_adapter_->UpsertMd5(uuid_, index_, section_md5, working_url, last_update_date_, version_num);
+        db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, section_md5, working_url, last_update_date_, version_num);
 
     output.has_error = false;
 
