@@ -230,8 +230,9 @@ ParseSectionInfo ParserXF::ParseSection()
     BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, section_md5);
 
     std::string sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(working_url);
+    size_t seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(working_url);
 
-    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.sec_id == sec_id)
+    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.sec_id == sec_id && saved_md5.seq_num == seq_num)
     {
         BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
         skip_file_check = true;

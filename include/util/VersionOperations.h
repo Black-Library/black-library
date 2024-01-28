@@ -17,6 +17,10 @@ namespace common {
 
 static constexpr const char EmptyMD5Version[] = "NO_MD5_VERSION";
 static const size_t MaxSeqNum = (size_t) - 1;
+// max size of int in sqlite is 4 bytes
+// static const int64_t MaxSeqNum = INT64_MAX;
+
+typedef int64_t seq_num_rep_t;
 
 struct Md5Sum {
     std::string uuid = "";
