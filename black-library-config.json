@@ -13,6 +13,7 @@
         "manager_debug_log": false,
         "manager_worker_count": 1,
         "parser_debug_log": true,
+        "parser_db_adapter_debug_log": false,
         "storage_path": "/mnt/black-library/store",
         "url_puller_debug": false,
         "worker_debug_log": false
