@@ -51,7 +51,22 @@ void LinkedListParser::IndicateNextSection()
 
 int LinkedListParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job)
 {
-    if (parser_job.url == parser_job.last_url || parser_job.last_url.empty())
+    bool seq_num_missing = false;
+
+    if (db_adapter_)
+    {
+        md5s_ = db_adapter_->ReadMd5s(uuid_);
+
+        for (const auto & md5 : md5s_)
+        {
+            if (md5.seq_num == 2147483647)
+            {
+                seq_num_missing = true;
+                break;
+            }
+        }
+    }
+    if (parser_job.url == parser_job.last_url || parser_job.last_url.empty() || seq_num_missing)
         next_url_ = GetFirstUrl(root_node, parser_job.url);
     else
     {
