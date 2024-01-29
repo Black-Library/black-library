@@ -59,7 +59,7 @@ int LinkedListParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser
 
         for (const auto & md5 : md5s_)
         {
-            if (md5.seq_num == 2147483647)
+            if (md5.seq_num == 2147483647 || md5.seq_num == BlackLibraryCommon::MaxSeqNum)
             {
                 seq_num_missing = true;
                 break;
