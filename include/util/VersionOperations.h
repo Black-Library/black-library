@@ -16,7 +16,7 @@ namespace core {
 namespace common {
 
 static constexpr const char EmptyMD5Version[] = "NO_MD5_VERSION";
-static const size_t MaxSeqNum = (size_t) - 1;
+// static const size_t MaxSeqNum = (size_t) - 1;
 // max size of int in sqlite is 4 bytes
 static const int64_t MaxSeqNum = INT64_MAX;
 
@@ -81,7 +81,7 @@ enum class version_extract_t
 
 std::string GetMD5Hash(const std::string &input);
 std::string GetWorkChapterSecIdFromUrl(const std::string &url);
-size_t GetWorkChapterSeqNumFromUrl(const std::string &url);
+seq_num_rep_t GetWorkChapterSeqNumFromUrl(const std::string &url);
 size_t GetWorkNumFromUrl(const std::string &url);
 
 } // namespace common

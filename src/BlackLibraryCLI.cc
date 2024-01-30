@@ -445,7 +445,7 @@ void BlackLibraryCLI::ImportChecksums(const std::vector<std::string> &tokens)
                 static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::index_num)])),
                 stol(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::date)]),
                 tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::sec_id)],
-                static_cast<size_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::seq_num)])),
+                static_cast<BlackLibraryCommon::seq_num_rep_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::seq_num)])),
                 static_cast<uint16_t>(stoul(tokens[DBColumnIDCast(BlackLibraryCommon::DBMd5SumColumnID::version_num)])),
             };
 
