@@ -153,7 +153,7 @@ int ParserDbAdapter::UpsertMd5ByIndexNum(const std::string &uuid, size_t index_n
     const std::lock_guard<std::mutex> lock(upsert_mutex_);
 
     std::string sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(url);
-    size_t seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(url);
+    BlackLibraryCommon::seq_num_rep_t seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(url);
 
     BlackLibraryCommon::Md5Sum md5 = { uuid, md5_sum, index_num, date, sec_id, seq_num, version_num };
 

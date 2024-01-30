@@ -111,7 +111,7 @@ std::string XFSecIdExtract(const std::string &url)
     return sec_id;
 }
 
-size_t XFIdNumExtract(const std::string &url, version_extract_t extract_type)
+seq_num_rep_t XFIdNumExtract(const std::string &url, version_extract_t extract_type)
 {
     // xen foro pattern is https://forums.spacebattles.com/threads/some-fiction-name.1234567/page-1#post-12345678
     if (extract_type == black_library::core::common::version_extract_t::CHAPTER_SEQ_NUM)
@@ -158,7 +158,7 @@ std::string GetWorkChapterSecIdFromUrl(const std::string &url)
     }
 }
 
-size_t GetWorkChapterSeqNumFromUrl(const std::string &url)
+seq_num_rep_t GetWorkChapterSeqNumFromUrl(const std::string &url)
 {
     size_t seq_num = MaxSeqNum;
 
