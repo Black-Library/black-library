@@ -45,7 +45,8 @@ Parser::Parser(parser_t parser_type, const njson &config) :
     parser_type_(parser_type),
     parser_behavior_(parser_behavior_t::ERROR),
     done_(false),
-    first_curl_wait_done_(false)
+    first_curl_wait_done_(false),
+    seq_num_missing_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
