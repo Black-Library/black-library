@@ -31,7 +31,10 @@ int LinkedListParser::CalculateIndexBounds(const ParserJob &parser_job)
     target_start_index_ = parser_job.start_number - 1;
     target_end_index_ = parser_job.end_number - 1;
 
-    if (target_end_index_ == 0)
+    if (seq_num_missing_)
+        target_start_index_ = 0;
+
+    if (target_end_index_ == 0 || seq_num_missing_)
     {
         target_end_index_ = std::numeric_limits<size_t>::max();
     }
@@ -51,22 +54,7 @@ void LinkedListParser::IndicateNextSection()
 
 int LinkedListParser::PreParseLoop(xmlNodePtr root_node, const ParserJob &parser_job)
 {
-    bool seq_num_missing = false;
-
-    if (db_adapter_)
-    {
-        md5s_ = db_adapter_->ReadMd5s(uuid_);
-
-        for (const auto & md5 : md5s_)
-        {
-            if (md5.seq_num == 2147483647 || md5.seq_num == BlackLibraryCommon::MaxSeqNum)
-            {
-                seq_num_missing = true;
-                break;
-            }
-        }
-    }
-    if (parser_job.url == parser_job.last_url || parser_job.last_url.empty() || seq_num_missing)
+    if (parser_job.url == parser_job.last_url || parser_job.last_url.empty() || seq_num_missing_)
         next_url_ = GetFirstUrl(root_node, parser_job.url);
     else
     {

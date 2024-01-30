@@ -280,7 +280,21 @@ std::string ParserXF::PreprocessTargetUrl(const ParserJob &parser_job)
 {
     title_ = GetWorkTitleFromUrl(parser_job.url);
 
-    if (parser_job.url == parser_job.last_url)
+    if (db_adapter_)
+    {
+        md5s_ = db_adapter_->ReadMd5s(uuid_);
+
+        for (const auto & md5 : md5s_)
+        {
+            if (md5.seq_num == 2147483647 || md5.seq_num == BlackLibraryCommon::MaxSeqNum)
+            {
+                seq_num_missing_ = true;
+                break;
+            }
+        }
+    }
+
+    if (parser_job.url == parser_job.last_url || seq_num_missing_)
     {
         return parser_job.url;
     }
@@ -291,6 +305,8 @@ std::string ParserXF::PreprocessTargetUrl(const ParserJob &parser_job)
 std::string ParserXF::GetFirstUrl(xmlNodePtr root_node, const std::string &data_url)
 {
     xmlNodePtr current_node = NULL;
+
+    BlackLibraryCommon::LogDebug(parser_name_, "Get first url from: {}", data_url);
 
     const auto threadmark_seek = SeekToThreadmark(root_node);
     if (!threadmark_seek.found)

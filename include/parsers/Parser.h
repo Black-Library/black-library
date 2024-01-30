@@ -102,6 +102,7 @@ protected:
     parser_behavior_t parser_behavior_;
     std::atomic_bool done_;
     std::atomic_bool first_curl_wait_done_;
+    std::atomic_bool seq_num_missing_;
 
 private:
     int FirstCurlWait();
