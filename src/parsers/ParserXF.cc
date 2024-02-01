@@ -205,17 +205,6 @@ ParseSectionInfo ParserXF::ParseSection()
         return output;
     }
 
-    BlackLibraryCommon::Md5Sum saved_md5;
-    bool skip_file_check = false;
-
-    if (db_adapter_)
-        saved_md5 = db_adapter_->ReadMd5ByUrl(uuid_, working_url);
-
-    if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
-    {
-        BlackLibraryCommon::LogDebug(parser_name_, "No MD5 sum for: {} index: {}", uuid_, index_);
-    }
-
     // dump content
     auto section_content = SectionDumpContent(section_doc_tree, current_node);
     xmlFreeDoc(section_doc_tree);
@@ -226,40 +215,52 @@ ParseSectionInfo ParserXF::ParseSection()
     }
 
     // version check
-    auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
-    BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, section_md5);
+    // BlackLibraryCommon::Md5Sum saved_md5;
+    // bool skip_file_check = false;
 
-    std::string sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(working_url);
-    BlackLibraryCommon::seq_num_rep_t seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(working_url);
+    // if (db_adapter_)
+    //     saved_md5 = db_adapter_->ReadMd5ByUrl(uuid_, working_url);
 
-    if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.sec_id == sec_id && saved_md5.seq_num == seq_num)
-    {
-        BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
-        skip_file_check = true;
-    }
-
-    // TODO remove: update hack for populating date and url
-    if (saved_md5.md5_sum == section_md5)
-    {
-        if (db_adapter_)
-            db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, section_md5, working_url, last_update_date_, 0);
-
-        output.has_error = false;
+    // if (saved_md5.md5_sum == BlackLibraryCommon::EmptyMD5Version)
+    // {
+    //     BlackLibraryCommon::LogDebug(parser_name_, "No MD5 sum for: {} index: {}", uuid_, index_);
+    // }
+    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_, last_update_date_);
+    
+    if (version_check_result.has_error)
         return output;
-    }
 
-    // if we skip the file check we can just return
-    if (skip_file_check)
+    if (version_check_result.already_exists)
     {
         output.has_error = false;
+
         return output;
     }
+    
+    // auto section_md5 = BlackLibraryCommon::GetMD5Hash(section_content);
+    // BlackLibraryCommon::LogDebug(parser_name_, "Section UUID: {} index: {} checksum hash: {}", uuid_, index_, section_md5);
+
+    // std::string sec_id = BlackLibraryCommon::GetWorkChapterSecIdFromUrl(working_url);
+    // BlackLibraryCommon::seq_num_rep_t seq_num = BlackLibraryCommon::GetWorkChapterSeqNumFromUrl(working_url);
+
+    // if (saved_md5.md5_sum == section_md5 && saved_md5.date == last_update_date_ && saved_md5.sec_id == sec_id && saved_md5.seq_num == seq_num)
+    // {
+    //     BlackLibraryCommon::LogDebug(parser_name_, "Version hash matches: {} index: {}, skip file save", uuid_, index_);
+    //     skip_file_check = true;
+    // }
+
+    // // if we skip the file check we can just return
+    // if (skip_file_check)
+    // {
+    //     output.has_error = false;
+    //     return output;
+    // }
 
     uint16_t version_num = 0;
-
     if (version_read_num_callback_)
         version_num = version_read_num_callback_(uuid_, index_);
 
+    // save file
     const auto section_file_name = GetSectionFileName(working_index, sanatized_section_name, 0);
 
     if (SectionFileSave(section_content, section_file_name))
@@ -269,8 +270,9 @@ ParseSectionInfo ParserXF::ParseSection()
     }
 
     if (db_adapter_)
-        db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, section_md5, working_url, last_update_date_, version_num);
+        db_adapter_->UpsertMd5ByIndexNum(uuid_, index_, version_check_result.md5, working_url, last_update_date_, version_num);
 
+    output.length = section_content.size();
     output.has_error = false;
 
     return output;
