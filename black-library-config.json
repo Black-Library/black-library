@@ -15,7 +15,7 @@
         "parser_debug_log": true,
         "parser_db_adapter_debug_log": false,
         "storage_path": "/mnt/black-library/store",
-        "url_puller_debug": false,
+        "url_puller_debug": true,
         "worker_debug_log": false
     },
     "config_version": "1.0"

@@ -200,6 +200,7 @@ void ParserRR::FindMetaData(xmlNodePtr root_node)
 ParseSectionInfo ParserRR::ParseSection()
 {
     ParseSectionInfo output;
+
     if (index_entry_queue_.empty())
     {
         BlackLibraryCommon::LogError(parser_name_, "Unable to get front of queue for UUID: {}", uuid_);
@@ -207,6 +208,7 @@ ParseSectionInfo ParserRR::ParseSection()
     }
 
     const auto index_entry = index_entry_queue_.front();
+    index_ = index_entry.index_num;
 
     BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry.data_url, index_entry.name);
 
@@ -241,7 +243,7 @@ ParseSectionInfo ParserRR::ParseSection()
         ++length;
     }
 
-    // generate section file name from index entry
+    // get section title
     const auto section_name = GetRRIndexEntryTitle(index_entry);
 
     const auto sanatized_section_name = BlackLibraryCommon::SanitizeFileName(section_name);
@@ -260,7 +262,8 @@ ParseSectionInfo ParserRR::ParseSection()
     if (section_content.empty())
         return output;
 
-    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_entry.index_num, index_entry.time_published);
+    // version check
+    auto version_check_result = db_adapter_->CheckVersion(section_content, uuid_, index_, index_entry.time_published);
 
     if (version_check_result.has_error)
         return output;
@@ -271,8 +274,6 @@ ParseSectionInfo ParserRR::ParseSection()
 
         return output;
     }
-
-    index_ = index_entry.index_num;
 
     uint16_t version_num = 0;
     if (version_read_num_callback_)
@@ -293,7 +294,6 @@ ParseSectionInfo ParserRR::ParseSection()
     // TODO consider adding a table or changing the version num/md5 table to track location/name of saved file
 
     output.length = section_content.size();
-
     output.has_error = false;
 
     return output;
