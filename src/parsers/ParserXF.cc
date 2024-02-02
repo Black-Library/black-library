@@ -290,6 +290,7 @@ std::string ParserXF::PreprocessTargetUrl(const ParserJob &parser_job)
         {
             if (md5.seq_num == 2147483647 || md5.seq_num == BlackLibraryCommon::MaxSeqNum)
             {
+                BlackLibraryCommon::LogWarn(parser_name_, "UUID: {} Detected missing/max seq num", uuid_);
                 seq_num_missing_ = true;
                 break;
             }
@@ -318,6 +319,8 @@ std::string ParserXF::GetFirstUrl(xmlNodePtr root_node, const std::string &data_
     }
 
     current_node = threadmark_seek.seek_node->children->next;
+
+    std::cout << GenerateXmlDocTreeString(current_node);
 
     const auto post_id_result = GetXmlAttributeContentByName(current_node, "id");
     if (!post_id_result.found)
