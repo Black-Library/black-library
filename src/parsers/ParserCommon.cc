@@ -24,6 +24,25 @@ namespace parsers {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
+std::string GenerateXmlAttributeString(xmlNodePtr root_node)
+{
+    std::string attribute_content_string = "";
+    xmlAttrPtr attribute = root_node->properties;
+    while (attribute)
+    {
+        xmlChar *attr_content = xmlNodeListGetString(root_node->doc, attribute->children, 1);
+        if (attribute->name !=NULL && attr_content != NULL)
+        {
+            attribute_content_string += std::string((char *) attribute->name) + ": " + std::string((char *) attr_content) + " ";
+        }
+        xmlFree(attr_content);
+        attribute = attribute->next;
+    }
+    xmlFree(attribute);
+
+    return attribute_content_string;
+}
+
 // based on http://www.xmlsoft.org/examples/tree1.c
 std::string GenerateXmlDocTreeString(xmlNodePtr root_node)
 {
