@@ -320,7 +320,11 @@ std::string ParserXF::GetFirstUrl(xmlNodePtr root_node, const std::string &data_
 
     current_node = threadmark_seek.seek_node->children->next;
 
-    std::cout << GenerateXmlDocTreeString(current_node);
+    const auto itemprop_result = GetXmlAttributeContentByName(current_node, "itemprop");
+    if (itemprop_result.found)
+    {
+        current_node = current_node->next->next;
+    }
 
     const auto post_id_result = GetXmlAttributeContentByName(current_node, "id");
     if (!post_id_result.found)

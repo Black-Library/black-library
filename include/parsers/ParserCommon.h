@@ -278,6 +278,7 @@ using manager_notify_callback = std::function<void(ParserJobResult result)>;
 using progress_number_callback = std::function<void(const std::string &uuid, size_t progress_num, bool error)>;
 using version_read_num_callback = std::function<uint16_t(const std::string &uuid, size_t index_num)>;
 
+std::string GenerateXmlAttributeString(xmlNodePtr root_node);
 std::string GenerateXmlDocTreeString(xmlNodePtr root_node);
 std::string GenerateXmlDocTreeStringHelper(xmlNodePtr root_node, size_t depth);
 
