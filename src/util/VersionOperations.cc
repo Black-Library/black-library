@@ -202,8 +202,6 @@ size_t GetWorkNumFromUrl(const std::string &url)
     }
 }
 
-
-
 } // namespace common
 } // namespace core
 } // namespace black_library
