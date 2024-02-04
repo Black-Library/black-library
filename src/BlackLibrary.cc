@@ -5,7 +5,6 @@
 #include <chrono>
 #include <iostream>
 #include <iterator>
-#include <sstream>
 #include <thread>
 
 #include <LogOperations.h>
@@ -14,6 +13,7 @@
 
 #include <BlackLibrary.h>
 #include <ParserDbAdapter.h>
+#include <SimpleUUIDGenerator.h>
 #include <WgetUrlPuller.h>
 
 namespace black_library {
@@ -28,13 +28,10 @@ BlackLibrary::BlackLibrary(const njson &config) :
     parser_manager_(nullptr),
     blacklibrary_db_(nullptr),
     url_puller_(nullptr),
+    uuid_gen_(nullptr),
     parse_entries_(),
     pull_urls_(),
     manager_thread_(),
-    rd_(),
-    gen_(),
-    dist0_(0, 15),
-    dist1_(8, 11),
     logger_name_("black_library"),
     database_parser_mutex_(),
     debug_target_(false),
@@ -66,12 +63,11 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
     blacklibrary_db_ = std::make_shared<BlackLibraryDB::BlackLibraryDB>(config);
     url_puller_ = std::make_shared<WgetUrlPuller>();
+    uuid_gen_ = std::make_shared<SimpleUUIDGenerator>();
 
     auto db_adapter = std::make_shared<BlackLibraryParsers::ParserDbAdapter>(config, blacklibrary_db_);
 
     parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter);
-
-    gen_ = std::mt19937_64(rd_());
 
     parser_manager_->RegisterDatabaseStatusCallback(
         [&](BlackLibraryParsers::ParserJobResult result)
@@ -350,7 +346,7 @@ int BlackLibrary::CompareAndUpdateUrls()
         }
         else
         {
-            entry.uuid = GenerateUUID();
+            entry.uuid = uuid_gen_->GenerateUUID();
             entry.url = url;
             entry.last_url = url;
             entry.series_length = 1;
@@ -477,43 +473,6 @@ int BlackLibrary::UpdateDatabaseWithResult(BlackLibraryDB::DBEntry &entry, const
     }
 
     return 0;
-}
-
-// TODO: pull this into an include file and make it truly a uuid
-// https://stackoverflow.com/questions/24365331/how-can-i-generate-uuid-in-c-without-using-boost-library
-std::string BlackLibrary::GenerateUUID()
-{
-    std::stringstream ss;
-    size_t i;
-
-    ss << std::hex;
-    for (i = 0; i < 8; ++i)
-    {
-        ss << dist0_(gen_);
-    }
-    ss << "-";
-    for (i = 0; i < 4; ++i)
-    {
-        ss << dist0_(gen_);
-    }
-    ss << "-4";
-    for (i = 0; i < 3; ++i)
-    {
-        ss << dist0_(gen_);
-    }
-    ss << "-";
-    ss << dist1_(gen_);
-    for (i = 0; i < 3; ++i)
-    {
-        ss << dist0_(gen_);
-    }
-    ss << "-";
-    for (i = 0; i < 12; ++i)
-    {
-        ss << dist0_(gen_);
-    }
-
-    return ss.str();
 }
 
 } // namespace black_library

@@ -3,7 +3,7 @@ add_subdirectory(db)
 add_subdirectory(parsers)
 add_subdirectory(util)
 
-add_library(blacklibrary BlackLibrary.cc WgetUrlPuller.cc)
+add_library(blacklibrary BlackLibrary.cc SimpleUUIDGenerator.cc WgetUrlPuller.cc)
 add_library(blacklibrarycli BlackLibraryCLI.cc)
 target_link_libraries(blacklibrary blacklibrarydb blacklibraryparsers ScraperSanatizer)
 target_link_libraries(blacklibrarycli blacklibrarybinder blacklibrarydb)
