@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <mutex>
-#include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -17,6 +16,7 @@
 #include <ParserManager.h>
 
 #include <BlackLibraryUrlPuller.h>
+#include <SimpleUUIDGenerator.h>
 
 namespace black_library {
 
@@ -47,13 +47,10 @@ private:
     std::shared_ptr<BlackLibraryParsers::ParserManager> parser_manager_;
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
+    std::shared_ptr<black_library::SimpleUUIDGenerator> uuid_gen_;
     std::vector<BlackLibraryDB::DBEntry> parse_entries_;
     std::vector<std::string> pull_urls_;
     std::thread manager_thread_;
-    std::random_device rd_;
-    std::mt19937_64 gen_;
-    std::uniform_int_distribution<> dist0_;
-    std::uniform_int_distribution<> dist1_;
     std::string logger_name_;
     std::mutex database_parser_mutex_;
     bool debug_target_;
