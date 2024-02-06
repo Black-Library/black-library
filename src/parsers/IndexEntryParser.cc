@@ -7,7 +7,6 @@
 #include <LogOperations.h>
 
 #include <IndexEntryParser.h>
-#include <ShortTimeGenerator.h>
 
 namespace black_library {
 

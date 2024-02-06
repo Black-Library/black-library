@@ -8,7 +8,6 @@
 #include <LogOperations.h>
 
 #include <LinkedListParser.h>
-#include <ShortTimeGenerator.h>
 
 namespace black_library {
 

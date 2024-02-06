@@ -421,7 +421,7 @@ void Parser::SaveUpdateDate(ParserResult &parser_result)
 int Parser::FirstCurlWait()
 {
     size_t seconds_counter = 0;
-    size_t wait_time = 15;
+    size_t wait_time = time_generator_->GenerateWaitTime(0);
 
     while (!first_curl_wait_done_)
     {
