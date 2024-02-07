@@ -340,6 +340,13 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
     {
         case pattern_seek_t::XML_NAME:
         {
+            if (root_node->type == xmlElementType::XML_CDATA_SECTION_NODE)
+            {
+                return false;
+            }
+            // std::cout << "start name match" << std::endl;
+            // std::cout << "xml_name: " << root_node->type << " - " << root_node->name << std::endl;
+            // std::cout << "start name match compare" << std::endl;
             if (xmlStrcmp(root_node->name, (const xmlChar *) match.c_str()))
             {
                 return false;
@@ -349,6 +356,7 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
         case pattern_seek_t::XML_CONTENT:
         {
             ParserXmlContentResult content_result = GetXmlNodeContent(root_node);
+            // std::cout << "xml_content name: " << root_node->name << " xml_content: " << content_result.result << " found: " << content_result.found << std::endl;
             if (xmlStrcmp((const xmlChar *) content_result.result.c_str(), (const xmlChar *) match.c_str()))
             {
                 return false;
@@ -363,10 +371,11 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
             std::string value = attribute.substr(attribute.find('=') + 1);
 
             bool found = false;
+            // std::cout << "start prop match: " << root_node->type << " name: " << root_node->name << std::endl;
             xmlAttrPtr prop = root_node->properties;
             while (prop)
             {
-                // std::cout << "name: " << prop->name << " attr: " << attr << " content: " << prop->children->content << " value: " << value <<std::endl;
+                // std::cout << "name: " << prop->name << " attr: " << attr << " content: " << prop->children->content << " value: " << value << std::endl;
                 if (!xmlStrcmp(prop->name, (const xmlChar *) attr.c_str()) &&
                     !(xmlStrcmp(prop->children->content, (const xmlChar *) value.c_str())))
                 {
