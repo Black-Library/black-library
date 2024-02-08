@@ -336,6 +336,11 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, std::string match);
 template<typename ... Args>
 bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std::string match, Args... args)
 {
+    if (!root_node)
+    {
+        return false;
+    }
+
     switch (pattern)
     {
         case pattern_seek_t::XML_NAME:
@@ -344,9 +349,7 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
             {
                 return false;
             }
-            // std::cout << "start name match" << std::endl;
-            // std::cout << "xml_name: " << root_node->type << " - " << root_node->name << std::endl;
-            // std::cout << "start name match compare" << std::endl;
+            // std::cout << "xml_name: " << root_node->type << " - " << std::string(reinterpret_cast<const char *>(root_node->name)) << std::endl;
             if (xmlStrcmp(root_node->name, (const xmlChar *) match.c_str()))
             {
                 return false;
@@ -356,7 +359,7 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
         case pattern_seek_t::XML_CONTENT:
         {
             ParserXmlContentResult content_result = GetXmlNodeContent(root_node);
-            // std::cout << "xml_content name: " << root_node->name << " xml_content: " << content_result.result << " found: " << content_result.found << std::endl;
+            // std::cout << "xml_content name: " << std::string(reinterpret_cast<const char *>(root_node->name)) << " xml_content: " << content_result.result << " found: " << content_result.found << std::endl;
             if (xmlStrcmp((const xmlChar *) content_result.result.c_str(), (const xmlChar *) match.c_str()))
             {
                 return false;
@@ -371,16 +374,23 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
             std::string value = attribute.substr(attribute.find('=') + 1);
 
             bool found = false;
-            // std::cout << "start prop match: " << root_node->type << " name: " << root_node->name << std::endl;
+            if (!root_node->properties)
+            {
+                return false;
+            }
             xmlAttrPtr prop = root_node->properties;
+            // std::cout << "prop match: " << prop->type << " prop name: " << std::string(reinterpret_cast<const char *>(prop->name)) << std::endl;
             while (prop)
             {
-                // std::cout << "name: " << prop->name << " attr: " << attr << " content: " << prop->children->content << " value: " << value << std::endl;
-                if (!xmlStrcmp(prop->name, (const xmlChar *) attr.c_str()) &&
-                    !(xmlStrcmp(prop->children->content, (const xmlChar *) value.c_str())))
+                if (prop->children)
                 {
-                    found = true;
-                    break;
+                    // std::cout << "name: " << std::string(reinterpret_cast<const char *>(prop->name)) << " attr: " << attr << " content: " << std::string(reinterpret_cast<const char *>(prop->children->content)) << " value: " << value << std::endl;
+                    if (!xmlStrcmp(prop->name, (const xmlChar *) attr.c_str()) &&
+                        !(xmlStrcmp(prop->children->content, (const xmlChar *) value.c_str())))
+                    {
+                        found = true;
+                        break;
+                    }
                 }
 
                 prop = prop->next;
