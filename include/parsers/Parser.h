@@ -13,7 +13,6 @@
 #include <mutex>
 #include <string>
 
-#include <curl/curl.h>
 #include <libxml/HTMLparser.h>
 #include <libxml/tree.h>
 
@@ -22,6 +21,7 @@
 
 #include "ParserCommon.h"
 #include "ParserDbAdapter.h"
+#include "ParserNetworkAdapter.h"
 #include "ParserTimeGenerator.h"
 
 namespace black_library {
@@ -40,8 +40,6 @@ public:
 
     virtual ParserResult Parse(const ParserJob &parser_job);
     void Stop();
-
-    std::string CurlRequest(const std::string &url);
 
     void SetLocalFilePath(const std::string &local_des);
 
@@ -79,6 +77,7 @@ protected:
     version_read_num_callback version_read_num_callback_;
 
     std::shared_ptr<ParserDbAdapter> db_adapter_;
+    std::shared_ptr<ParserNetworkAdapter> network_adapter_;
     std::shared_ptr<ParserTimeGenerator> time_generator_;
 
     std::string uuid_;
