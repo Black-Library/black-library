@@ -88,7 +88,7 @@ ParseSectionInfo ParserWP::ParseSection()
     }
 
     // Get html
-    const auto curl_request_result = CurlRequest(working_url);
+    const auto curl_request_result = network_adapter_->RequestUrl(working_url);
     xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_request_result.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (section_doc_tree == NULL)

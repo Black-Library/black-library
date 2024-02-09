@@ -88,7 +88,7 @@ ParseSectionInfo ParserAO3::ParseSection()
     const auto index_entry = index_entries_[index_];
 
     const auto url_adult = index_entry.data_url;
-    const auto index_entry_curl_result = CurlRequest(url_adult);
+    const auto index_entry_curl_result = network_adapter_->RequestUrl(url_adult);
 
     xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) index_entry_curl_result.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
