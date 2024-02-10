@@ -2,6 +2,8 @@
  * CurlNetworkAdapter.cc
  */
 
+#include <curl/curl.h>
+
 #include <LogOperations.h>
 
 #include <CurlNetworkAdapter.h>
@@ -17,6 +19,20 @@ namespace BlackLibraryCommon = black_library::core::common;
 CurlNetworkAdapter::CurlNetworkAdapter(const std::string &logger_name) :
     logger_name_(logger_name)
 {
+}
+
+// Credit: https://stackoverflow.com/questions/5525613/how-do-i-fetch-a-html-page-source-with-libcurl-in-c
+size_t HandleCurlResponse(void* ptr, size_t size, size_t nmemb, void* data)
+{
+    std::string* str = (std::string*) data;
+    char* sptr = (char*) ptr;
+
+    for (size_t x = 0; x < size * nmemb; ++x)
+    {
+        (*str) += sptr[x];
+    }
+
+    return size * nmemb;
 }
 
 std::string CurlNetworkAdapter::RequestUrl(const std::string url)
@@ -51,20 +67,6 @@ std::string CurlNetworkAdapter::RequestUrl(const std::string url)
     curl_easy_cleanup(curl);
 
     return html_raw;
-}
-
-// Credit: https://stackoverflow.com/questions/5525613/how-do-i-fetch-a-html-page-source-with-libcurl-in-c
-size_t HandleCurlResponse(void* ptr, size_t size, size_t nmemb, void* data)
-{
-    std::string* str = (std::string*) data;
-    char* sptr = (char*) ptr;
-
-    for (size_t x = 0; x < size * nmemb; ++x)
-    {
-        (*str) += sptr[x];
-    }
-
-    return size * nmemb;
 }
 
 } // namespace parsers
