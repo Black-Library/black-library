@@ -6,6 +6,7 @@ message(STATUS "LibXml2 include dir: ${LIBXML2_INCLUDE_DIR}")
 include(GNUInstallDirs)
 
 add_library(blacklibraryparsers
+    CurlNetworkAdapter.cc
     IndexEntryParser.cc
     LinkedListParser.cc
     ParserDbAdapter.cc
