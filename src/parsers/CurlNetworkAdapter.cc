@@ -35,7 +35,7 @@ size_t HandleCurlResponse(void* ptr, size_t size, size_t nmemb, void* data)
     return size * nmemb;
 }
 
-std::string CurlNetworkAdapter::RequestUrl(const std::string url)
+std::string CurlNetworkAdapter::RequestUrl(const std::string url) const
 {
     CURL* curl;
     CURLcode res;

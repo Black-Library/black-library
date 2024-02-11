@@ -18,7 +18,7 @@ namespace parsers {
 class ParserNetworkAdapter
 {
 public:
-    virtual std::string RequestUrl(const std::string url) = 0;
+    virtual std::string RequestUrl(const std::string url) const = 0;
 };
 
 } // namespace parsers
