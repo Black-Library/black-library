@@ -20,9 +20,7 @@ IndexEntryParser::IndexEntryParser(parser_t parser_type, const njson &config) :
     Parser(parser_type, config),
     index_entries_(),
     index_entry_queue_(),
-    last_url_(),
-    check_date_enabled_(false),
-    entry_gap_(false)
+    last_url_()
 {
     parser_behavior_ = parser_behavior_t::INDEX_ENTRY;
 }

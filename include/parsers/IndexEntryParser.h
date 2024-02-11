@@ -35,8 +35,6 @@ protected:
     std::vector<ParserIndexEntry> index_entries_;
     std::queue<ParserIndexEntry> index_entry_queue_;
     std::string last_url_;
-    bool check_date_enabled_;
-    bool entry_gap_;
 };
 
 } // namespace parsers
