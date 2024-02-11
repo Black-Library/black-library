@@ -18,7 +18,7 @@ class CurlNetworkAdapter : public ParserNetworkAdapter
 public:
     CurlNetworkAdapter(const std::string &logger_name);
 
-    std::string RequestUrl(const std::string url) override;
+    std::string RequestUrl(const std::string url) const override;
 
 private:
     std::string logger_name_;
