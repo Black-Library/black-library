@@ -790,12 +790,11 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
         std::priority_queue<BlackLibraryCommon::Md5Sum, std::vector<BlackLibraryCommon::Md5Sum>, BlackLibraryCommon::Md5SumGreaterThanBySeqNum> md5_seq_num_queue;
         auto md5s = blacklibrary_db_.GetMd5SumsFromUUID(target_entry.uuid);
 
-        // BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} md5s", target_entry.uuid, md5s.size());
+        BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} md5s", target_entry.uuid, md5s.size());
 
         size_t max_seq_count = 0;
         for (const auto & md5 : md5s)
         {
-
             if (md5.seq_num == BlackLibraryCommon::MaxSeqNum)
             {
                 ++max_seq_count;
@@ -806,24 +805,24 @@ void BlackLibraryCLI::ReorderMd5(const std::vector<std::string> &tokens)
         if (max_seq_count > 0)
             BlackLibraryCommon::LogDebug(logger_name_, "UUID: {} found {} max seq instances", target_entry.uuid, max_seq_count);
 
-        // size_t expected_index = 0;
-        // while(!md5_seq_num_queue.empty())
-        // {
-        //     BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
-        //     // BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
-        //     if (md5_update.index_num != expected_index)
-        //     {
-        //         BlackLibraryCommon::LogDebug(logger_name_, "index: {} - expected index: {}", md5_update.index_num, expected_index);
-        //         md5_update.index_num = expected_index;
-        //         if (blacklibrary_db_.UpdateMd5SumBySeqNum(md5_update))
-        //         {
-        //             BlackLibraryCommon::LogError(logger_name_, "Failed update md5 sum by seq num");
-        //             break;
-        //         }
-        //     }
-        //     ++expected_index;
-        //     md5_seq_num_queue.pop();
-        // }
+        size_t expected_index = 0;
+        while(!md5_seq_num_queue.empty())
+        {
+            BlackLibraryCommon::Md5Sum md5_update = md5_seq_num_queue.top();
+            BlackLibraryCommon::LogDebug(logger_name_, "seq: {}", md5_update.seq_num);
+            if (md5_update.index_num != expected_index)
+            {
+                BlackLibraryCommon::LogDebug(logger_name_, "index: {} - expected index: {}", md5_update.index_num, expected_index);
+                md5_update.index_num = expected_index;
+                if (blacklibrary_db_.UpdateMd5SumBySeqNum(md5_update))
+                {
+                    BlackLibraryCommon::LogError(logger_name_, "Failed update md5 sum by seq num");
+                    break;
+                }
+            }
+            ++expected_index;
+            md5_seq_num_queue.pop();
+        }
     }
 }
 
