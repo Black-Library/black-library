@@ -17,3 +17,6 @@
 	path = ext/spdlog
 	url = https://github.com/gabime/spdlog.git
 
+[submodule "ext/pistache"]
+	path = ext/pistache
+	url = git@github.com:pistacheio/pistache.git
