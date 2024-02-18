@@ -115,7 +115,7 @@ ParseSectionInfo ParserXF::ParseSection()
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (section_doc_tree == NULL)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Unable to parse into doc_tree for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Unable to parse into doc_tree for UUID: {} url: {}", uuid_, working_url);
         return output;
     }
 
@@ -130,7 +130,7 @@ ParseSectionInfo ParserXF::ParseSection()
         pattern_seek_t::XML_ATTRIBUTE, "class=p-body-main  ");
     if (!p_body_main_seek.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed p-body-main seek for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed p-body-main seek for UUID: {} url: {}", uuid_, working_url);
         xmlFreeDoc(section_doc_tree);
         return output;
     }
@@ -140,7 +140,7 @@ ParseSectionInfo ParserXF::ParseSection()
     const auto section_post_seek = SeekToSectionPost(current_node, target_post);
     if (!section_post_seek.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed post seek for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed post seek for UUID: {} url: {}", uuid_, working_url);
         xmlFreeDoc(section_doc_tree);
         return output;
     }
