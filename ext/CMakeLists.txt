@@ -66,6 +66,9 @@ endif()
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(json)
 
+# pistache
+add_subdirectory(pistache)
+
 # scraper-sanatizer
 add_subdirectory(scraper-sanatizer)
 
