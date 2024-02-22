@@ -35,6 +35,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
     logger_name_("black_library"),
     database_parser_mutex_(),
     debug_target_(false),
+    enable_api_(false),
     done_(true)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
@@ -52,6 +53,11 @@ BlackLibrary::BlackLibrary(const njson &config) :
         logger_level = nconfig["main_app_debug_log"];
     }
 
+    if (nconfig.contains("enable_api"))
+    {
+        enable_api_ = nconfig["enable_api"];
+    }
+
     if (nconfig.contains("url_puller_debug"))
     {
         debug_target_ = nconfig["url_puller_debug"];
@@ -66,6 +72,11 @@ BlackLibrary::BlackLibrary(const njson &config) :
     uuid_gen_ = std::make_shared<SimpleUUIDGenerator>();
 
     auto db_adapter = std::make_shared<BlackLibraryParsers::ParserDbAdapter>(config, blacklibrary_db_);
+
+    if (enable_api_)
+    {
+        
+    }
 
     parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter);
 

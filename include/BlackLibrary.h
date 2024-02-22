@@ -5,6 +5,7 @@
 #ifndef __BLACK_LIBRARY_BLACKLIBRARY_H__
 #define __BLACK_LIBRARY_BLACKLIBRARY_H__
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -54,8 +55,9 @@ private:
     std::string logger_name_;
     std::mutex database_parser_mutex_;
     bool debug_target_;
+    bool enable_api_;
 
-    bool done_;
+    std::atomic_bool done_;
 };
 
 } // namespace black_library
