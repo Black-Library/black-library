@@ -22,7 +22,7 @@ namespace black_library {
 
 namespace core {
 
-namespace db {
+namespace rest_api {
 
 namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
@@ -97,7 +97,7 @@ private:
     bool initialized_;
 };
 
-} // namespace db
+} // namespace rest_api
 } // namespace core
 } // namespace black_library
 

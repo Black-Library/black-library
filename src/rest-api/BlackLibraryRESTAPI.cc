@@ -8,7 +8,7 @@ namespace black_library {
 
 namespace core {
 
-namespace db {
+namespace rest_api {
 
 namespace BlackLibraryCommon = black_library::core::common;
 
@@ -28,6 +28,6 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
 
 }
 
-} // namespace db
+} // namespace rest_api
 } // namespace core
 } // namespace black_library

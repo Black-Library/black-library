@@ -1,6 +1,7 @@
 add_subdirectory(binder)
 add_subdirectory(db)
 add_subdirectory(parsers)
+add_subdirectory(rest-api)
 add_subdirectory(util)
 
 add_library(blacklibrary BlackLibrary.cc SimpleUUIDGenerator.cc WgetUrlPuller.cc)
