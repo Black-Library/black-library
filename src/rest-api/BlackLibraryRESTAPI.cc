@@ -18,10 +18,11 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     endpoint_(nullptr),
     rest_router_(),
     address_(),
+    monitoring_thread_(),
     logger_name_("rest_api"),
     port_number_(8080),
     num_threads_(4),
-    done_(false),
+    done_(true),
     initialized_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
@@ -37,6 +38,11 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     endpoint_->setHandler(rest_router_.handler());
 
     initialized_ = true;
+    done_ = false;
+
+    monitoring_thread_ = std::thread([this](){
+            endpoint_->serve();
+    });
 }
 
 int BlackLibraryDBRESTAPI::SetRoutes()
@@ -46,6 +52,16 @@ int BlackLibraryDBRESTAPI::SetRoutes()
     // Pistache::Rest::Routes::Put(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     // Pistache::Rest::Routes::Delete(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     // Pistache::Rest::Routes::Post(rest_router_, "/widget", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+
+    return 0;
+}
+
+int BlackLibraryDBRESTAPI::Stop()
+{
+    done_ = true;
+    endpoint_->shutdown();
+
+    monitoring_thread_.join();
 
     return 0;
 }
