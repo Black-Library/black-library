@@ -86,6 +86,8 @@ public:
 
     // bool IsReady() const;
 
+    int SetRoutes();
+
 private:
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;
     std::shared_ptr<Pistache::Http::Endpoint> endpoint_;

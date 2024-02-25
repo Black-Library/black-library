@@ -19,15 +19,34 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     rest_router_(),
     address_(),
     logger_name_("rest_api"),
-    port_number_(),
-    num_threads_(),
+    port_number_(8080),
+    num_threads_(4),
     initialized_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
-    address_ = Pistache::Address("localhost", 8080);
+    address_ = Pistache::Address("localhost", port_number_);
+
+    endpoint_ = std::make_shared<Pistache::Http::Endpoint>(address_);
+
+    endpoint_->init((Pistache::Http::Endpoint::options().threads(num_threads_)));
+
+    SetRoutes();
+
+    endpoint_->setHandler(rest_router_.handler());
 
     initialized_ = true;
+}
+
+int BlackLibraryDBRESTAPI::SetRoutes()
+{
+    // Pistache::Rest::Routes::Post(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    // Pistache::Rest::Routes::Get(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    // Pistache::Rest::Routes::Put(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    // Pistache::Rest::Routes::Delete(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    // Pistache::Rest::Routes::Post(rest_router_, "/widget", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+
+    return 0;
 }
 
 } // namespace rest_api

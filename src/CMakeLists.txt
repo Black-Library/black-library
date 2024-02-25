@@ -12,7 +12,7 @@ target_include_directories(blacklibrary PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(blacklibrarycli PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 install(
-  TARGETS 
+  TARGETS
 
   blacklibrary
   blacklibrarycli
