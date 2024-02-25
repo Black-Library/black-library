@@ -96,6 +96,7 @@ private:
     std::string logger_name_;
     uint16_t port_number_;
     uint16_t num_threads_;
+    bool done_;
     bool initialized_;
 };
 

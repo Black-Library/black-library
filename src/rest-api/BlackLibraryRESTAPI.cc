@@ -21,6 +21,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     logger_name_("rest_api"),
     port_number_(8080),
     num_threads_(4),
+    done_(false),
     initialized_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);

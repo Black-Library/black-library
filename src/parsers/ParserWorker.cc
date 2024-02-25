@@ -182,7 +182,7 @@ int ParserWorker::RunOnce()
 
             BlackLibraryCommon::LogDebug(worker_name_, "Starting parser: {} job: {}", GetParserName(parser->GetParserType()), parser_job);
 
-            std::thread t([this, parser, &parser_job, &parser_error](){
+            std::thread done_thread([this, parser, &parser_job, &parser_error](){
 
                 while (!done_ && !parser->GetDone() && !parser_error)
                 {
@@ -222,7 +222,7 @@ int ParserWorker::RunOnce()
                     job_status_callback_(parser_job, job_status_t::JOB_FINISHED);
             }
 
-            t.join();
+            done_thread.join();
 
             BlackLibraryCommon::LogDebug(worker_name_, "Stopping parser: {} job: {}", GetParserName(parser->GetParserType()), parser_job);
 
