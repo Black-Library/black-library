@@ -11,8 +11,9 @@ namespace core {
 namespace rest_api {
 
 namespace BlackLibraryCommon = black_library::core::common;
+namespace BlackLibraryDB = black_library::core::db;
 
-BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::shared_ptr<BlackLibraryDB> &blacklibrary_db) :
+BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db) :
     blacklibrary_db_(blacklibrary_db),
     endpoint_(nullptr),
     rest_router_(),
@@ -20,12 +21,13 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     logger_name_("rest_api"),
     port_number_(),
     num_threads_(),
-    mutex_()
+    initialized_(false)
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
     address_ = Pistache::Address("localhost", 8080);
 
+    initialized_ = true;
 }
 
 } // namespace rest_api
