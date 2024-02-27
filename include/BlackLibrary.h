@@ -14,6 +14,7 @@
 
 #include <ConfigOperations.h>
 #include <BlackLibraryDB.h>
+#include <BlackLibraryRESTAPI.h>
 #include <ParserManager.h>
 
 #include <BlackLibraryUrlPuller.h>
@@ -23,6 +24,7 @@ namespace black_library {
 
 namespace BlackLibraryDB = black_library::core::db;
 namespace BlackLibraryParsers = black_library::core::parsers;
+namespace BlackLibraryRESTAPI = black_library::core::rest_api;
 
 class BlackLibrary {
 public:
@@ -47,6 +49,7 @@ private:
 
     std::shared_ptr<BlackLibraryParsers::ParserManager> parser_manager_;
     std::shared_ptr<BlackLibraryDB::BlackLibraryDB> blacklibrary_db_;
+    std::shared_ptr<BlackLibraryRESTAPI::BlackLibraryDBRESTAPI> blacklibrary_api_;
     std::shared_ptr<black_library::BlackLibraryUrlPuller> url_puller_;
     std::shared_ptr<black_library::SimpleUUIDGenerator> uuid_gen_;
     std::vector<BlackLibraryDB::DBEntry> parse_entries_;

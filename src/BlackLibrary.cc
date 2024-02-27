@@ -27,6 +27,7 @@ const int BLACKLIBRARY_FREQUENCY = 24*60*60;
 BlackLibrary::BlackLibrary(const njson &config) :
     parser_manager_(nullptr),
     blacklibrary_db_(nullptr),
+    blacklibrary_api_(nullptr),
     url_puller_(nullptr),
     uuid_gen_(nullptr),
     parse_entries_(),

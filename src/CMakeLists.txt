@@ -6,7 +6,7 @@ add_subdirectory(util)
 
 add_library(blacklibrary BlackLibrary.cc SimpleUUIDGenerator.cc WgetUrlPuller.cc)
 add_library(blacklibrarycli BlackLibraryCLI.cc)
-target_link_libraries(blacklibrary blacklibrarydb blacklibraryparsers ScraperSanatizer)
+target_link_libraries(blacklibrary blacklibrarydb blacklibraryparsers blacklibraryrestapi ScraperSanatizer)
 target_link_libraries(blacklibrarycli blacklibrarybinder blacklibrarydb)
 target_include_directories(blacklibrary PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(blacklibrarycli PRIVATE ${PROJECT_SOURCE_DIR}/include)

@@ -18,7 +18,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     endpoint_(nullptr),
     rest_router_(),
     address_(),
-    monitoring_thread_(),
+    endpoint_thread_(),
     logger_name_("rest_api"),
     port_number_(8080),
     num_threads_(4),
@@ -40,7 +40,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     initialized_ = true;
     done_ = false;
 
-    monitoring_thread_ = std::thread([this](){
+    endpoint_thread_ = std::thread([this](){
             endpoint_->serve();
     });
 }
@@ -61,7 +61,7 @@ int BlackLibraryDBRESTAPI::Stop()
     done_ = true;
     endpoint_->shutdown();
 
-    monitoring_thread_.join();
+    endpoint_thread_.join();
 
     return 0;
 }

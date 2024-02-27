@@ -95,7 +95,7 @@ private:
     std::shared_ptr<Pistache::Http::Endpoint> endpoint_;
     Pistache::Rest::Router rest_router_;
     Pistache::Address address_;
-    std::thread monitoring_thread_;
+    std::thread endpoint_thread_;
     std::string logger_name_;
     uint16_t port_number_;
     uint16_t num_threads_;
