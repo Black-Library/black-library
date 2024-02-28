@@ -291,6 +291,8 @@ int BlackLibrary::Stop()
     if (manager_thread_.joinable())
         manager_thread_.join();
 
+    blacklibrary_api_->Stop();
+
     BlackLibraryCommon::LogInfo(logger_name_, "Stopping BlackLibrary");
 
     // clean up memory allocated by xml

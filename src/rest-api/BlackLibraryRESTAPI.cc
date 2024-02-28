@@ -61,7 +61,10 @@ int BlackLibraryDBRESTAPI::Stop()
     done_ = true;
     endpoint_->shutdown();
 
-    endpoint_thread_.join();
+    BlackLibraryCommon::LogWarn(logger_name_, "Joining rest api thread");
+
+    if (endpoint_thread_.joinable())
+        endpoint_thread_.join();
 
     return 0;
 }
