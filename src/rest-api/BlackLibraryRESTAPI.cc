@@ -2,6 +2,8 @@
  * BlackLibraryDBRESTAPI.cc
  */
 
+#include <LogOperations.h>
+
 #include <BlackLibraryRESTAPI.h>
 
 namespace black_library {
@@ -41,7 +43,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     done_ = false;
 
     endpoint_thread_ = std::thread([this](){
-            endpoint_->serve();
+        endpoint_->serve();
     });
 }
 
