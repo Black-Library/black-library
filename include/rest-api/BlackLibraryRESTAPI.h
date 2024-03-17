@@ -32,7 +32,6 @@ class BlackLibraryDBRESTAPI
 {
 public:
     explicit BlackLibraryDBRESTAPI(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db);
-    ~BlackLibraryDBRESTAPI();
 
     // std::vector<DBEntry> ListEntries() const;
     // std::vector<BlackLibraryCommon::Md5Sum> ListChecksums() const;

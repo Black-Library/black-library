@@ -7,6 +7,7 @@
         "db_path": "/mnt/black-library/db/test_catalog.db",
         "db_remote": false,
         "db_version": "1.0",
+        "enable_api": true,
         "factory_debug_log": false,
         "logger_path": "/mnt/black-library/log",
         "main_app_debug_log": false,

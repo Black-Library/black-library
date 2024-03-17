@@ -76,7 +76,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
     if (enable_api_)
     {
-        
+        blacklibrary_api_ = std::make_shared<BlackLibraryRESTAPI::BlackLibraryDBRESTAPI>(config, blacklibrary_db_);
     }
 
     parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter);
