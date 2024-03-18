@@ -44,7 +44,7 @@ public:
     // int CreateSource(const DBSource &source) const;
 
     // int CreateEntry(const DBEntry &entry) const override;
-    // DBEntry ReadEntry(const std::string &uuid) const override;
+    void ReadWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     // int UpdateEntry(const DBEntry &entry) const override;
     // int DeleteEntry(const std::string &uuid) const override;
 

@@ -29,6 +29,18 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
 
+    std::string logger_path = BlackLibraryCommon::DefaultLogPath;
+    bool logger_level = BlackLibraryCommon::DefaultLogLevel;
+
+    if (nconfig.contains("logger_path"))
+    {
+        logger_path = nconfig["logger_path"];
+    }
+
+    BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
+
+    BlackLibraryCommon::LogInfo(logger_name_, "Initializing BlackLibraryAPI");
+
     address_ = Pistache::Address("localhost", port_number_);
 
     endpoint_ = std::make_shared<Pistache::Http::Endpoint>(address_);
@@ -50,7 +62,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
 int BlackLibraryDBRESTAPI::SetRoutes()
 {
     // Pistache::Rest::Routes::Post(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
-    // Pistache::Rest::Routes::Get(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    Pistache::Rest::Routes::Get(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
     // Pistache::Rest::Routes::Put(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     // Pistache::Rest::Routes::Delete(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     // Pistache::Rest::Routes::Post(rest_router_, "/widget", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
@@ -69,6 +81,24 @@ int BlackLibraryDBRESTAPI::Stop()
         endpoint_thread_.join();
 
     return 0;
+}
+
+void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+{
+    try
+    {
+        const std::string json = request.body();
+        const std::string resource = request.param(":uuid").as<std::string>();
+        response.send(Pistache::Http::Code::Ok, "work_entry " + resource + " read.", MIME(Text, Plain));
+    }
+    catch (const std::runtime_error &ex)
+    {
+        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
+    }
+    catch (...)
+    {
+        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
+    }
 }
 
 } // namespace rest_api
