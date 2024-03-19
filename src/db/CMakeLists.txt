@@ -8,7 +8,7 @@ message(STATUS "Searching for libsqlite3 - ${SQLite3_LIBRARY}")
 
 include(GNUInstallDirs)
 
-add_library(blacklibrarydb BlackLibraryDB.cc SQLiteDB.cc)
+add_library(blacklibrarydb BlackLibraryDB.cc BlackLibraryDBDataTypes.cc SQLiteDB.cc)
 target_link_libraries(blacklibrarydb blacklibrarycommon ${SQLite3_LIBRARY})
 target_include_directories(blacklibrarydb PUBLIC ${SQLite3_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include/db)
 

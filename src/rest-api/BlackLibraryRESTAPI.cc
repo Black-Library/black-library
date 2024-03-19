@@ -88,8 +88,10 @@ void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &requ
     try
     {
         const std::string json = request.body();
-        const std::string resource = request.param(":uuid").as<std::string>();
-        response.send(Pistache::Http::Code::Ok, "work_entry " + resource + " read.", MIME(Text, Plain));
+        const std::string uuid = request.param(":uuid").as<std::string>();
+        BlackLibraryDB::DBEntry entry = blacklibrary_db_->ReadWorkEntry(uuid);
+        njson entry_json { entry };
+        response.send(Pistache::Http::Code::Ok, entry_json.dump(4), MIME(Text, Plain));
     }
     catch (const std::runtime_error &ex)
     {

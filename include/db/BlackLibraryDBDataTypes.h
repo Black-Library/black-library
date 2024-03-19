@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 
+#include <JsonOperations.h>
+
 namespace black_library {
 
 namespace core {
@@ -117,6 +119,8 @@ inline std::ostream& operator<< (std::ostream &out, const DBEntry &entry)
 
     return out;
 }
+
+void to_json(njson &j, const DBEntry &entry);
 
 enum class DBEntryColumnID : uint8_t
 {

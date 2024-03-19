@@ -7,6 +7,7 @@ add_library(blacklibrarycommon
     ConfigOperations.cc
     FileOperations.cc
     LogOperations.cc
+    JsonOperations.cc
     SourceInformation.cc
     StringOperations.cc
     TimeOperations.cc
