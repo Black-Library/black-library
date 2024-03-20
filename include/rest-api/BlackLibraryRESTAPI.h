@@ -33,7 +33,8 @@ class BlackLibraryDBRESTAPI
 public:
     explicit BlackLibraryDBRESTAPI(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db);
 
-    // std::vector<DBEntry> ListEntries() const;
+    void ListEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
+
     // std::vector<BlackLibraryCommon::Md5Sum> ListChecksums() const;
     // std::vector<DBErrorEntry> ListErrorEntries() const;
 

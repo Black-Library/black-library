@@ -61,6 +61,8 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
 
 int BlackLibraryDBRESTAPI::SetRoutes()
 {
+    Pistache::Rest::Routes::Get(rest_router_, "/work_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListEntriesAPI, this));
+
     // Pistache::Rest::Routes::Post(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     Pistache::Rest::Routes::Get(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
     // Pistache::Rest::Routes::Put(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
@@ -81,6 +83,30 @@ int BlackLibraryDBRESTAPI::Stop()
         endpoint_thread_.join();
 
     return 0;
+}
+
+void BlackLibraryDBRESTAPI::ListEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+{
+    try
+    {
+        const std::string json = request.body();
+        std::vector<BlackLibraryDB::DBEntry> entries = blacklibrary_db_->GetWorkEntryList();
+        njson entry_list {};
+        for (const auto& entry : entries)
+        {
+            entry_list.insert(entry_list.end(), entry);
+        }
+        
+        response.send(Pistache::Http::Code::Ok, entry_list.dump(4), MIME(Text, Plain));
+    }
+    catch (const std::runtime_error &ex)
+    {
+        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
+    }
+    catch (...)
+    {
+        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
+    }
 }
 
 void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
