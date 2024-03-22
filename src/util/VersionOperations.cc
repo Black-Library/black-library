@@ -131,6 +131,19 @@ seq_num_rep_t XFIdNumExtract(const std::string &url, version_extract_t extract_t
     }
 }
 
+void to_json(njson &j, const Md5Sum &md5_sum)
+{
+    j = njson{
+        { "UUID", md5_sum.uuid },
+        { "md5_sum", md5_sum.md5_sum },
+        { "index_num", md5_sum.index_num },
+        { "date", md5_sum.date },
+        { "sec_id", md5_sum.sec_id },
+        { "seq_num", md5_sum.seq_num },
+        { "version_num", md5_sum.version_num },
+    };
+}
+
 std::string GetMD5Hash(const std::string &input)
 {
     return CalculateMd5Manual((unsigned char*)input.c_str(), input.size());

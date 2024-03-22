@@ -34,8 +34,7 @@ public:
     explicit BlackLibraryDBRESTAPI(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db);
 
     void ListEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
-
-    // std::vector<BlackLibraryCommon::Md5Sum> ListChecksums() const;
+    void ListChecksumsAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     // std::vector<DBErrorEntry> ListErrorEntries() const;
 
     // int CreateDBVersion(const std::string &db_version) const;

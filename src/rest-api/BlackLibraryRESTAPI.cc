@@ -90,11 +90,13 @@ int BlackLibraryDBRESTAPI::SetRoutes()
     Pistache::Rest::Routes::Get(rest_router_, "/v1/ready", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::IsReady, this));
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListEntriesAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
 
-    // Pistache::Rest::Routes::Post(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+
+    // Pistache::Rest::Routes::Post(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
-    // Pistache::Rest::Routes::Put(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
-    // Pistache::Rest::Routes::Delete(rest_router_, "/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    // Pistache::Rest::Routes::Put(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
+    // Pistache::Rest::Routes::Delete(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     // Pistache::Rest::Routes::Post(rest_router_, "/widget", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
 
     return 0;
@@ -134,6 +136,30 @@ void BlackLibraryDBRESTAPI::ListEntriesAPI(const Pistache::Rest::Request &reques
     catch (...)
     {
         BlackLibraryCommon::LogError(logger_name_, "Failed list entries API {}", entry_list.size());
+        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
+    }
+}
+
+void BlackLibraryDBRESTAPI::ListChecksumsAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+{
+    njson checksum_list {};
+    try
+    {
+        const std::string json = request.body();
+        std::vector<BlackLibraryCommon::Md5Sum> checksums = blacklibrary_db_->GetChecksumList();
+        for (const auto& checksum : checksums)
+        {
+            checksum_list.emplace_back(checksum);
+        }
+        
+        response.send(Pistache::Http::Code::Ok, checksum_list.dump(4), MIME(Text, Plain));
+    }
+    catch (const std::runtime_error &ex)
+    {
+        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
+    }
+    catch (...)
+    {
         response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
     }
 }

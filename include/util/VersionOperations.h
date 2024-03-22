@@ -9,6 +9,8 @@
 #include <sstream>
 #include <vector>
 
+#include <JsonOperations.h>
+
 namespace black_library {
 
 namespace core {
@@ -57,6 +59,8 @@ struct Md5SumGreaterThanBySeqNum
         return lhs.seq_num > rhs.seq_num;
     }
 };
+
+void to_json(njson &j, const Md5Sum &md5_sum);
 
 enum class DBMd5SumColumnID : uint8_t
 {
