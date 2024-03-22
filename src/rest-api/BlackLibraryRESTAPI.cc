@@ -164,6 +164,30 @@ void BlackLibraryDBRESTAPI::ListChecksumsAPI(const Pistache::Rest::Request &requ
     }
 }
 
+void BlackLibraryDBRESTAPI::ListErrorEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+{
+    njson error_entry_list {};
+    try
+    {
+        const std::string json = request.body();
+        std::vector<BlackLibraryDB::DBErrorEntry> error_entries = blacklibrary_db_->GetErrorEntryList();
+        for (const auto& error_entry : error_entries)
+        {
+            error_entry_list.emplace_back(error_entry);
+        }
+        
+        response.send(Pistache::Http::Code::Ok, error_entry_list.dump(4), MIME(Text, Plain));
+    }
+    catch (const std::runtime_error &ex)
+    {
+        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
+    }
+    catch (...)
+    {
+        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
+    }
+}
+
 void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
 {
     try

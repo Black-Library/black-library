@@ -178,6 +178,8 @@ inline std::ostream& operator<< (std::ostream &out, const DBErrorEntry &entry)
     return out;
 }
 
+void to_json(njson &j, const DBErrorEntry &entry);
+
 enum class DBErrorEntryColumnID : uint8_t
 {
     uuid,

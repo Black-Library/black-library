@@ -32,6 +32,14 @@ void to_json(njson &j, const DBEntry &entry)
     };
 }
 
+void to_json(njson &j, const DBErrorEntry &entry)
+{
+    j = njson{
+        { "UUID", entry.uuid },
+        { "progress_num", entry.progress_num },
+    };
+}
+
 } // namespace db
 } // namespace core
 } // namespace black_library

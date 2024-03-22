@@ -35,6 +35,8 @@ public:
 
     void ListEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     void ListChecksumsAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
+    void ListErrorEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
+
     // std::vector<DBErrorEntry> ListErrorEntries() const;
 
     // int CreateDBVersion(const std::string &db_version) const;
