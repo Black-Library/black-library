@@ -45,7 +45,7 @@ public:
     // int CreateMediaSubtype(const std::string &media_subtype_name, const std::string &media_type_name) const;
     // int CreateSource(const DBSource &source) const;
 
-    // int CreateEntry(const DBEntry &entry) const override;
+    void CreateWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     void ReadWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     // int UpdateEntry(const DBEntry &entry) const override;
     // int DeleteEntry(const std::string &uuid) const override;
