@@ -195,8 +195,8 @@ void BlackLibraryDBRESTAPI::CreateWorkEntryAPI(const Pistache::Rest::Request &re
         const std::string json = request.body();
         const std::string uuid = request.param(":uuid").as<std::string>();
         njson entry_json = { json };
-        BlackLibraryDB::DBEntry entry = { entry_json };
-        blacklibrary_db_->CreateWorkEntry(entry)
+        BlackLibraryDB::DBEntry entry = entry_json.template get<BlackLibraryDB::DBEntry>();
+        blacklibrary_db_->CreateWorkEntry(entry);
         // response.send(Pistache::Http::Code::Ok, entry_json.dump(4), MIME(Text, Plain));
     }
     catch (const std::runtime_error &ex)
@@ -216,7 +216,7 @@ void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &requ
         const std::string json = request.body();
         const std::string uuid = request.param(":uuid").as<std::string>();
         BlackLibraryDB::DBEntry entry = blacklibrary_db_->ReadWorkEntry(uuid);
-        njson entry_json { entry };
+        njson entry_json = entry;
         response.send(Pistache::Http::Code::Ok, entry_json.dump(4), MIME(Text, Plain));
     }
     catch (const std::runtime_error &ex)

@@ -120,6 +120,7 @@ inline std::ostream& operator<< (std::ostream &out, const DBEntry &entry)
     return out;
 }
 
+void from_json(const njson& j, DBEntry &entry);
 void to_json(njson &j, const DBEntry &entry);
 
 enum class DBEntryColumnID : uint8_t
