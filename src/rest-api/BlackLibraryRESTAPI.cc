@@ -92,12 +92,7 @@ int BlackLibraryDBRESTAPI::SetRoutes()
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListEntriesAPI, this));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
 
-
-    // Pistache::Rest::Routes::Post(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
-    // Pistache::Rest::Routes::Put(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
-    // Pistache::Rest::Routes::Delete(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
-    // Pistache::Rest::Routes::Post(rest_router_, "/widget", Pistache::Rest::Routes::bind(&BlackLibraryDB::BlackLibraryDB::CreateWorkEntry, blacklibrary_db_));
 
     return 0;
 }
@@ -196,8 +191,9 @@ void BlackLibraryDBRESTAPI::CreateWorkEntryAPI(const Pistache::Rest::Request &re
         const std::string uuid = request.param(":uuid").as<std::string>();
         njson entry_json = { json };
         BlackLibraryDB::DBEntry entry = entry_json.template get<BlackLibraryDB::DBEntry>();
-        blacklibrary_db_->CreateWorkEntry(entry);
-        // response.send(Pistache::Http::Code::Ok, entry_json.dump(4), MIME(Text, Plain));
+        int res = blacklibrary_db_->CreateWorkEntry(entry);
+        njson res_json = { res };
+        response.send(Pistache::Http::Code::Ok, res_json.dump(4), MIME(Text, Plain));
     }
     catch (const std::runtime_error &ex)
     {

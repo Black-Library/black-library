@@ -37,18 +37,9 @@ public:
     void ListChecksumsAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     void ListErrorEntriesAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
 
-    // std::vector<DBErrorEntry> ListErrorEntries() const;
-
-    // int CreateDBVersion(const std::string &db_version) const;
-    // int CreateUser(const DBUser &user) const;
-    // int CreateMediaType(const std::string &media_type_name) const;
-    // int CreateMediaSubtype(const std::string &media_subtype_name, const std::string &media_type_name) const;
-    // int CreateSource(const DBSource &source) const;
-
     void CreateWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     void ReadWorkEntryAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
-    // int UpdateEntry(const DBEntry &entry) const override;
-    // int DeleteEntry(const std::string &uuid) const override;
+
 
     // int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
     // BlackLibraryCommon::Md5Sum ReadMd5SumByIndexNum(const std::string &uuid, size_t index_num) const override;
