@@ -225,6 +225,27 @@ void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &requ
     }
 }
 
+void BlackLibraryDBRESTAPI::ReadMd5SumByIndexNumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+{
+    try
+    {
+        const std::string json = request.body();
+        const std::string uuid = request.param(":uuid").as<std::string>();
+        const size_t index_num = request.param(":index_num").as<size_t>();
+        BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumByIndexNum(uuid, index_num);
+        njson md5_sum_json = md5_sum;
+        response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
+    }
+    catch (const std::runtime_error &ex)
+    {
+        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
+    }
+    catch (...)
+    {
+        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
+    }
+}
+
 void BlackLibraryDBRESTAPI::IsReady(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
 {
     try

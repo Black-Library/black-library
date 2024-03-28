@@ -131,6 +131,17 @@ seq_num_rep_t XFIdNumExtract(const std::string &url, version_extract_t extract_t
     }
 }
 
+void from_json(const njson& j, Md5Sum &md5_sum)
+{
+    j.at("uuid").get_to(md5_sum.uuid);
+    j.at("md5_sum").get_to(md5_sum.md5_sum);
+    j.at("index_num").get_to(md5_sum.index_num);
+    j.at("date").get_to(md5_sum.date);
+    j.at("sec_id").get_to(md5_sum.sec_id);
+    j.at("seq_num").get_to(md5_sum.seq_num);
+    j.at("version_num").get_to(md5_sum.version_num);
+}
+
 void to_json(njson &j, const Md5Sum &md5_sum)
 {
     j = njson{
