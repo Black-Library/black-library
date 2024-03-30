@@ -52,6 +52,26 @@ void to_json(njson &j, const DBEntry &entry)
     };
 }
 
+void from_json(const njson& j, DBRefresh &refresh)
+{
+    j.at("uuid").get_to(refresh.uuid);
+    j.at("refresh_date").get_to(refresh.refresh_date);
+}
+
+void to_json(njson &j, const DBRefresh &refresh)
+{
+    j = njson{
+        { "UUID", refresh.uuid },
+        { "refresh_date", refresh.refresh_date },
+    };
+}
+
+void from_json(const njson& j, DBErrorEntry &entry)
+{
+    j.at("uuid").get_to(entry.uuid);
+    j.at("progress_num").get_to(entry.progress_num);
+}
+
 void to_json(njson &j, const DBErrorEntry &entry)
 {
     j = njson{

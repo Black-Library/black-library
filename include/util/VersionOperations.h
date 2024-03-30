@@ -60,9 +60,6 @@ struct Md5SumGreaterThanBySeqNum
     }
 };
 
-void from_json(const njson& j, Md5Sum &md5_sum);
-void to_json(njson &j, const Md5Sum &md5_sum);
-
 enum class DBMd5SumColumnID : uint8_t
 {
     uuid,
@@ -75,6 +72,9 @@ enum class DBMd5SumColumnID : uint8_t
 
     _NUM_DB_MD5SUM_COLUMN_ID
 };
+
+void from_json(const njson& j, Md5Sum &md5_sum);
+void to_json(njson &j, const Md5Sum &md5_sum);
 
 enum class version_extract_t
 {

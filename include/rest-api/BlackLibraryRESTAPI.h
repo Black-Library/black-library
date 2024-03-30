@@ -50,7 +50,7 @@ public:
     // int DeleteMd5Sum(const std::string &uuid, size_t index_num) const override;
 
     // int CreateRefresh(const DBRefresh &refresh) const override;
-    // DBRefresh ReadRefresh(const std::string &uuid) const override;
+    void ReadRefresh(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     // int DeleteRefresh(const std::string &uuid) const override;
 
     // int CreateErrorEntry(const DBErrorEntry &entry) const override;

@@ -91,8 +91,16 @@ int BlackLibraryDBRESTAPI::SetRoutes()
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListEntriesAPI, this));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/error_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListErrorEntriesAPI, this));
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
+
+    // TODO: this should be changed to use json params instead of request params
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/:uuid/index_num/:index_num", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumByIndexNumAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/:uuid/sec_id/:sec_id", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumBySecIdAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/:uuid/seq_num/:seq_num", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumBySeqNumAPI, this));
+
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/refresh/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadRefresh, this));
 
     return 0;
 }
@@ -277,6 +285,26 @@ void BlackLibraryDBRESTAPI::ReadMd5SumBySeqNumAPI(const Pistache::Rest::Request 
         BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumBySeqNum(uuid, seq_num);
         njson md5_sum_json = md5_sum;
         response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
+    }
+    catch (const std::runtime_error &ex)
+    {
+        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
+    }
+    catch (...)
+    {
+        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
+    }
+}
+
+void BlackLibraryDBRESTAPI::ReadRefresh(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+{
+    try
+    {
+        const std::string json = request.body();
+        const std::string uuid = request.param(":uuid").as<std::string>();
+        BlackLibraryDB::DBRefresh refresh = blacklibrary_db_->ReadRefresh(uuid);
+        njson refresh_json = refresh;
+        response.send(Pistache::Http::Code::Ok, refresh_json.dump(4), MIME(Text, Plain));
     }
     catch (const std::runtime_error &ex)
     {

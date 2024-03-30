@@ -120,9 +120,6 @@ inline std::ostream& operator<< (std::ostream &out, const DBEntry &entry)
     return out;
 }
 
-void from_json(const njson& j, DBEntry &entry);
-void to_json(njson &j, const DBEntry &entry);
-
 enum class DBEntryColumnID : uint8_t
 {
     uuid,
@@ -145,6 +142,9 @@ enum class DBEntryColumnID : uint8_t
     _NUM_DB_ENTRY_COLUMN_ID
 };
 
+void from_json(const njson& j, DBEntry &entry);
+void to_json(njson &j, const DBEntry &entry);
+
 struct DBRefresh {
     std::string uuid;
     time_t refresh_date;
@@ -166,6 +166,9 @@ enum class DBRefreshColumnID : uint8_t
     _NUM_DB_REFRESH_COLUMN_ID
 };
 
+void from_json(const njson& j, DBRefresh &refresh);
+void to_json(njson &j, const DBRefresh &refresh);
+
 struct DBErrorEntry {
     std::string uuid;
     size_t progress_num;
@@ -179,6 +182,7 @@ inline std::ostream& operator<< (std::ostream &out, const DBErrorEntry &entry)
     return out;
 }
 
+void from_json(const njson& j, DBErrorEntry &entry);
 void to_json(njson &j, const DBErrorEntry &entry);
 
 enum class DBErrorEntryColumnID : uint8_t
