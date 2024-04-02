@@ -42,9 +42,7 @@ public:
 
 
     // int CreateMd5Sum(const BlackLibraryCommon::Md5Sum &md5) const override;
-    void ReadMd5SumByIndexNumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
-    void ReadMd5SumBySecIdAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
-    void ReadMd5SumBySeqNumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
+    void ReadMd5SumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
     // int UpdateMd5SumByIndexNum(const BlackLibraryCommon::Md5Sum &md5) const override;
     // int UpdateMd5SumBySeqNum(const BlackLibraryCommon::Md5Sum &md5) const override;
     // int DeleteMd5Sum(const std::string &uuid, size_t index_num) const override;

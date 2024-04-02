@@ -93,12 +93,8 @@ int BlackLibraryDBRESTAPI::SetRoutes()
     Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/error_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListErrorEntriesAPI, this));
 
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
-
-    // TODO: this should be changed to use json params instead of request params
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/:uuid/index_num/:index_num", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumByIndexNumAPI, this));
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/:uuid/sec_id/:sec_id", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumBySecIdAPI, this));
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/:uuid/seq_num/:seq_num", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumBySeqNumAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumAPI, this));
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/refresh/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadRefresh, this));
 
@@ -196,7 +192,6 @@ void BlackLibraryDBRESTAPI::CreateWorkEntryAPI(const Pistache::Rest::Request &re
     try
     {
         const std::string json = request.body();
-        const std::string uuid = request.param(":uuid").as<std::string>();
         njson entry_json = { json };
         BlackLibraryDB::DBEntry entry = entry_json.template get<BlackLibraryDB::DBEntry>();
         int res = blacklibrary_db_->CreateWorkEntry(entry);
@@ -218,7 +213,12 @@ void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &requ
     try
     {
         const std::string json = request.body();
-        const std::string uuid = request.param(":uuid").as<std::string>();
+        const njson n_json = njson::parse(json);
+        if (!n_json.contains("uuid"))
+        {
+            throw std::runtime_error("no uuid");
+        }
+        const std::string uuid = n_json["uuid"];
         BlackLibraryDB::DBEntry entry = blacklibrary_db_->ReadWorkEntry(uuid);
         njson entry_json = entry;
         response.send(Pistache::Http::Code::Ok, entry_json.dump(4), MIME(Text, Plain));
@@ -233,58 +233,42 @@ void BlackLibraryDBRESTAPI::ReadWorkEntryAPI(const Pistache::Rest::Request &requ
     }
 }
 
-void BlackLibraryDBRESTAPI::ReadMd5SumByIndexNumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+void BlackLibraryDBRESTAPI::ReadMd5SumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
 {
     try
     {
         const std::string json = request.body();
-        const std::string uuid = request.param(":uuid").as<std::string>();
-        const size_t index_num = request.param(":index_num").as<size_t>();
-        BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumByIndexNum(uuid, index_num);
-        njson md5_sum_json = md5_sum;
-        response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
-    }
-    catch (const std::runtime_error &ex)
-    {
-        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
-    }
-    catch (...)
-    {
-        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
-    }
-}
-
-void BlackLibraryDBRESTAPI::ReadMd5SumBySecIdAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
-{
-    try
-    {
-        const std::string json = request.body();
-        const std::string uuid = request.param(":uuid").as<std::string>();
-        const std::string sec_id = request.param(":sec_id").as<std::string>();
-        BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumBySecId(uuid, sec_id);
-        njson md5_sum_json = md5_sum;
-        response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
-    }
-    catch (const std::runtime_error &ex)
-    {
-        response.send(Pistache::Http::Code::Not_Found, ex.what(), MIME(Text, Plain));
-    }
-    catch (...)
-    {
-        response.send(Pistache::Http::Code::Internal_Server_Error, "Internal error", MIME(Text, Plain));
-    }
-}
-
-void BlackLibraryDBRESTAPI::ReadMd5SumBySeqNumAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
-{
-    try
-    {
-        const std::string json = request.body();
-        const std::string uuid = request.param(":uuid").as<std::string>();
-        const size_t seq_num = request.param(":seq_num").as<size_t>();
-        BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumBySeqNum(uuid, seq_num);
-        njson md5_sum_json = md5_sum;
-        response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
+        const njson n_json = njson::parse(json);
+        if (!n_json.contains("uuid"))
+        {
+            throw std::runtime_error("no uuid");
+        }
+        const std::string uuid = n_json["uuid"];
+        if (n_json.contains("index_num"))
+        {
+            size_t index_num = n_json["index_num"];
+            BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumByIndexNum(uuid, index_num);
+            njson md5_sum_json = md5_sum;
+            response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
+        }
+        else if (n_json.contains("sec_id"))
+        {
+            std::string sec_id = n_json["sec_id"];
+            BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumBySecId(uuid, sec_id);
+            njson md5_sum_json = md5_sum;
+            response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
+        }
+        else if (n_json.contains("seq_num"))
+        {
+            size_t seq_num = n_json["seq_num"];
+            BlackLibraryCommon::Md5Sum md5_sum = blacklibrary_db_->ReadMd5SumBySeqNum(uuid, seq_num);
+            njson md5_sum_json = md5_sum;
+            response.send(Pistache::Http::Code::Ok, md5_sum_json.dump(4), MIME(Text, Plain));
+        }
+        else
+        {
+            BlackLibraryCommon::LogError(logger_name_, "ReadMd5SumAPI failed, missing key");
+        }
     }
     catch (const std::runtime_error &ex)
     {
