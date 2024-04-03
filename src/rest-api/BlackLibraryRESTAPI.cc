@@ -90,11 +90,11 @@ int BlackLibraryDBRESTAPI::SetRoutes()
     Pistache::Rest::Routes::Get(rest_router_, "/v1/ready", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::IsReady, this));
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListEntriesAPI, this));
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sum/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/error_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListErrorEntriesAPI, this));
 
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sums/", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sum", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumAPI, this));
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/refresh/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadRefresh, this));
 
@@ -285,7 +285,12 @@ void BlackLibraryDBRESTAPI::ReadRefresh(const Pistache::Rest::Request &request, 
     try
     {
         const std::string json = request.body();
-        const std::string uuid = request.param(":uuid").as<std::string>();
+        const njson n_json = njson::parse(json);
+        if (!n_json.contains("uuid"))
+        {
+            throw std::runtime_error("no uuid");
+        }
+        const std::string uuid = n_json["uuid"];
         BlackLibraryDB::DBRefresh refresh = blacklibrary_db_->ReadRefresh(uuid);
         njson refresh_json = refresh;
         response.send(Pistache::Http::Code::Ok, refresh_json.dump(4), MIME(Text, Plain));
