@@ -11,7 +11,7 @@ endforeach()
 
 foreach( name ${TARGETS_LIST} )
     target_link_libraries( ${name} Catch2::Catch2WithMain blacklibrarydb blacklibrarycommon pistache )
-    include_directories( ${PROJECT_SOURCE_DIR}/test/db )
+    include_directories( ${PROJECT_SOURCE_DIR}/test )
     set_property( TARGET ${name} PROPERTY CXX_STANDARD 14 )
     set_property( TARGET ${name} PROPERTY CXX_EXTENSIONS OFF )
     set_property( TARGET ${name} PROPERTY INSTALL_RPATH "$LD_LIBRARY_PATH;${CMAKE_INSTALL_PREFIX}/lib" )

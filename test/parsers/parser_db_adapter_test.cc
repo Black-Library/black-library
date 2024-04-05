@@ -5,8 +5,8 @@
 #include <BlackLibraryDB.h>
 #include <ParserDbAdapter.h>
 
-#include "../CommonTestUtils.h"
-#include "ParserTestUtils.h"
+#include <CommonTestUtils.h>
+#include <ParserTestUtils.h>
 
 namespace black_library {
 

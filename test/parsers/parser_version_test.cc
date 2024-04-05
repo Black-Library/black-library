@@ -7,8 +7,8 @@
 
 #include <TestIndexEntryParser.h>
 
-#include "../CommonTestUtils.h"
-#include "ParserTestUtils.h"
+#include <CommonTestUtils.h>
+#include <ParserTestUtils.h>
 
 namespace black_library {
 
