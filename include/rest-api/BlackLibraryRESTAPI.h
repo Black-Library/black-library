@@ -74,7 +74,8 @@ public:
 
     // DBRefresh GetRefreshFromMinDate() const override;
 
-    void IsReady(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
+    bool IsReady();
+    void IsReadyAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response);
 
     int SetRoutes();
 

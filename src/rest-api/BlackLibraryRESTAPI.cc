@@ -87,7 +87,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
 
 int BlackLibraryDBRESTAPI::SetRoutes()
 {
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/ready", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::IsReady, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/ready", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::IsReadyAPI, this));
 
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListEntriesAPI, this));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sum/all", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ListChecksumsAPI, this));
@@ -305,7 +305,12 @@ void BlackLibraryDBRESTAPI::ReadRefresh(const Pistache::Rest::Request &request, 
     }
 }
 
-void BlackLibraryDBRESTAPI::IsReady(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
+bool BlackLibraryDBRESTAPI::IsReady()
+{
+    return initialized_;
+}
+
+void BlackLibraryDBRESTAPI::IsReadyAPI(const Pistache::Rest::Request &request, Pistache::Http::ResponseWriter response)
 {
     try
     {
