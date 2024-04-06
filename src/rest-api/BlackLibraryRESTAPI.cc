@@ -96,7 +96,7 @@ int BlackLibraryDBRESTAPI::SetRoutes()
     Pistache::Rest::Routes::Get(rest_router_, "/v1/work_entry", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadWorkEntryAPI, this));
     Pistache::Rest::Routes::Get(rest_router_, "/v1/check_sum", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadMd5SumAPI, this));
 
-    Pistache::Rest::Routes::Get(rest_router_, "/v1/refresh/:uuid", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadRefresh, this));
+    Pistache::Rest::Routes::Get(rest_router_, "/v1/refresh", Pistache::Rest::Routes::bind(&BlackLibraryDBRESTAPI::ReadRefresh, this));
 
     return 0;
 }
