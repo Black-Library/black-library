@@ -30,6 +30,11 @@ TEST_CASE( "REST API Generic constructor destructor tests (pass)", "[single-file
     BlackLibraryCommon::RemovePath(BlackLibraryDB::DefaultTestDBPath);
 }
 
+TEST_CASE( "Test teardown tmp db" )
+{
+    BlackLibraryCommon::RemovePath(BlackLibraryDB::DefaultTestDBPath);
+}
+
 } // namespace rest_api
 } // namespace core
 } // namespace black_library

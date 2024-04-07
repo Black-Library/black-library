@@ -27,6 +27,7 @@ static constexpr const char DefaultTestMd5_2[] = "7262cace2d9e3f1a1ad774b55ff292
 njson GenerateDBTestConfig()
 {
     njson j;
+    j["config"]["api_port"] = 8081;
     j["config"]["db_path"] = DefaultTestDBPath;
     j["config"]["logger_path"] = "/tmp/";
     j["config"]["db_debug_log"] = true;

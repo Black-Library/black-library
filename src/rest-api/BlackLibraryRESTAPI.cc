@@ -41,6 +41,11 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
         logger_level = nconfig["api_debug_log"];
     }
 
+    if (nconfig.contains("api_port"))
+    {
+        port_number_ = nconfig["api_port"];
+    }
+
     BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
 
     BlackLibraryCommon::LogInfo(logger_name_, "Initializing BlackLibraryAPI");
@@ -69,6 +74,10 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
     BlackLibraryCommon::LogInfo(logger_name_, "Initializing BlackLibraryAPI endpoint thread");
 
     endpoint_thread_ = std::thread([this](){
+        if (done_)
+        {
+            return;
+        }
         try
         {
             BlackLibraryCommon::LogInfo(logger_name_, "Initializing BlackLibraryAPI endpoint serve");
@@ -76,11 +85,11 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
         }
         catch (const std::runtime_error &ex)
         {
-            BlackLibraryCommon::LogError(logger_name_, "BlackLibraryAPI runtime error {}", ex.what());
+            BlackLibraryCommon::LogError(logger_name_, "BlackLibraryAPI runtime error: {}", ex.what());
         }
         catch(const std::exception& ex)
         {
-            BlackLibraryCommon::LogError(logger_name_, "BlackLibraryAPI exception {}", ex.what());
+            BlackLibraryCommon::LogError(logger_name_, "BlackLibraryAPI exception: {}", ex.what());
         }
     });
 }
