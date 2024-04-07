@@ -10,7 +10,7 @@ foreach( name ${TARGETS_LIST} )
 endforeach()
 
 foreach( name ${TARGETS_LIST} )
-    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibrarydb blacklibrarycommon pistache )
+    target_link_libraries( ${name} Catch2::Catch2WithMain blacklibraryrestapi )
     include_directories( ${PROJECT_SOURCE_DIR}/test )
     set_property( TARGET ${name} PROPERTY CXX_STANDARD 14 )
     set_property( TARGET ${name} PROPERTY CXX_EXTENSIONS OFF )

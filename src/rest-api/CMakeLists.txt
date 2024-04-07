@@ -1,6 +1,6 @@
 
 add_library(blacklibraryrestapi BlackLibraryRESTAPI.cc)
-target_link_libraries(blacklibraryrestapi blacklibrarydb blacklibrarycommon pistache)
+target_link_libraries(blacklibraryrestapi blacklibrarydb pistache)
 target_include_directories(blacklibraryrestapi PUBLIC ${PROJECT_SOURCE_DIR}/include/rest-api)
 
 install(

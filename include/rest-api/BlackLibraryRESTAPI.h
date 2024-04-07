@@ -15,7 +15,6 @@
 
 #include <ConfigOperations.h>
 
-// #include <DBConnectionInterface.h>
 #include <BlackLibraryDB.h>
 
 namespace black_library {
@@ -28,7 +27,6 @@ namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 
 class BlackLibraryDBRESTAPI 
-// : public DBConnectionInterface
 {
 public:
     explicit BlackLibraryDBRESTAPI(const njson &config, const std::shared_ptr<BlackLibraryDB::BlackLibraryDB> &blacklibrary_db);
