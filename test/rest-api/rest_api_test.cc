@@ -30,6 +30,24 @@ TEST_CASE( "REST API Generic constructor destructor tests (pass)", "[single-file
     BlackLibraryCommon::RemovePath(BlackLibraryDB::DefaultTestDBPath);
 }
 
+TEST_CASE( "REST API Generic route tests (pass)", "[single-file]")
+{
+    auto config = BlackLibraryDB::GenerateDBTestConfig();
+    auto blacklibrary_db = std::make_shared<BlackLibraryDB::BlackLibraryDB>(config);
+
+    REQUIRE ( blacklibrary_db->IsReady() == true );
+
+    auto blacklibrary_api = std::make_shared<BlackLibraryDBRESTAPI>(config, blacklibrary_db);
+
+    REQUIRE ( blacklibrary_api->IsReady() == true );
+
+    // make a single curl get request for ready
+
+    blacklibrary_api->Stop();
+
+    BlackLibraryCommon::RemovePath(BlackLibraryDB::DefaultTestDBPath);
+}
+
 TEST_CASE( "Test teardown tmp db" )
 {
     BlackLibraryCommon::RemovePath(BlackLibraryDB::DefaultTestDBPath);

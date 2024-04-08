@@ -5,6 +5,7 @@ find_package(OpenSSL REQUIRED)
 
 add_library(blacklibrarycommon
     ConfigOperations.cc
+    CurlOperations.cc
     FileOperations.cc
     LogOperations.cc
     JsonOperations.cc
