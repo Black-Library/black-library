@@ -20,18 +20,16 @@ namespace common {
 
 class CurlAdapter {
 public:
-    explicit CurlAdapter();
+    CurlAdapter();
+    ~CurlAdapter();
 
     void CurlGet(const std::string &url);
-    void CurlPost(const std::string &url);
-    void CurlPut(const std::string &url);
-    void CurlDelete(const std::string &url);
+    void CurlPost(const std::string &url, const std::string &request);
+    void CurlPut(const std::string &url, const std::string &request);
+    void CurlDelete(const std::string &url, const std::string &request);
 private:
+    CURL* curl_;
 };
-std::string CurlGet(const std::string &url);
-std::string CurlPost(const std::string &url, const std::string &request);
-std::string CurlPut(const std::string &url, const std::string &request);
-std::string CurlDelete(const std::string &url, const std::string &request);
 
 } // namespace common
 } // namespace core
