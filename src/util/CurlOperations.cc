@@ -14,7 +14,6 @@ CurlAdapter::CurlAdapter()
 {
     curl_ = curl_easy_init();
 
-    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, HandleCurlResponse);
     curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response);
@@ -30,21 +29,29 @@ CurlAdapter::~CurlAdapter()
 
 void CurlAdapter::CurlGet(const std::string &url)
 {
+    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+
     CURLcode res = curl_easy_perform(curl_);
 }
 
 void CurlAdapter::CurlPost(const std::string &url, const std::string &request)
 {
+    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+
     CURLcode res = curl_easy_perform(curl_);
 }
 
 void CurlAdapter::CurlPut(const std::string &url, const std::string &request)
 {
+    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+
     CURLcode res = curl_easy_perform(curl_);
 }
 
 void CurlAdapter::CurlDelete(const std::string &url, const std::string &request)
 {
+    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+
     CURLcode res = curl_easy_perform(curl_);
 }
 
