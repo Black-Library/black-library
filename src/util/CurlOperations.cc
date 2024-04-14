@@ -10,49 +10,81 @@ namespace core {
 
 namespace common {
 
-CurlAdapter::CurlAdapter()
+CurlNetworkAdapter::CurlNetworkAdapter(const njson &config)
 {
+    njson nconfig = LoadConfig(config);
+
+    std::string logger_path = DefaultLogPath;
+    if (nconfig.contains("logger_path"))
+    {
+        logger_path = nconfig["logger_path"];
+    }
+
+    bool logger_level = DefaultLogLevel;
+    if (nconfig.contains("network_adapter_debug_log"))
+    {
+        logger_level = nconfig["network_adapter_debug_log"];
+    }
+
     curl_ = curl_easy_init();
 
     curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
-    curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, HandleCurlResponse);
-    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response_body_);
     curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, true);
     curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, false);
     curl_easy_setopt(curl_, CURLOPT_TIMEOUT, 15L);
+
+    response_body_.reserve(CURL_MAX_WRITE_SIZE);
 }
 
-CurlAdapter::~CurlAdapter()
+CurlNetworkAdapter::~CurlNetworkAdapter()
 {
     curl_easy_cleanup(curl_);
 }
 
-void CurlAdapter::CurlGet(const std::string &url)
+void CurlNetworkAdapter::CurlGet(const std::string &url)
 {
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
 }
 
-void CurlAdapter::CurlPost(const std::string &url, const std::string &request)
+void CurlNetworkAdapter::CurlPost(const std::string &url, const std::string &request)
 {
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
 }
 
-void CurlAdapter::CurlPut(const std::string &url, const std::string &request)
+void CurlNetworkAdapter::CurlPut(const std::string &url, const std::string &request)
 {
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
 }
 
-void CurlAdapter::CurlDelete(const std::string &url, const std::string &request)
+void CurlNetworkAdapter::CurlDelete(const std::string &url, const std::string &request)
 {
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
+}
+
+std::string CurlNetworkAdapter::GetResponseBody()
+{
+    curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &response_code_);
+    return response_body_;
+}
+
+long CurlNetworkAdapter::GetResponseCode()
+{
+    return response_code_;
+}
+
+std::string CurlNetworkAdapter::GetContentType()
+{
+    curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &content_type_);
+    return content_type_;
 }
 
 std::string CurlGet(const std::string &url)

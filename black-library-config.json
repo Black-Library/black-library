@@ -13,6 +13,7 @@
         "main_app_debug_log": false,
         "manager_debug_log": false,
         "manager_worker_count": 1,
+        "network_adapter_debug_log": false,
         "parser_debug_log": false,
         "parser_db_adapter_debug_log": false,
         "storage_path": "/mnt/black-library/store",

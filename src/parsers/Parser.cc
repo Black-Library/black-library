@@ -8,6 +8,7 @@
 #include <thread>
 
 #include <LogOperations.h>
+#include <CurlOperations.h>
 #include <VersionOperations.h>
 
 #include <Parser.h>
