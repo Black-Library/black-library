@@ -83,9 +83,17 @@ long CurlNetworkAdapter::GetResponseCode()
 
 std::string CurlNetworkAdapter::GetContentType()
 {
-    curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &content_type_);
-    return content_type_;
+    curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &last_content_type_);
+    return last_content_type_;
 }
+
+double CurlNetworkAdapter::GetTotalTime()
+{
+    double total_time_double;
+    curl_easy_getinfo(curl_, CURLINFO_TOTAL_TIME, &total_time_double);
+    return total_time_double;
+}
+
 
 std::string CurlGet(const std::string &url)
 {

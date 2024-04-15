@@ -35,6 +35,7 @@ public:
     long GetResponseCode();
 
     std::string GetContentType();
+    double GetTotalTime();
 
 private:
     CURL* curl_;
