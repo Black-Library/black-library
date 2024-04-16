@@ -28,7 +28,6 @@ CurlNetworkAdapter::CurlNetworkAdapter(const njson &config)
 
     curl_ = curl_easy_init();
 
-    curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response_body_);
     curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, true);
     curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, false);
@@ -44,6 +43,8 @@ CurlNetworkAdapter::~CurlNetworkAdapter()
 
 void CurlNetworkAdapter::CurlGet(const std::string &url)
 {
+    response_body_.clear();
+    curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
@@ -51,6 +52,8 @@ void CurlNetworkAdapter::CurlGet(const std::string &url)
 
 void CurlNetworkAdapter::CurlPost(const std::string &url, const std::string &request)
 {
+    response_body_.clear();
+    curl_easy_setopt(curl_, CURLOPT_HTTPPOST, 1L);
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
@@ -58,6 +61,8 @@ void CurlNetworkAdapter::CurlPost(const std::string &url, const std::string &req
 
 void CurlNetworkAdapter::CurlPut(const std::string &url, const std::string &request)
 {
+    response_body_.clear();
+    curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
@@ -65,6 +70,8 @@ void CurlNetworkAdapter::CurlPut(const std::string &url, const std::string &requ
 
 void CurlNetworkAdapter::CurlDelete(const std::string &url, const std::string &request)
 {
+    response_body_.clear();
+    curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
