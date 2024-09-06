@@ -29,7 +29,7 @@ public:
     void CurlGet(const std::string &url);
     void CurlPost(const std::string &url, const std::string &request);
     void CurlPut(const std::string &url, const std::string &request);
-    void CurlDelete(const std::string &url, const std::string &request);
+    void CurlDelete(const std::string &url);
 
     std::string GetResponseBody();
     long GetResponseCode();
@@ -37,12 +37,17 @@ public:
     std::string GetContentType();
     double GetTotalTime();
 
+    // TODO: compat, remove later
+    std::string RequestUrl(const std::string &url);
+
 private:
     CURL* curl_;
     std::string response_body_;
     long response_code_;
 
     std::string last_content_type_;
+
+    std::string logger_name_;
 };
 
 } // namespace common

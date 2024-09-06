@@ -10,7 +10,26 @@ namespace core {
 
 namespace common {
 
-CurlNetworkAdapter::CurlNetworkAdapter(const njson &config)
+// Credit: https://stackoverflow.com/questions/5525613/how-do-i-fetch-a-html-page-source-with-libcurl-in-c
+size_t HandleCurlResponse(void* ptr, size_t size, size_t nmemb, void* data)
+{
+    std::string* str = (std::string*) data;
+    char* sptr = (char*) ptr;
+
+    for (size_t x = 0; x < size * nmemb; ++x)
+    {
+        (*str) += sptr[x];
+    }
+
+    return size * nmemb;
+}
+
+CurlNetworkAdapter::CurlNetworkAdapter(const njson &config) :
+    curl_(NULL),
+    response_body_(""),
+    response_code_(0),
+    last_content_type_(""),
+    logger_name_("curl_network_adapter")
 {
     njson nconfig = LoadConfig(config);
 
@@ -25,6 +44,10 @@ CurlNetworkAdapter::CurlNetworkAdapter(const njson &config)
     {
         logger_level = nconfig["network_adapter_debug_log"];
     }
+
+    InitRotatingLogger(logger_name_, logger_path, logger_level);
+
+    LogDebug(logger_name_, "Initializing curl network adapter");
 
     curl_ = curl_easy_init();
 
@@ -48,6 +71,12 @@ void CurlNetworkAdapter::CurlGet(const std::string &url)
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
+
+    if (res != CURLE_OK)
+    {
+        LogError(logger_name_, "Curl request failed: {}", curl_easy_strerror(res));
+        return;
+    }
 }
 
 void CurlNetworkAdapter::CurlPost(const std::string &url, const std::string &request)
@@ -55,8 +84,15 @@ void CurlNetworkAdapter::CurlPost(const std::string &url, const std::string &req
     response_body_.clear();
     curl_easy_setopt(curl_, CURLOPT_HTTPPOST, 1L);
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, &request);
 
     CURLcode res = curl_easy_perform(curl_);
+
+    if (res != CURLE_OK)
+    {
+        LogError(logger_name_, "Curl request failed: {}", curl_easy_strerror(res));
+        return;
+    }
 }
 
 void CurlNetworkAdapter::CurlPut(const std::string &url, const std::string &request)
@@ -64,17 +100,30 @@ void CurlNetworkAdapter::CurlPut(const std::string &url, const std::string &requ
     response_body_.clear();
     curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, &request);
 
     CURLcode res = curl_easy_perform(curl_);
+
+    if (res != CURLE_OK)
+    {
+        LogError(logger_name_, "Curl request failed: {}", curl_easy_strerror(res));
+        return;
+    }
 }
 
-void CurlNetworkAdapter::CurlDelete(const std::string &url, const std::string &request)
+void CurlNetworkAdapter::CurlDelete(const std::string &url)
 {
     response_body_.clear();
     curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
 
     CURLcode res = curl_easy_perform(curl_);
+
+    if (res != CURLE_OK)
+    {
+        LogError(logger_name_, "Curl request failed: {}", curl_easy_strerror(res));
+        return;
+    }
 }
 
 std::string CurlNetworkAdapter::GetResponseBody()
@@ -102,7 +151,7 @@ double CurlNetworkAdapter::GetTotalTime()
 }
 
 
-std::string CurlGet(const std::string &url)
+std::string CurlNetworkAdapter::RequestUrl(const std::string &url)
 {
     CURL* curl;
     CURLcode res;
@@ -123,8 +172,7 @@ std::string CurlGet(const std::string &url)
     res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-
-        BlackLibraryCommon::LogError(logger_name_, "Curl request failed: {}", curl_easy_strerror(res));
+        LogError("black_library", "Curl request failed: {}", curl_easy_strerror(res));
         return "";
     }
 
@@ -132,10 +180,6 @@ std::string CurlGet(const std::string &url)
 
     return response;
 }
-
-std::string CurlPost(const std::string &url, const std::string &request);
-std::string CurlPut(const std::string &url, const std::string &request);
-std::string CurlDelete(const std::string &url, const std::string &request);
 
 } // namespace common
 } // namespace core

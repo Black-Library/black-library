@@ -1,3 +1,7 @@
+find_package(CURL REQUIRED)
+
+message(STATUS "CURL include dir: ${CURL_INCLUDE_DIR}")
+
 include(GNUInstallDirs)
 
 set(OPENSSL_USE_STATIC_LIBS TRUE)
@@ -15,8 +19,8 @@ add_library(blacklibrarycommon
     VersionOperations.cc
     )
 
-target_include_directories(blacklibrarycommon PUBLIC ${PROJECT_SOURCE_DIR}/include/util)
-target_link_libraries(blacklibrarycommon nlohmann_json::nlohmann_json OpenSSL::SSL stdc++fs spdlog::spdlog)
+target_include_directories(blacklibrarycommon PUBLIC ${CURL_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/util)
+target_link_libraries(blacklibrarycommon ${CURL_LIBRARY} nlohmann_json::nlohmann_json OpenSSL::SSL stdc++fs spdlog::spdlog)
 
 install(
   TARGETS blacklibrarycommon

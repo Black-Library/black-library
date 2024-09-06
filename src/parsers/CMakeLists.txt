@@ -1,4 +1,3 @@
-find_package(CURL REQUIRED)
 find_package(LibXml2 REQUIRED)
 
 message(STATUS "LibXml2 include dir: ${LIBXML2_INCLUDE_DIR}")
@@ -6,7 +5,6 @@ message(STATUS "LibXml2 include dir: ${LIBXML2_INCLUDE_DIR}")
 include(GNUInstallDirs)
 
 add_library(blacklibraryparsers
-    CurlNetworkAdapter.cc
     IndexEntryParser.cc
     LinkedListParser.cc
     ParserDbAdapter.cc
@@ -30,8 +28,8 @@ add_library(blacklibraryparsers
     ShortTimeGenerator.cc
     )
 
-target_link_libraries(blacklibraryparsers blacklibrarycommon blacklibrarydb ${CURL_LIBRARY} ${LIBXML2_LIBRARIES} pthread)
-target_include_directories(blacklibraryparsers PUBLIC ${CURL_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/parsers)
+target_link_libraries(blacklibraryparsers blacklibrarycommon blacklibrarydb ${LIBXML2_LIBRARIES} pthread)
+target_include_directories(blacklibraryparsers PUBLIC ${LIBXML2_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/parsers)
 
 install(
   TARGETS blacklibraryparsers

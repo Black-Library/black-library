@@ -13,7 +13,6 @@
 
 #include <Parser.h>
 
-#include <CurlNetworkAdapter.h>
 #include <ShortTimeGenerator.h>
 
 namespace black_library {
@@ -68,7 +67,7 @@ Parser::Parser(parser_t parser_type, const njson &config) :
 
     parser_name_ = GetParserName(parser_type_);
 
-    network_adapter_ = std::make_shared<CurlNetworkAdapter>(parser_name_);
+    network_adapter_ = std::make_shared<BlackLibraryCommon::CurlNetworkAdapter>(config);
 
     BlackLibraryCommon::InitRotatingLogger(parser_name_, logger_path, logger_level);
 }

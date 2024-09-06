@@ -16,7 +16,7 @@ njson LoadConfig(const njson &config)
 {
     if (!config.contains("config"))
     {
-        std::cout << "config load failed" << std::endl;
+        std::cout << "config load failed: " << config.size() << std::endl;
         exit(1);
     }
     return config["config"];

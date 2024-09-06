@@ -17,11 +17,11 @@
 #include <libxml/tree.h>
 
 #include <ConfigOperations.h>
+#include <CurlOperations.h>
 #include <SourceInformation.h>
 
 #include "ParserCommon.h"
 #include "ParserDbAdapter.h"
-#include "ParserNetworkAdapter.h"
 #include "ParserTimeGenerator.h"
 
 namespace black_library {
@@ -77,7 +77,7 @@ protected:
     version_read_num_callback version_read_num_callback_;
 
     std::shared_ptr<ParserDbAdapter> db_adapter_;
-    std::shared_ptr<ParserNetworkAdapter> network_adapter_;
+    std::shared_ptr<BlackLibraryCommon::CurlNetworkAdapter> network_adapter_;
     std::shared_ptr<ParserTimeGenerator> time_generator_;
 
     std::string uuid_;
