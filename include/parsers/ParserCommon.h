@@ -121,6 +121,35 @@ struct ParserJobHash
     }
 };
 
+inline bool operator == (const ParserJob &left, const ParserJob &right)
+{
+    return left.uuid == right.uuid && left.url == right.url &&
+        left.start_number == right.start_number && left.end_number == right.end_number;
+}
+
+inline std::ostream& operator << (std::ostream &out, const ParserJob &parser_job)
+{
+    out << "uuid: " << parser_job.uuid << " ";
+    out << "url: " << parser_job.url << " ";
+    out << "last_url: " << parser_job.last_url << " ";
+    out << "start_number: " << parser_job.start_number << " ";
+    out << "end_number: " << parser_job.end_number << " ";
+    out << "is_error_job: " << parser_job.is_error_job;
+
+    return out;
+}
+
+// template<>
+// struct fmt::formatter<ParserJob> : fmt::formatter<std::string>
+// {
+//     auto format(ParserJob parser_job, format_context &ctx) const -> decltype(ctx.out())
+//     {
+//         std::string parser_job_str = "";
+//         parser_job_str << parser_job;
+//         return fmt::format_to(ctx.out(), "[ParserJob ={}]", parser_job_str);
+//     }
+// };
+
 struct ParserJobStatusTracker
 {
     std::string uuid;
@@ -147,24 +176,6 @@ struct CurrentJobPairHash
         return h1 ^ h2;
     }
 };
-
-inline bool operator == (const ParserJob &left, const ParserJob &right)
-{
-    return left.uuid == right.uuid && left.url == right.url &&
-        left.start_number == right.start_number && left.end_number == right.end_number;
-}
-
-inline std::ostream& operator << (std::ostream &out, const ParserJob &parser_job)
-{
-    out << "uuid: " << parser_job.uuid << " ";
-    out << "url: " << parser_job.url << " ";
-    out << "last_url: " << parser_job.last_url << " ";
-    out << "start_number: " << parser_job.start_number << " ";
-    out << "end_number: " << parser_job.end_number << " ";
-    out << "is_error_job: " << parser_job.is_error_job;
-
-    return out;
-}
 
 struct ParserResultMetadata {
     std::string uuid;
@@ -411,5 +422,23 @@ bool SeekToNodeByPatternHelper(xmlNodePtr root_node, pattern_seek_t pattern, std
 } // namespace parsers
 } // namespace core
 } // namespace black_library
+
+template <>
+struct fmt::formatter<black_library::core::parsers::ParserJob> : fmt::formatter<std::string> {
+    auto format(black_library::core::parsers::ParserJob parser_job, format_context &ctx) const {
+        std::stringstream ss;
+        ss << parser_job;
+        return fmt::format_to(ctx.out(), "{}", ss.str());
+    }
+};
+
+template <>
+struct fmt::formatter<black_library::core::parsers::ParserJobResult> : fmt::formatter<std::string> {
+    auto format(black_library::core::parsers::ParserJobResult job_result, format_context &ctx) const {
+        std::stringstream ss;
+        ss << job_result;
+        return fmt::format_to(ctx.out(), "{}", ss.str());
+    }
+};
 
 #endif

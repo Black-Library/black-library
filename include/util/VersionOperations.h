@@ -11,6 +11,8 @@
 
 #include <JsonOperations.h>
 
+#include <spdlog/fmt/ostr.h>
+
 namespace black_library {
 
 namespace core {
@@ -92,5 +94,14 @@ size_t GetWorkNumFromUrl(const std::string &url);
 } // namespace common
 } // namespace core
 } // namespace black_library
+
+template <>
+struct fmt::formatter<black_library::core::common::Md5Sum> : fmt::formatter<std::string> {
+    auto format(black_library::core::common::Md5Sum md5_sum, format_context &ctx) const {
+        std::stringstream ss;
+        ss << md5_sum;
+        return fmt::format_to(ctx.out(), "{}", ss.str());
+    }
+};
 
 #endif

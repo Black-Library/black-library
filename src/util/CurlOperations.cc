@@ -51,6 +51,11 @@ CurlNetworkAdapter::CurlNetworkAdapter(const njson &config) :
 
     curl_ = curl_easy_init();
 
+    if (!curl_)
+    {
+        LogError(logger_name_, "Could not Initialize curl network adapter");
+    }
+
     curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response_body_);
     curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, true);
     curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, false);
@@ -82,11 +87,22 @@ void CurlNetworkAdapter::CurlGet(const std::string &url)
 void CurlNetworkAdapter::CurlPost(const std::string &url, const std::string &request)
 {
     response_body_.clear();
-    curl_easy_setopt(curl_, CURLOPT_HTTPPOST, 1L);
+
+    curl_mime *multipart = curl_mime_init(curl_);
+    if (!multipart)
+    {
+        LogError(logger_name_, "Could not create curl mime init");
+    }
+    curl_mimepart *part = curl_mime_addpart(multipart);
+    // TODO: update post
+    curl_mime_name(part, "example-name");
+    curl_mime_data(part, "example-data", CURL_ZERO_TERMINATED);
+    curl_easy_setopt(curl_, CURLOPT_MIMEPOST, multipart);
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, &request);
 
     CURLcode res = curl_easy_perform(curl_);
+    curl_mime_free(multipart);
 
     if (res != CURLE_OK)
     {

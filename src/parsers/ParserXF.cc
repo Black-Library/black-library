@@ -49,7 +49,7 @@ void ParserXF::FindMetaData(xmlNodePtr root_node)
     const auto threadmark_seek = SeekToThreadmark(current_node);
     if (!threadmark_seek.found)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Failed to find threadmark for UUID: {}", uuid_);
+        BlackLibraryCommon::LogError(parser_name_, "Failed to find threadmark for UUID: {} - {}", uuid_, target_url_);
         return;
     }
 
@@ -606,7 +606,7 @@ ParserXmlNodeSeek ParserXF::SeekToThreadmark(xmlNodePtr root_node)
             return threadmark_node_seek;
         }
 
-        if (NodeHasAttributeContent(current_node, "message message--post hasThreadmark  js-post js-inlineModContainer   "))
+        if (NodeHasAttributeContent(current_node, "message message--post hasThreadmark threadmark-category-1  js-post js-inlineModContainer   "))
         {
             const auto threadmark_header_seek = SeekToNodeByPattern(current_node->children, pattern_seek_t::XML_NAME, "div",
                 pattern_seek_t::XML_ATTRIBUTE, "class=message-cell message-cell--threadmark-header");

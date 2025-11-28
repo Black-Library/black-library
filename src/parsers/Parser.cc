@@ -109,6 +109,8 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
 
     const auto curl_result = network_adapter_->RequestUrl(target_url_);
 
+    BlackLibraryCommon::LogDebug(parser_name_, "Reading doc tree of job: {} target_url: {}", parser_job, target_url_);
+
     xmlDocPtr doc_tree = htmlReadDoc((xmlChar*) curl_result.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (doc_tree == NULL)
@@ -118,6 +120,8 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
     }
 
     // const xmlChar* encoding = doc_tree->encoding;
+
+    BlackLibraryCommon::LogDebug(parser_name_, "Accessing doc tree elements for job: {}, target_url: {}", parser_job, target_url_);
 
     xmlNodePtr root_node = xmlDocGetRootElement(doc_tree);
     xmlNodePtr current_node = root_node->children;

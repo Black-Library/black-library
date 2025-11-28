@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 
+#include <spdlog/fmt/ostr.h>
+
 #include <JsonOperations.h>
 
 namespace black_library {
@@ -231,5 +233,23 @@ struct DBBoolResult {
 } // namespace db
 } // namespace core
 } // namespace black_library
+
+template <>
+struct fmt::formatter<black_library::core::db::DBEntry> : fmt::formatter<std::string> {
+    auto format(black_library::core::db::DBEntry entry, format_context &ctx) const {
+        std::stringstream ss;
+        ss << entry;
+        return fmt::format_to(ctx.out(), "{}", ss.str());
+    }
+};
+
+template <>
+struct fmt::formatter<black_library::core::db::DBErrorEntry> : fmt::formatter<std::string> {
+    auto format(black_library::core::db::DBErrorEntry entry, format_context &ctx) const {
+        std::stringstream ss;
+        ss << entry;
+        return fmt::format_to(ctx.out(), "{}", ss.str());
+    }
+};
 
 #endif

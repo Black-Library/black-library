@@ -39,14 +39,13 @@ if (BUILD_GUI)
         ${imgui_backends}/imgui_impl_glfw.cpp
         ${imgui_backends}/imgui_impl_opengl3.cpp
 
-        ${imgui_libs}/gl3w/GL/gl3w.c
+        ${imgui_root}/examples/example_glfw_opengl3/main.cpp
     )
 
     target_include_directories(dearimguiadapter PUBLIC
         ${imgui_root}
         ${imgui_backends}
-        ${imgui_libs}/gl3w/
-        ${imgui_libs}/glfw/include/
+        ${imgui_libs}/glfw/include/GLFW
     )
     target_link_libraries(dearimguiadapter GL glfw)
 
@@ -67,6 +66,8 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(json)
 
 # pistache
+set(PISTACHE_BUILD_TESTS OFF CACHE INTERNAL "Skip pistache tests")
+message(STATUS "PISTACHE_BUILD_TESTS: ${PISTACHE_BUILD_TESTS}")
 add_subdirectory(pistache)
 
 # scraper-sanatizer

@@ -18,7 +18,7 @@ size_t ShortTimeGenerator::GenerateWaitTime(const size_t length)
 {
     (void) length;
 
-    return 5;
+    return 6;
 }
 
 } // namespace parsers
