@@ -87,7 +87,7 @@ BlackLibraryDBRESTAPI::BlackLibraryDBRESTAPI(const njson &config, const std::sha
         {
             BlackLibraryCommon::LogError(logger_name_, "BlackLibraryAPI runtime error: {}", ex.what());
         }
-        catch(const std::exception& ex)
+        catch(const std::exception &ex)
         {
             BlackLibraryCommon::LogError(logger_name_, "BlackLibraryAPI exception: {}", ex.what());
         }

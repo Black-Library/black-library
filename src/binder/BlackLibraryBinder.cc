@@ -8,6 +8,7 @@
 
 #include <FileOperations.h>
 #include <LogOperations.h>
+#include <StringOperations.h>
 
 #include <BlackLibraryBinder.h>
 
@@ -60,6 +61,7 @@ size_t GetSectionIndex(const std::string &file_name)
 BlackLibraryBinder::BlackLibraryBinder(const njson &config) :
     bind_path_(DefaultBindPath),
     storage_path_(BlackLibraryCommon::DefaultStoragePath),
+    logger_name_("binder"),
     mutex_()
 {
     njson nconfig = BlackLibraryCommon::LoadConfig(config);
@@ -87,7 +89,7 @@ BlackLibraryBinder::BlackLibraryBinder(const njson &config) :
         storage_path_ = nconfig["storage_path"];
     }
 
-    BlackLibraryCommon::InitRotatingLogger("binder", logger_path, logger_level);
+    BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
 
     // okay to pop_back(), string isn't empty
     if (storage_path_.back() == '/')
@@ -96,62 +98,107 @@ BlackLibraryBinder::BlackLibraryBinder(const njson &config) :
     if (storage_path_.empty())
     {
         storage_path_ = BlackLibraryCommon::DefaultStoragePath;
-        BlackLibraryCommon::LogDebug("binder", "Empty storage dir given, using default: {}", storage_path_);
+        BlackLibraryCommon::LogDebug(logger_name_, "Empty storage dir given, using default: {}", storage_path_);
     }
 
     if (!BlackLibraryCommon::CheckFilePermission(storage_path_))
     {
-        BlackLibraryCommon::LogError("binder", "Could not access storage directory: {}", storage_path_);
+        BlackLibraryCommon::LogError(logger_name_, "Could not access storage directory: {}", storage_path_);
         return;
     }
 
-    BlackLibraryCommon::LogInfo("binder", "Binder using storage dir: {}", storage_path_);
+    BlackLibraryCommon::LogInfo(logger_name_, "Binder using storage dir: {}", storage_path_);
 }
 
 bool BlackLibraryBinder::Bind(const std::string &uuid, const std::string &name)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
+    // check bind source and target
     std::string target_path = storage_path_ + "/" + uuid;
-    BlackLibraryCommon::LogInfo("binder", "Bind target: {}", target_path);
+    BlackLibraryCommon::LogInfo(logger_name_, "Bind target: {}", target_path);
 
     if (!BlackLibraryCommon::PathExists(target_path))
     {
-        BlackLibraryCommon::LogError("binder", "Binder target does not exist: {}", target_path);
+        BlackLibraryCommon::LogError(logger_name_, "Binder target does not exist: {}", target_path);
         return false;
     }
 
-    auto doc_list = BlackLibraryCommon::GetFileList(target_path, "^SEC?\\d*");
+    // unsorted list, we should not trust the names will be exactly similar
+    auto sec_files = BlackLibraryCommon::GetFileList(target_path, "^SEC?\\d*");
 
-    std::sort(doc_list.begin(), doc_list.end());
+    // map to store data, avoid repeated regex
+    std::unordered_map<std::string, int16_t> section_map;
+    std::unordered_map<std::string, int16_t> version_map;
 
-    for (const auto & file : doc_list)
+    for (const auto& file : sec_files)
     {
-        BlackLibraryCommon::LogTrace("binder", "Section file: {} - Number: {}", file, GetSectionIndex(file));
+        section_map.emplace(file, BlackLibraryCommon::GetSectionNumFromFileName(file));
+        version_map.emplace(file, BlackLibraryCommon::GetVersionNumFromFileName(file));
     }
 
-    size_t last_section_num = GetSectionIndex(doc_list.back());
+    // sort files by section and then version   
+    std::sort(sec_files.begin(), sec_files.end(),
+        [section_map, version_map](const auto &a, const auto &b)
+        {
+            auto a_sec_iter = section_map.find(a);
+            auto b_sec_iter = section_map.find(b);
+            if (a_sec_iter->second != b_sec_iter->second)
+                return a_sec_iter->second < b_sec_iter->second;
+            
+            auto a_ver_iter = version_map.find(a);
+            auto b_ver_iter = version_map.find(b);
+            return a_ver_iter->second < b_ver_iter->second;
+        }
+    );
+
+    BlackLibraryCommon::LogDebug(logger_name_, "total sorted files", sec_files.size());
+    BlackLibraryCommon::LogDebug(logger_name_, "front and end from sorted files: {} - {}", sec_files.front(), sec_files.back());
+
+    // get vector of latest files
+    std::vector<std::string> latest_version_sec_files;
+    for (size_t i = 0; i < sec_files.size(); ++i)
+    {
+        // BlackLibraryCommon::LogDebug(logger_name_, "reached count {}", i);
+        if (i + 1 < sec_files.size())
+        {
+            auto curr_sec_iter = section_map.find(sec_files[i]);
+            auto next_sec_iter = section_map.find(sec_files[i + 1]);
+            if (curr_sec_iter != section_map.end() && next_sec_iter != section_map.end())
+            {
+                if (curr_sec_iter->second == next_sec_iter->second)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                BlackLibraryCommon::LogError(logger_name_, "could not find {} or {}", sec_files[i], sec_files[i + 1]);
+            }
+        }
+        latest_version_sec_files.emplace_back(sec_files[i]);
+    }
+
+    BlackLibraryCommon::LogDebug(logger_name_, "front and end from latest files: {} - {}", latest_version_sec_files.front(), latest_version_sec_files.back());
+
+    for (const auto & file : latest_version_sec_files)
+    {
+        BlackLibraryCommon::LogTrace(logger_name_, "Section file: {} - Number: {}", file, GetSectionIndex(file));
+    }
+
+    size_t last_section_num = GetSectionIndex(latest_version_sec_files.back());
 
     // document files start at 1
-    if (last_section_num != doc_list.size())
+    if (last_section_num != latest_version_sec_files.size())
     {
-        BlackLibraryCommon::LogError("binder", "Section number {} - list size: {} do not match", last_section_num, doc_list.size());
+        BlackLibraryCommon::LogError(logger_name_, "Section number {} - list size: {} do not match", last_section_num, latest_version_sec_files.size());
         return false;
-    }
-
-    auto bind_list = BlackLibraryCommon::GetFileList(target_path, "_VER[0-9]{4}.\\html$");
-
-    std::sort(bind_list.begin(), bind_list.end());
-
-    for (const auto & file : bind_list)
-    {
-        BlackLibraryCommon::LogDebug("binder", "Bind file: {} - {}", file, GetBindIndex(file));
     }
 
     size_t bind_index = 0;
 
-    if (!bind_list.empty())
-        bind_index = GetBindIndex(bind_list.back()) + 1;
+    if (!latest_version_sec_files.empty())
+        bind_index = GetBindIndex(latest_version_sec_files.back()) + 1;
 
     char name_buffer [BIND_FILENAME_BUFFER_SIZE];
 
@@ -162,11 +209,11 @@ bool BlackLibraryBinder::Bind(const std::string &uuid, const std::string &name)
     const std::string bind_name = std::string(name_buffer);
     const std::string bind_target = bind_path_ + '/' + bind_name;
 
-    BlackLibraryCommon::LogInfo("binder", "Binding: {}", bind_name);
+    BlackLibraryCommon::LogInfo(logger_name_, "Binding: {}", bind_name);
 
     if (BlackLibraryCommon::PathExists(bind_target))
     {
-        BlackLibraryCommon::LogError("binder", "File {} already exists", bind_target);
+        BlackLibraryCommon::LogError(logger_name_, "File {} already exists", bind_target);
         return false;
     }
 
@@ -176,11 +223,11 @@ bool BlackLibraryBinder::Bind(const std::string &uuid, const std::string &name)
 
     output_file << "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><style></style></head><body>";
 
-    for (const auto & file : doc_list)
+    for (const auto & file : latest_version_sec_files)
     {
         std::ifstream input_file;
 
-        BlackLibraryCommon::LogTrace("binder", "Bind: {}", file);
+        BlackLibraryCommon::LogTrace(logger_name_, "Bind: {}", file);
 
         const auto complete_file_path = target_path + '/' + file;
 
@@ -188,7 +235,7 @@ bool BlackLibraryBinder::Bind(const std::string &uuid, const std::string &name)
 
         if (!input_file.is_open())
         {
-            BlackLibraryCommon::LogError("binder", "Input file: {} failed to open", complete_file_path);
+            BlackLibraryCommon::LogError(logger_name_, "Input file: {} failed to open", complete_file_path);
             return false;
         }
 
@@ -213,7 +260,7 @@ bool BlackLibraryBinder::SetBindDir(const std::string &bind_dir)
     if (bind_path_.empty())
     {
         bind_path_ = DefaultBindPath;
-        BlackLibraryCommon::LogDebug("binder", "Empty bind_dir given, using default: {}", bind_path_);
+        BlackLibraryCommon::LogDebug(logger_name_, "Empty bind_dir given, using default: {}", bind_path_);
     }
 
     // okay to pop_back(), string isn't empty
@@ -222,11 +269,11 @@ bool BlackLibraryBinder::SetBindDir(const std::string &bind_dir)
 
     if (!BlackLibraryCommon::CheckFilePermission(bind_path_))
     {
-        BlackLibraryCommon::LogError("binder", "Binder could not access bind directory: {}", bind_path_);
+        BlackLibraryCommon::LogError(logger_name_, "Binder could not access bind directory: {}", bind_path_);
         return false;
     }
 
-    BlackLibraryCommon::LogInfo("binder", "Set bind_dir: {}", bind_path_);
+    BlackLibraryCommon::LogInfo(logger_name_, "Set bind_dir: {}", bind_path_);
 
     return true;
 }

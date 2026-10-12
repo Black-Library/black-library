@@ -19,6 +19,8 @@ ParserSVF::ParserSVF(const njson &config) :
 {
     source_name_ = BlackLibraryCommon::SVF::source_name;
     source_url_ = BlackLibraryCommon::SVF::source_url;
+
+    xf_version_ = "2.2.6";
 }
 
 } // namespace SVF

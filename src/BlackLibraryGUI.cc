@@ -158,7 +158,7 @@ int BlackLibraryGUI::Run()
 
     // Create window with graphics context
     float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor()); // Valid on GLFW 3.3+ only
-    GLFWwindow* window = glfwCreateWindow((int)(1280 * main_scale), (int)(800 * main_scale), "Black Library GUI", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow((int)(1600 * main_scale), (int)(1000 * main_scale), "Black Library GUI", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -363,14 +363,14 @@ void BlackLibraryGUI::ShowBlackEntryTable()
     static ImGuiTableFlags flags =
         ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti
         | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody
-        | ImGuiTableFlags_ScrollY;
+        | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
     PushStyleCompact();
     ImGui::SameLine(); HelpMarker("When sorting is enabled: hold shift when clicking headers to sort on multiple column. ");
     PopStyleCompact();
 
     ImGui::Text("Black Entries");
 
-    if (ImGui::BeginTable("table_black_entries", 12, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 30), 0.0f))
+    if (ImGui::BeginTable("table_black_entries", 12, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 40), 0.0f))
     {
         // Declare columns
         SetupTableColumns();
@@ -418,12 +418,12 @@ void BlackLibraryGUI::ShowLog()
     if (ImGui::TreeNode("Log"))
     {
         // TODO: hook this up to logging
-        // static ApplicationLog log;
+        static ApplicationLog log;
 
         // log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
         //     ImGui::GetFrameCount(), "hello", ImGui::GetTime(), "world");
 
-        // log.Draw();
+        log.Draw();
 
         ImGui::TreePop();
     }
@@ -432,18 +432,18 @@ void BlackLibraryGUI::ShowLog()
 void BlackLibraryGUI::SetupTableColumns()
 {
     // second uuid column for bind button
-    ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
-    ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
-    ImGui::TableSetupColumn("Title",            ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
-    ImGui::TableSetupColumn("Author",           ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author));
-    ImGui::TableSetupColumn("Nickname",         ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname));
-    ImGui::TableSetupColumn("Source",           ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source));
-    ImGui::TableSetupColumn("Series Length",    ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length));
-    ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultSort, 0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
-    ImGui::TableSetupColumn("Last Check Date",  ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
-    ImGui::TableSetupColumn("Birth Date",       ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
-    ImGui::TableSetupColumn("URL",              ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
-    ImGui::TableSetupColumn("Processing",       ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     0.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::processing));
+    ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
+    ImGui::TableSetupColumn("UUID",             ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::uuid));
+    ImGui::TableSetupColumn("Title",            ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::title));
+    ImGui::TableSetupColumn("Author",           ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::author));
+    ImGui::TableSetupColumn("Nickname",         ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::nickname));
+    ImGui::TableSetupColumn("Source",           ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::source));
+    ImGui::TableSetupColumn("Series Length",    ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::series_length));
+    ImGui::TableSetupColumn("Last Update Date", ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultSort, 200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::update_date));
+    ImGui::TableSetupColumn("Last Check Date",  ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::check_date));
+    ImGui::TableSetupColumn("Birth Date",       ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::birth_date));
+    ImGui::TableSetupColumn("URL",              ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::url));
+    ImGui::TableSetupColumn("Processing",       ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,                                     200.0f, static_cast<unsigned int>(BlackLibraryDB::DBEntryColumnID::processing));
     ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
     ImGui::TableHeadersRow();
 }

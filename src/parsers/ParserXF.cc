@@ -27,9 +27,11 @@ namespace BlackLibraryCommon = black_library::core::common;
 ParserXF::ParserXF(parser_t parser_type, const njson &config) :
     LinkedListParser(parser_type, config)
 {
-    // set as error, XF should be inherited from
+    // set as error, XF should be inherited from inherited
     source_name_ = BlackLibraryCommon::ERROR::source_name;
     source_url_ = BlackLibraryCommon::ERROR::source_url;
+
+    xf_version_ = "unset_xf_version";
 }
 
 void ParserXF::FindMetaData(xmlNodePtr root_node)
@@ -468,7 +470,20 @@ time_t ParserXF::GetUpdateDate(xmlNodePtr root_node)
 
     current_node = time_seek.seek_node;
 
-    const auto time_result = GetXmlAttributeContentByName(current_node, "data-time");
+    ParserXmlAttributeResult time_result;
+    if (xf_version_ == "2.3")
+    {
+        time_result = GetXmlAttributeContentByName(current_node, "data-timestamp");
+    }
+    else if (xf_version_ == "2.2.6")
+    {
+        time_result = GetXmlAttributeContentByName(current_node, "data-time");
+    }
+    else
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Failed to match xf version for update date");
+        return 0;
+    }
 
     if (!time_result.found)
     {

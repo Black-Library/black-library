@@ -44,6 +44,37 @@ TEST_CASE( "ContainsString parser url tests (pass)", "[single-file]" )
     REQUIRE ( ContainsString(RR::source_url, RR_DUMMY_URL) == false );
 }
 
+TEST_CASE( "GetSectionNumFromFileName generic tests (pass)", "[single-file]" )
+{
+    REQUIRE ( GetSectionNumFromFileName("SEC0000_chapter-1_VER000.html") == 0 );
+    REQUIRE ( GetSectionNumFromFileName("SEC0001_chapter-1_VER000.html") == 1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC0010_chapter-1_VER000.html") == 10 );
+    REQUIRE ( GetSectionNumFromFileName("SEC0100_chapter-1_VER000.html") == 100 );
+    REQUIRE ( GetSectionNumFromFileName("SEC1000_chapter-1_VER000.html") == 1000 );
+    REQUIRE ( GetSectionNumFromFileName("SEC9999_chapter-1_VER000.html") == 9999 );
+    REQUIRE ( GetSectionNumFromFileName("SEC00001_chapter-1_VER000.html") == -1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC00000_chapter-1_VER000.html") == -1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC1_chapter-1_VER000.html") == -1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC01_chapter-1_VER000.html") == -1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC001_chapter-1_VER000.html") == -1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC000a_chapter-1_VER000.html") == -1 );
+    REQUIRE ( GetSectionNumFromFileName("SEC_chapter-1_VER000.html") == -1 );
+}
+
+TEST_CASE( "GetVersionNumFromFileName generic tests (pass)", "[single-file]" )
+{
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER000.html") == 0 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER001.html") == 1 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER010.html") == 10 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER100.html") == 100 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER999.html") == 999 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER0000.html") == -1 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER00.html") == -1 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER0.html") == -1 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER00a.html") == -1 );
+    REQUIRE ( GetVersionNumFromFileName("SEC0000_chapter-1_VER.html") == -1 );
+}
+
 TEST_CASE( "SanatizeString empty tests (pass)", "[single-file]" )
 {
     std::vector<std::string> strings = 

@@ -29,6 +29,7 @@ public:
 private:
     std::string bind_path_;
     std::string storage_path_;
+    std::string logger_name_;
     std::mutex mutex_;
 };
 

@@ -173,7 +173,7 @@ int ParserManager::RunOnce()
             continue;
         }
 
-        BlackLibraryCommon::LogInfo("parser_manager", "Finished job with UUID: {} url: {} author: {} is_error_job: {}", job_result.metadata.uuid, job_result.metadata.url, job_result.metadata.author, job_result.is_error_job);
+        BlackLibraryCommon::LogInfo("parser_manager", "Finished job with UUID: {} url: {} author: {} is_error_job: {} update date: {}", job_result.metadata.uuid, job_result.metadata.url, job_result.metadata.author, job_result.is_error_job, job_result.metadata.update_date);
 
         if (current_jobs_.count(std::make_pair(job_result.metadata.uuid, job_result.is_error_job)))
         {

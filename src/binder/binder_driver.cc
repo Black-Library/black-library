@@ -14,19 +14,21 @@ namespace BlackLibraryBinder = black_library::core::binder;
 
 struct options
 {
+    std::string config_path = "";
     std::string uuid;
 };
 
 static void Usage(const char *prog)
 {
     const char *p = strchr(prog, '/');
-    printf("usage: %s --(u)uid uuid [-h]\n", p ? (p + 1) : prog);
+    printf("usage: %s --(c)onfig --(u)uid uuid [-h]\n", p ? (p + 1) : prog);
 }
 
 static int ParseOptions(int argc, char **argv, struct options *opts)
 {
-    static const char *const optstr = "hu:";
+    static const char *const optstr = "c:hu:";
     static const struct option long_opts[] = {
+        { "config", required_argument, 0, 'c'},
         { "help", no_argument, 0, 'h' },
         { "uuid", required_argument, 0, 'u' },
         { 0, 0, 0, 0 }
@@ -40,6 +42,9 @@ static int ParseOptions(int argc, char **argv, struct options *opts)
     {
         switch (opt)
         {
+            case 'c':
+                opts->config_path = std::string(optarg);
+                break;
             case 'h':
                 Usage(argv[0]);
                 exit(0);
@@ -78,9 +83,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    BlackLibraryBinder::BlackLibraryBinder binder("");
+    // std::ifstream in_file(opts.config_path);
+    njson rconfig;
+    // in_file >> rconfig;
 
-    binder.Bind("some-uuid-0", "test-0");
+    BlackLibraryBinder::BlackLibraryBinder binder(rconfig);
+
+    binder.Bind(opts.uuid, "test-0");
 
     return 0;
 }

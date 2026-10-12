@@ -37,14 +37,14 @@ struct ApplicationLog
         Clear();
     }
 
-    void    Clear()
+    void Clear()
     {
         Buf.clear();
         LineOffsets.clear();
         LineOffsets.push_back(0);
     }
 
-    void    AddLog(const char* fmt, ...) IM_FMTARGS(2)
+    void AddLog(const char* fmt, ...) IM_FMTARGS(2)
     {
         int old_size = Buf.size();
         va_list args;
@@ -56,7 +56,7 @@ struct ApplicationLog
                 LineOffsets.push_back(old_size + 1);
     }
 
-    void    Draw(bool* p_open = NULL)
+    void Draw(bool* p_open = NULL)
     {
         (void) p_open;
         bool clear = ImGui::Button("Clear");

@@ -23,6 +23,8 @@ public:
     explicit ParserXF(parser_t parser_type, const njson &config);
 
 protected:
+    std::string xf_version_;
+
     void FindMetaData(xmlNodePtr root_node);
     ParseSectionInfo ParseSection();
     std::string PreprocessTargetUrl(const ParserJob &parser_job);

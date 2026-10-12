@@ -663,7 +663,7 @@ void BlackLibraryCLI::PrintUsage(const std::vector<std::string> &tokens)
 {
     std::stringstream ss;
 
-    ss << "Usage: [bind, delete, export, help, import, list, reorder, size, sizeall, squash, updateidentifier, versionall]";
+    ss << "Usage: [bind, delete, export, help, import, list, reorder, size, sizeall, squash, updateidentifier, versionall] stop program with: exit stop quit";
 
     // TODO make some kind of command mapping/register
 

@@ -19,6 +19,8 @@ ParserSBF::ParserSBF(const njson &config) :
 {
     source_name_ = BlackLibraryCommon::SBF::source_name;
     source_url_ = BlackLibraryCommon::SBF::source_url;
+
+    xf_version_ = "2.3";
 }
 
 } // namespace SBF

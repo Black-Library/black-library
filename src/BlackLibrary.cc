@@ -22,8 +22,6 @@ namespace BlackLibraryCommon = black_library::core::common;
 namespace BlackLibraryDB = black_library::core::db;
 namespace BlackLibraryParsers = black_library::core::parsers;
 
-const int BLACKLIBRARY_FREQUENCY = 24*60*60;
-
 BlackLibrary::BlackLibrary(const njson &config) :
     parser_manager_(nullptr),
     blacklibrary_db_(nullptr),
@@ -35,6 +33,7 @@ BlackLibrary::BlackLibrary(const njson &config) :
     manager_thread_(),
     logger_name_("black_library"),
     database_parser_mutex_(),
+    parse_period_hr(24),
     debug_target_(false),
     enable_api_(false),
     done_(true)
@@ -62,6 +61,11 @@ BlackLibrary::BlackLibrary(const njson &config) :
     if (nconfig.contains("url_puller_debug"))
     {
         debug_target_ = nconfig["url_puller_debug"];
+    }
+
+    if (nconfig.contains("parse_period_hr"))
+    {
+        parse_period_hr = nconfig["parse_period_hr"];
     }
 
     BlackLibraryCommon::InitRotatingLogger(logger_name_, logger_path, logger_level);
@@ -196,6 +200,8 @@ BlackLibrary::BlackLibrary(const njson &config) :
 
 int BlackLibrary::Run()
 {
+    // calculate the parse period, default is 1 per 24 hr
+    const int black_library_parse_period = parse_period_hr*60*60;
     // use system_clock instead of steady_clock for systems that suspend on inactivity
     auto now_time = std::chrono::system_clock::now();
     auto run_deadline = now_time;
@@ -211,19 +217,18 @@ int BlackLibrary::Run()
 
             while (retries > 0)
             {
+                --retries;
+
                 if (!RunOnce())
                     break;
 
                 std::this_thread::sleep_for(std::chrono::seconds(1));
 
-                --retries;
-
                 BlackLibraryCommon::LogWarn(logger_name_, "Failed run once, {} retries remaining", retries);
             }
 
-            run_deadline = now_time + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
-            auto info_time = std::chrono::system_clock::now() + std::chrono::seconds(BLACKLIBRARY_FREQUENCY);
-            const std::string iso_info_time = BlackLibraryCommon::GetISOTimeString(std::chrono::system_clock::to_time_t(info_time));
+            run_deadline = now_time + std::chrono::seconds(black_library_parse_period);
+            const std::string iso_info_time = BlackLibraryCommon::GetISOTimeString(std::chrono::system_clock::to_time_t(run_deadline));
             BlackLibraryCommon::LogInfo(logger_name_, "Next scheduled run at {}", iso_info_time);
         }
 

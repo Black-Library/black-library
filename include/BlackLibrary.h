@@ -57,6 +57,7 @@ private:
     std::thread manager_thread_;
     std::string logger_name_;
     std::mutex database_parser_mutex_;
+    uint8_t parse_period_hr;
     bool debug_target_;
     bool enable_api_;
 
