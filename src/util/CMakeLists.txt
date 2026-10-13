@@ -20,7 +20,7 @@ add_library(blacklibrarycommon
     )
 
 target_include_directories(blacklibrarycommon PUBLIC ${CURL_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/util)
-target_link_libraries(blacklibrarycommon ${CURL_LIBRARY} nlohmann_json::nlohmann_json OpenSSL::SSL stdc++fs spdlog::spdlog)
+target_link_libraries(blacklibrarycommon ${CURL_LIBRARY} nlohmann_json::nlohmann_json OpenSSL::SSL OpenSSL::Crypto jitterentropy stdc++fs spdlog::spdlog)
 
 install(
   TARGETS blacklibrarycommon

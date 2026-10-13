@@ -145,6 +145,7 @@ void ParserRR::FindIndexEntries(xmlNodePtr root_node)
                 ++index_num;
             }
         }
+        BlackLibraryCommon::LogDebug(parser_name_, "Found {} entries", index_num);
 
         xmlFree(index_node);
     }

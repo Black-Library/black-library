@@ -224,7 +224,7 @@ std::string Parser::SectionDumpContent(const xmlDocPtr doc_ptr, const xmlNodePtr
 {
     xmlBufferPtr section_buf = xmlBufferCreate();
     xmlNodeDump(section_buf, doc_ptr, node_ptr, 0, 1);
-    const std::string section_content = std::string((char *) section_buf->content);
+    const std::string section_content = std::string(reinterpret_cast<const char*>(xmlBufferContent(section_buf)), xmlBufferLength(section_buf));
     xmlBufferFree(section_buf);
 
     return section_content;
