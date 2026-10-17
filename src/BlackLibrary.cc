@@ -77,13 +77,14 @@ BlackLibrary::BlackLibrary(const njson &config) :
     uuid_gen_ = std::make_shared<SimpleUUIDGenerator>();
 
     auto db_adapter = std::make_shared<BlackLibraryParsers::ParserDbAdapter>(config, blacklibrary_db_);
+    auto network_adapter = std::make_shared<BlackLibraryCommon::CurlNetworkAdapter>(config);
 
     if (enable_api_)
     {
         blacklibrary_api_ = std::make_shared<BlackLibraryRESTAPI::BlackLibraryDBRESTAPI>(config, blacklibrary_db_);
     }
 
-    parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter);
+    parser_manager_ = std::make_shared<BlackLibraryParsers::ParserManager>(config, db_adapter, network_adapter);
 
     parser_manager_->RegisterDatabaseStatusCallback(
         [&](BlackLibraryParsers::ParserJobResult result)
@@ -303,6 +304,10 @@ int BlackLibrary::Stop()
 
     // clean up memory allocated by xml
     xmlCleanupParser();
+
+    // wait a second for end loggers to announce close
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+    std::this_thread::sleep_until(deadline);
 
     // shutdown logging manually just in case termination flush fails
     spdlog::shutdown();

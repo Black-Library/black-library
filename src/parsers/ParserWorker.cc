@@ -158,6 +158,8 @@ int ParserWorker::RunOnce()
 
             auto parser = factory_result.parser_result;
 
+            BlackLibraryCommon::LogTrace(worker_name_, "Got Parser with source {} from url {}", parser->GetSourceName(), parser_job.url);
+
             std::string local_file_path = storage_path_ + '/' + parser_job.uuid + '/';
 
             parser->SetLocalFilePath(local_file_path);

@@ -14,7 +14,7 @@
         "manager_debug_log": false,
         "manager_worker_count": 1,
         "network_adapter_debug_log": false,
-        "parser_debug_log": true,
+        "parser_debug_log": false,
         "parser_db_adapter_debug_log": false,
         "parse_period_hr": 6,
         "storage_path": "/mnt/black-library/store",

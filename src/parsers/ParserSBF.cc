@@ -20,6 +20,8 @@ ParserSBF::ParserSBF(const njson &config) :
     source_name_ = BlackLibraryCommon::SBF::source_name;
     source_url_ = BlackLibraryCommon::SBF::source_url;
 
+    curl_aio_behavior_ = BlackLibraryCommon::curl_aio_behavior_t::DIRECT_CURL;
+
     xf_version_ = "2.3";
 }
 

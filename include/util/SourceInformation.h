@@ -20,6 +20,7 @@ namespace ERROR {
     static constexpr char short_name[] = "ERROR";
     static constexpr char source_name[] = "source-name-error";
     static constexpr char source_url[] = "error-source-url";
+    static constexpr char source_check_url[] = "error-source-url";
 } // namespace AO3
 
 namespace AO3 {
@@ -27,6 +28,7 @@ namespace AO3 {
     static constexpr char short_name[] = "AO3";
     static constexpr char source_name[] = "archive-of-our-own";
     static constexpr char source_url[] = "archiveofourown.org";
+    static constexpr char source_check_url[] = "archiveofourown.org";
 } // namespace AO3
 
 namespace FFN {
@@ -34,6 +36,7 @@ namespace FFN {
     static constexpr char short_name[] = "FFN";
     static constexpr char source_name[] = "fanfiction";
     static constexpr char source_url[] = "www.fanfiction.net";
+    static constexpr char source_check_url[] = "www.fanfiction.net";
 } // namespace FFN
 
 namespace RR {
@@ -41,6 +44,7 @@ namespace RR {
     static constexpr char short_name[] = "RR";
     static constexpr char source_name[] = "royal-road";
     static constexpr char source_url[] = "www.royalroad.com";
+    static constexpr char source_check_url[] = "www.royalroad.com/home";
 } // namespace RR
 
 namespace SBF {
@@ -48,6 +52,8 @@ namespace SBF {
     static constexpr char short_name[] = "SBF";
     static constexpr char source_name[] = "spacebattles-forums";
     static constexpr char source_url[] = "forums.spacebattles.com";
+    static constexpr char source_check_url[] = "https://forums.spacebattles.com/forums/creative-writing.18/";
+
 } // namespace SBF
 
 namespace SVF {
@@ -55,6 +61,8 @@ namespace SVF {
     static constexpr char short_name[] = "SVF";
     static constexpr char source_name[] = "sufficient-velocity-forums";
     static constexpr char source_url[] = "forums.sufficientvelocity.com";
+    static constexpr char source_check_url[] = "https://forums.sufficientvelocity.com/forums/user-fiction.2/";
+
 } // namespace SBF
 
 namespace WP {
@@ -62,6 +70,7 @@ namespace WP {
     static constexpr char short_name[] = "WP";
     static constexpr char source_name[] = "wordpress";
     static constexpr char source_url[] = "wordpress.com";
+    static constexpr char source_check_url[] = "wordpress.com";
 } // namespace WP
 
 namespace YT {
@@ -69,6 +78,7 @@ namespace YT {
     static constexpr char short_name[] = "YT";
     static constexpr char source_name[] = "youtube";
     static constexpr char source_url[] = "youtube.com";
+    static constexpr char source_check_url[] = "youtube.com";
 } // namespace YT
 
 std::string GenerateUrlFromSourceUrl(const char *source_url);

@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include <ConfigOperations.h>
+#include <CurlOperations.h>
 
 #include "Parser.h"
 #include "ParserDbAdapter.h"
@@ -18,6 +19,8 @@ namespace black_library {
 namespace core {
 
 namespace parsers {
+
+namespace BlackLibraryCommon = black_library::core::common;
 
 struct ParserFactoryResult {
     std::shared_ptr<Parser> parser_result;
@@ -29,7 +32,7 @@ typedef std::function<ParserFactoryResult(void)> factory_function;
 class ParserFactory
 {
 public:
-    ParserFactory(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter);
+    ParserFactory(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter, const std::shared_ptr<BlackLibraryCommon::CurlNetworkAdapter> &network_adapter);
     ~ParserFactory();
 
     ParserFactoryResult GetParserByUrl(const std::string &url);
@@ -40,6 +43,7 @@ protected:
 
     std::unordered_map<parser_t, factory_function> parser_map_;
     std::shared_ptr<ParserDbAdapter> db_adapter_;
+    std::shared_ptr<BlackLibraryCommon::CurlNetworkAdapter> network_adapter_;
 
 private:
 };

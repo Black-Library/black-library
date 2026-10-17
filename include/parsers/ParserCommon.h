@@ -295,6 +295,8 @@ std::string GenerateXmlDocTreeStringHelper(xmlNodePtr root_node, size_t depth);
 
 std::string GetParserBehaviorName(parser_behavior_t behavior);
 std::string GetParserName(parser_t rep);
+std::string GetParserOriginSourceUrl(parser_t rep);
+std::string GetParserSourceCheckUrl(parser_t rep);
 parser_t GetParserTypeByUrl(const std::string &url);
 std::string GetSectionFileName(const size_t &index_num, const std::string &section_name, const uint16_t &version_num);
 std::string GetSpaceString(size_t num_tabs);

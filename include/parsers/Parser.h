@@ -53,8 +53,10 @@ public:
     int RegisterVersionReadNumCallback(const version_read_num_callback &callback);
 
     int SetDbAdapter(const std::shared_ptr<ParserDbAdapter> &db_adapter);
+    int SetNetworkAdapter(const std::shared_ptr<BlackLibraryCommon::CurlNetworkAdapter> &db_adapter);
 
 protected:
+    int CheckNetworkAccess();
     std::string SectionDumpContent(const xmlDocPtr doc_ptr, const xmlNodePtr node_ptr);
     bool SectionFileSave(const std::string &section_content, const std::string &section_file_name);
     virtual int CalculateIndexBounds(const ParserJob &parser_job);
@@ -99,6 +101,7 @@ protected:
     std::mutex mutex_;
     parser_t parser_type_;
     parser_behavior_t parser_behavior_;
+    BlackLibraryCommon::curl_aio_behavior_t curl_aio_behavior_;
     std::atomic_bool done_;
     std::atomic_bool first_curl_wait_done_;
     std::atomic_bool seq_num_missing_;
@@ -106,8 +109,6 @@ protected:
 private:
     int FirstCurlWait();
 };
-
-size_t HandleCurlResponse(void* prt, size_t size, size_t nmemb, void* data);
 
 } // namespace parsers
 } // namespace core

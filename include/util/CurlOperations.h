@@ -21,10 +21,32 @@ namespace core {
 
 namespace common {
 
+enum class curl_aio_behavior_t {
+    ERROR,
+    DIRECT_CURL,
+    ADAPTER_CURL
+};
+
+typedef bool curl_result_error_rep;
+
+struct CurlResult {
+    std::string response_body = "";
+    std::string error = "";
+    std::string curl_ver = "";
+    long response_code = 0;
+    double total_time = 0;
+    curl_aio_behavior_t func_ver = curl_aio_behavior_t::ERROR;
+    curl_result_error_rep has_error = true;
+};
+
+std::string GetNetworkAdapterName(curl_aio_behavior_t behavior);
+
 class CurlNetworkAdapter {
 public:
     CurlNetworkAdapter(const njson &config);
     ~CurlNetworkAdapter();
+
+    CurlResult CurlGetAllInOne(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
 
     void CurlGet(const std::string &url);
     void CurlPost(const std::string &url, const std::string &request);
@@ -37,17 +59,20 @@ public:
     std::string GetContentType();
     double GetTotalTime();
 
-    // TODO: compat, remove later
-    std::string RequestUrl(const std::string &url);
-
 private:
+    CurlResult CurlGetAIO_direct(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
+    CurlResult CurlGetAIO_adapter(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
+    static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp);
+
     CURL* curl_;
     std::string response_body_;
     long response_code_;
 
     std::string last_content_type_;
+    std::string last_error_;
 
     std::string logger_name_;
+    std::mutex mutex_;
 };
 
 } // namespace common

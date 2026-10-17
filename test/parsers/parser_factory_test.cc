@@ -20,7 +20,7 @@ TEST_CASE( "Generic parser factory tests (pass)", "[single-file]" )
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
     njson config = GenerateParserTestConfig();
-    ParserFactory parser_factory(config, nullptr);
+    ParserFactory parser_factory(config, nullptr, nullptr);
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
 }
 
@@ -29,7 +29,7 @@ TEST_CASE( "Parser factory url tests (pass)", "[single-file]" )
     BlackLibraryCommon::RemovePath(DefaultTestStoragePath);
     BlackLibraryCommon::MakeDirectories(DefaultTestStoragePath);
     njson config = GenerateParserTestConfig();
-    ParserFactory parser_factory(config, nullptr);
+    ParserFactory parser_factory(config, nullptr, nullptr);
 
     parser_factory.GetParserByType(parser_t::AO3_PARSER);
     auto factory_result_ao3 = parser_factory.GetParserByUrl(AO3_DUMMY_URL);

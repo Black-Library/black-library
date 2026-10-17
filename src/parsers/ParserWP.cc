@@ -87,9 +87,19 @@ ParseSectionInfo ParserWP::ParseSection()
         return output;
     }
 
-    // Get html
-    const auto curl_request_result = network_adapter_->RequestUrl(working_url);
-    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_request_result.c_str(), NULL, NULL,
+    // curl network fetch
+    const auto curl_res = network_adapter_->CurlGetAllInOne(working_url, curl_aio_behavior_);
+    BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
+    auto http_code = curl_res.response_code;
+    if (http_code >= 400)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, working_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        return output;
+    }
+
+    // xml parsing
+    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_res.response_body.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (section_doc_tree == NULL)
     {

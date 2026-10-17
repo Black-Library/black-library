@@ -88,9 +88,21 @@ ParseSectionInfo ParserAO3::ParseSection()
     const auto index_entry = index_entries_[index_];
 
     const auto url_adult = index_entry.data_url;
-    const auto index_entry_curl_result = network_adapter_->RequestUrl(url_adult);
 
-    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) index_entry_curl_result.c_str(), NULL, NULL,
+    // curl network fetch
+    BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry.data_url, index_entry.name);
+    const auto curl_res = network_adapter_->CurlGetAllInOne(index_entry.data_url, curl_aio_behavior_);
+    BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
+    auto http_code = curl_res.response_code;
+    if (http_code >= 400)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, index_entry.data_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        return output;
+    }
+
+    // xml parsing
+    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_res.response_body.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (!section_doc_tree)
     {

@@ -145,9 +145,13 @@ void ParserRR::FindIndexEntries(xmlNodePtr root_node)
                 ++index_num;
             }
         }
-        BlackLibraryCommon::LogDebug(parser_name_, "Found {} entries", index_num);
+        BlackLibraryCommon::LogDebug(parser_name_, "Found {} index entries", index_num);
 
         xmlFree(index_node);
+    }
+    else
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Could not find index entries body");
     }
 }
 
@@ -211,10 +215,20 @@ ParseSectionInfo ParserRR::ParseSection()
     const auto index_entry = index_entry_queue_.front();
     index_ = index_entry.index_num;
 
+    // curl network fetch
     BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry.data_url, index_entry.name);
+    const auto curl_res = network_adapter_->CurlGetAllInOne(index_entry.data_url, curl_aio_behavior_);
+    BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
+    auto http_code = curl_res.response_code;
+    if (http_code >= 400)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, index_entry.data_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        return output;
+    }
 
-    const auto curl_request_result = network_adapter_->RequestUrl(index_entry.data_url);
-    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_request_result.c_str(), NULL, NULL,
+    // xml parsing
+    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_res.response_body.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (section_doc_tree == NULL)
     {

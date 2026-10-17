@@ -164,6 +164,74 @@ std::string GetParserName(parser_t rep)
     }
 }
 
+std::string GetParserOriginSourceUrl(parser_t rep)
+{
+    switch (rep)
+    {
+    case parser_t::ERROR_PARSER:
+        return BlackLibraryCommon::ERROR::source_url;
+        break;
+    case parser_t::AO3_PARSER:
+        return BlackLibraryCommon::AO3::source_url;
+        break;
+    case parser_t::FFN_PARSER:
+        return BlackLibraryCommon::FFN::source_url;
+        break;
+    case parser_t::RR_PARSER:
+        return BlackLibraryCommon::RR::source_url;
+        break;
+    case parser_t::SBF_PARSER:
+        return BlackLibraryCommon::SBF::source_url;
+        break;
+    case parser_t::SVF_PARSER:
+        return BlackLibraryCommon::SVF::source_url;
+        break;
+    case parser_t::WP_PARSER:
+        return BlackLibraryCommon::WP::source_url;
+        break;
+    case parser_t::YT_PARSER:
+        return BlackLibraryCommon::YT::source_url;
+        break;
+    default:
+        return "no_parser";
+        break;
+    }
+}
+
+std::string GetParserSourceCheckUrl(parser_t rep)
+{
+        switch (rep)
+    {
+    case parser_t::ERROR_PARSER:
+        return BlackLibraryCommon::ERROR::source_check_url;
+        break;
+    case parser_t::AO3_PARSER:
+        return BlackLibraryCommon::AO3::source_check_url;
+        break;
+    case parser_t::FFN_PARSER:
+        return BlackLibraryCommon::FFN::source_check_url;
+        break;
+    case parser_t::RR_PARSER:
+        return BlackLibraryCommon::RR::source_check_url;
+        break;
+    case parser_t::SBF_PARSER:
+        return BlackLibraryCommon::SBF::source_check_url;
+        break;
+    case parser_t::SVF_PARSER:
+        return BlackLibraryCommon::SVF::source_check_url;
+        break;
+    case parser_t::WP_PARSER:
+        return BlackLibraryCommon::WP::source_check_url;
+        break;
+    case parser_t::YT_PARSER:
+        return BlackLibraryCommon::YT::source_check_url;
+        break;
+    default:
+        return "no_parser";
+        break;
+    }
+}
+
 // c level string check is faster for smaller strings then
 // needle.find(haystack) != std::string::npos
 parser_t GetParserTypeByUrl(const std::string &url)

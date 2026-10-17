@@ -27,10 +27,12 @@ namespace core {
 
 namespace parsers {
 
+namespace BlackLibraryCommon = black_library::core::common;
+
 class ParserManager
 {
 public:
-    explicit ParserManager(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter);
+    explicit ParserManager(const njson &config, const std::shared_ptr<ParserDbAdapter> &db_adapter, const std::shared_ptr<BlackLibraryCommon::CurlNetworkAdapter> &network_adapter);
     ParserManager &operator = (ParserManager &&) = default;
 
     int Run();
@@ -69,6 +71,7 @@ private:
     version_read_num_callback version_read_num_callback_;
 
     njson config_;
+    std::string logger_name_;
     std::atomic_bool done_;
     std::atomic_bool initialized_;
 };

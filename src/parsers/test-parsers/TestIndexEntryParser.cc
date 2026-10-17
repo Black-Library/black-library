@@ -135,6 +135,7 @@ void TestIndexEntryParser::FindMetaData(xmlNodePtr root_node)
 ParseSectionInfo TestIndexEntryParser::ParseSection()
 {
     ParseSectionInfo output;
+
     if (index_entry_queue_.empty())
     {
         BlackLibraryCommon::LogError(parser_name_, "Unable to get front of queue for UUID: {}", uuid_);
@@ -143,10 +144,20 @@ ParseSectionInfo TestIndexEntryParser::ParseSection()
 
     const auto index_entry = index_entry_queue_.front();
 
+    // curl network fetch
     BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry.data_url, index_entry.name);
+    const auto curl_res = network_adapter_->CurlGetAllInOne(index_entry.data_url, curl_aio_behavior_);
+    BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
+    auto http_code = curl_res.response_code;
+    if (http_code >= 400 && http_code < 500)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, index_entry.data_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        return output;
+    }
 
-    const auto curl_request_result = network_adapter_->RequestUrl(index_entry.data_url);
-    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_request_result.c_str(), NULL, NULL,
+    // xml parsing
+    xmlDocPtr section_doc_tree = htmlReadDoc((xmlChar*) curl_res.response_body.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (section_doc_tree == NULL)
     {

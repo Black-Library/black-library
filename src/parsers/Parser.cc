@@ -47,6 +47,7 @@ Parser::Parser(parser_t parser_type, const njson &config) :
     target_end_index_(0),
     parser_type_(parser_type),
     parser_behavior_(parser_behavior_t::ERROR),
+    curl_aio_behavior_(BlackLibraryCommon::curl_aio_behavior_t::ADAPTER_CURL),
     done_(false),
     first_curl_wait_done_(false),
     seq_num_missing_(false)
@@ -66,8 +67,6 @@ Parser::Parser(parser_t parser_type, const njson &config) :
     }
 
     parser_name_ = GetParserName(parser_type_);
-
-    network_adapter_ = std::make_shared<BlackLibraryCommon::CurlNetworkAdapter>(config);
 
     BlackLibraryCommon::InitRotatingLogger(parser_name_, logger_path, logger_level);
 }
@@ -98,6 +97,14 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
     parser_result.metadata.media_path = local_des_;
     parser_result.is_error_job = parser_job.is_error_job;
 
+    // check network access
+    auto network_check_fail = CheckNetworkAccess();
+    if (network_check_fail)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Parser failed network check");
+        return parser_result;
+    }
+
     target_url_ = PreprocessTargetUrl(parser_job);
 
     if (CalculateIndexBounds(parser_job))
@@ -105,13 +112,21 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
         return parser_result;
     }
 
+    // Curl network fetch
     BlackLibraryCommon::LogDebug(parser_name_, "Start parser job: {} target_url: {}", parser_job, target_url_);
+    auto curl_res = network_adapter_->CurlGetAllInOne(target_url_, curl_aio_behavior_);
+    BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
+    auto http_code = curl_res.response_code;
+    if (http_code >= 400)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, target_url_);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        return parser_result;
+    }
 
-    const auto curl_result = network_adapter_->RequestUrl(target_url_);
-
+    // xml parsing
     BlackLibraryCommon::LogDebug(parser_name_, "Reading doc tree of job: {} target_url: {}", parser_job, target_url_);
-
-    xmlDocPtr doc_tree = htmlReadDoc((xmlChar*) curl_result.c_str(), NULL, NULL,
+    xmlDocPtr doc_tree = htmlReadDoc((xmlChar*) curl_res.response_body.c_str(), NULL, NULL,
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (doc_tree == NULL)
     {
@@ -216,6 +231,40 @@ int Parser::RegisterVersionReadNumCallback(const version_read_num_callback &call
 int Parser::SetDbAdapter(const std::shared_ptr<ParserDbAdapter> &db_adapter)
 {
     db_adapter_ = db_adapter;
+
+    return 0;
+}
+
+int Parser::SetNetworkAdapter(const std::shared_ptr<BlackLibraryCommon::CurlNetworkAdapter> &network_adapter)
+{
+    network_adapter_ = network_adapter;
+
+    return 0;
+}
+
+int Parser::CheckNetworkAccess()
+{
+    const auto source_check_url = GetParserSourceCheckUrl(parser_type_);
+    BlackLibraryCommon::LogDebug(parser_name_, "Test pull from {}", source_check_url);
+    const auto curl_res = network_adapter_->CurlGetAllInOne(source_check_url, curl_aio_behavior_);
+    auto http_code = curl_res.response_code;
+    if (http_code >= 400)
+    {
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, source_check_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        return -1;
+    }
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+    std::this_thread::sleep_until(deadline);
+
+    // GetParserOriginExampleUrl //from a list
+    // get example url
+    // compare against known
+    // CheckKnownStoryContents();
+
+    // deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000);
+    // std::this_thread::sleep_until(deadline);
 
     return 0;
 }
