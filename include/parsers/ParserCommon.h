@@ -57,6 +57,17 @@ enum class parser_behavior_t {
     LINKED_LIST
 };
 
+enum class parser_result_failure_t {
+    NO_FAILURE,
+    UNKNOWN_FAILURE,
+    GENERIC_FAILURE,
+    XML_PARSE_FAILURE,
+    NETWORK_FAILURE,
+    INDEX_BOUNDS_FAILURE
+};
+
+std::string GetParserResultFailureName(parser_result_failure_t parser_result_failure);
+
 enum class pattern_seek_t {
     XML_NAME,
     XML_ATTRIBUTE,
@@ -233,6 +244,7 @@ struct ParserResult {
 
     std::string debug_string;
     error_job_rep is_error_job = false;
+    parser_result_failure_t parser_job_error = parser_result_failure_t::GENERIC_FAILURE;
     bool has_error = true;
 };
 
@@ -241,7 +253,7 @@ inline std::ostream& operator << (std::ostream &out, const ParserResult &parser_
     out << "metadata: " << parser_result.metadata << " ";
     out << "debug_string: " << parser_result.debug_string << " ";
     out << "is_error_job: " << parser_result.is_error_job << " ";
-    out << "has_error: " << parser_result.has_error;
+    out << "parser_job_error: " << GetParserResultFailureName(parser_result.parser_job_error);
 
     return out;
 }

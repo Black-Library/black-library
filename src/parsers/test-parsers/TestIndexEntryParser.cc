@@ -149,7 +149,7 @@ ParseSectionInfo TestIndexEntryParser::ParseSection()
     const auto curl_res = network_adapter_->CurlGetAllInOne(index_entry.data_url, curl_aio_behavior_);
     BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
     auto http_code = curl_res.response_code;
-    if (http_code >= 400 && http_code < 500)
+    if (http_code >= 400)
     {
         BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, index_entry.data_url);
         BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);

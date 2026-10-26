@@ -46,13 +46,17 @@ ParserDbAdapter::ParserDbAdapter(const njson &config, const std::shared_ptr<Blac
 ParserVersionCheckResult ParserDbAdapter::CheckVersion(const std::string &content, const std::string &uuid, const size_t index_num, const time_t time)
 {
     ParserVersionCheckResult version_check;
+
     auto content_md5 = BlackLibraryCommon::GetMD5Hash(content);
+
     BlackLibraryCommon::LogDebug(logger_name_, "CheckVersion UUID: {} index: {} checksum hash: {}", uuid, index_num, content_md5);
 
+    // check if entry already has md5 of content
     BlackLibraryCommon::Md5Sum md5_check = CheckForMd5(content_md5, uuid);
 
     BlackLibraryCommon::LogDebug(logger_name_, "CheckVersion UUID: {} checksum hash: {}", uuid, md5_check.md5_sum);
 
+    // check if db md5 and content md5 equal and db md5 date and update time date equal
     if (md5_check.md5_sum == content_md5 && md5_check.date == time)
     {
         version_check.already_exists = true;

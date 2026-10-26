@@ -222,7 +222,7 @@ ParseSectionInfo ParserRR::ParseSection()
     auto http_code = curl_res.response_code;
     if (http_code >= 400)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, index_entry.data_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {} - {}", http_code, index_entry.data_url, GetNetworkAdapterBehaviorName(curl_res.curl_beh));
         BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
         return output;
     }

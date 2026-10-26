@@ -102,6 +102,7 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
     if (network_check_fail)
     {
         BlackLibraryCommon::LogError(parser_name_, "Parser failed network check");
+        parser_result.parser_job_error = parser_result_failure_t::NETWORK_FAILURE;
         return parser_result;
     }
 
@@ -109,6 +110,7 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
 
     if (CalculateIndexBounds(parser_job))
     {
+        parser_result.parser_job_error = parser_result_failure_t::INDEX_BOUNDS_FAILURE;
         return parser_result;
     }
 
@@ -119,8 +121,9 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
     auto http_code = curl_res.response_code;
     if (http_code >= 400)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, target_url_);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {} - {}", http_code, target_url_, GetNetworkAdapterBehaviorName(curl_res.curl_beh));
         BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
+        parser_result.parser_job_error = parser_result_failure_t::NETWORK_FAILURE;
         return parser_result;
     }
 
@@ -130,7 +133,8 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
         HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
     if (doc_tree == NULL)
     {
-        BlackLibraryCommon::LogError(parser_name_, "libxml HTMLparser unable to parse url: {}", parser_job.url);
+        BlackLibraryCommon::LogError(parser_name_, "libxml HTMLparser unable to parse doc tree url: {}", parser_job.url);
+        parser_result.parser_job_error = parser_result_failure_t::XML_PARSE_FAILURE;
         return parser_result;
     }
 
@@ -150,7 +154,8 @@ ParserResult Parser::Parse(const ParserJob &parser_job)
 
     if (PreParseLoop(current_node, parser_job))
     {
-        BlackLibraryCommon::LogError(parser_name_, "PreParseLoop failure");
+        BlackLibraryCommon::LogError(parser_name_, "PreParseLoop failure {} {}", parser_job.uuid, parser_job.url);
+        parser_result.parser_job_error = parser_result_failure_t::GENERIC_FAILURE;
         return parser_result;
     }
 
@@ -250,7 +255,7 @@ int Parser::CheckNetworkAccess()
     auto http_code = curl_res.response_code;
     if (http_code >= 400)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, source_check_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {} - {}", http_code, source_check_url, GetNetworkAdapterBehaviorName(curl_res.curl_beh));
         BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
         return -1;
     }

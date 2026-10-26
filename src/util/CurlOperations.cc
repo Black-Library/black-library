@@ -12,7 +12,7 @@ namespace core {
 
 namespace common {
 
-std::string GetNetworkAdapterName(curl_aio_behavior_t behavior)
+std::string GetNetworkAdapterBehaviorName(curl_aio_behavior_t behavior)
 {
     switch (behavior)
     {
@@ -100,17 +100,17 @@ CurlNetworkAdapter::~CurlNetworkAdapter()
 
 CurlResult CurlNetworkAdapter::CurlGetAllInOne(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior)
 {
-    LogDebug(logger_name_, "Curl AIO access url: {} behavior: {}", url, GetNetworkAdapterName(curl_aio_behavior));
+    LogDebug(logger_name_, "Curl AIO access url: {} behavior: {}", url, GetNetworkAdapterBehaviorName(curl_aio_behavior));
     switch (curl_aio_behavior)
     {
     case curl_aio_behavior_t::DIRECT_CURL:
-        return CurlGetAIO_direct(url, curl_aio_behavior);
+        return CurlGetAIODirect(url, curl_aio_behavior);
         break;
     case curl_aio_behavior_t::ADAPTER_CURL:
-        return CurlGetAIO_adapter(url, curl_aio_behavior);
+        return CurlGetAIOAdapter(url, curl_aio_behavior);
         break;
     default:
-        LogError(logger_name_, "Could not find curl behavior {}", GetNetworkAdapterName(curl_aio_behavior));
+        LogError(logger_name_, "Could not find curl behavior {}", GetNetworkAdapterBehaviorName(curl_aio_behavior));
         break;
     }
 
@@ -130,7 +130,7 @@ void CurlNetworkAdapter::CurlGet(const std::string &url)
     if (res != CURLE_OK)
     {
         std::string error_msg = curl_easy_strerror(res);
-        LogError(logger_name_, "Curl request failed: {}", error_msg);
+        LogError(logger_name_, "CurlGet curl request failed: {}", error_msg);
         last_error_ = error_msg;
         return;
     }
@@ -242,7 +242,7 @@ double CurlNetworkAdapter::GetTotalTime()
     return total_time_double;
 }
 
-CurlResult CurlNetworkAdapter::CurlGetAIO_direct(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior)
+CurlResult CurlNetworkAdapter::CurlGetAIODirect(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior)
 {
     CurlResult curl_res;
 
@@ -267,13 +267,26 @@ CurlResult CurlNetworkAdapter::CurlGetAIO_direct(const std::string &url, const c
     res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-        LogError("black_library", "Curl request failed: {}", curl_easy_strerror(res));
+        LogError(logger_name_, "CurlGetAIODirect curl request failed: {}", curl_easy_strerror(res));
         curl_res.error = curl_easy_strerror(res);
+
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time_double);
+    
+        curl_easy_cleanup(curl);
+
+        curl_res.response_body = response;
+        curl_res.curl_ver = curl_version();
+        curl_res.response_code = response_code;
+        curl_res.total_time = total_time_double;
+        curl_res.curl_beh = curl_aio_behavior;
+        curl_res.has_error = true;
+
         return curl_res;
     }
 
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-    curl_easy_getinfo(curl_, CURLINFO_TOTAL_TIME, &total_time_double);
+    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time_double);
 
     curl_easy_cleanup(curl);
 
@@ -281,13 +294,13 @@ CurlResult CurlNetworkAdapter::CurlGetAIO_direct(const std::string &url, const c
     curl_res.curl_ver = curl_version();
     curl_res.response_code = response_code;
     curl_res.total_time = total_time_double;
-    curl_res.func_ver = curl_aio_behavior;
+    curl_res.curl_beh = curl_aio_behavior;
     curl_res.has_error = false;
 
     return curl_res;
 }
 
-CurlResult CurlNetworkAdapter::CurlGetAIO_adapter(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior)
+CurlResult CurlNetworkAdapter::CurlGetAIOAdapter(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior)
 {
     const std::lock_guard<std::mutex> lock(mutex_);
 
@@ -298,7 +311,7 @@ CurlResult CurlNetworkAdapter::CurlGetAIO_adapter(const std::string &url, const 
     res.response_code = GetResponseCode();
     res.total_time = GetTotalTime();
     res.curl_ver = curl_version();
-    res.func_ver = curl_aio_behavior;
+    res.curl_beh = curl_aio_behavior;
 
     if (res.response_code >= 400)
     {

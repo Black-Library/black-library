@@ -16,7 +16,7 @@
         "network_adapter_debug_log": false,
         "parser_debug_log": false,
         "parser_db_adapter_debug_log": false,
-        "parse_period_hr": 6,
+        "parse_period_hr": 12,
         "storage_path": "/mnt/black-library/store",
         "url_puller_debug": false,
         "worker_debug_log": false

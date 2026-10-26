@@ -35,11 +35,11 @@ struct CurlResult {
     std::string curl_ver = "";
     long response_code = 0;
     double total_time = 0;
-    curl_aio_behavior_t func_ver = curl_aio_behavior_t::ERROR;
+    curl_aio_behavior_t curl_beh = curl_aio_behavior_t::ERROR;
     curl_result_error_rep has_error = true;
 };
 
-std::string GetNetworkAdapterName(curl_aio_behavior_t behavior);
+std::string GetNetworkAdapterBehaviorName(curl_aio_behavior_t behavior);
 
 class CurlNetworkAdapter {
 public:
@@ -60,8 +60,8 @@ public:
     double GetTotalTime();
 
 private:
-    CurlResult CurlGetAIO_direct(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
-    CurlResult CurlGetAIO_adapter(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
+    CurlResult CurlGetAIODirect(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
+    CurlResult CurlGetAIOAdapter(const std::string &url, const curl_aio_behavior_t &curl_aio_behavior);
     static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp);
 
     CURL* curl_;

@@ -319,6 +319,34 @@ std::string GetStatusName(job_status_t job_status)
     }
 }
 
+std::string GetParserResultFailureName(parser_result_failure_t parser_result_failure)
+{
+    switch (parser_result_failure)
+    {
+    case parser_result_failure_t::NO_FAILURE:
+        return "no_failure";
+        break;
+    case parser_result_failure_t::UNKNOWN_FAILURE:
+        return "unknown_failure";
+        break;
+    case parser_result_failure_t::GENERIC_FAILURE:
+        return "generic_failure";
+        break;
+    case parser_result_failure_t::XML_PARSE_FAILURE:
+        return "xml_parse_failure";
+        break;
+    case parser_result_failure_t::NETWORK_FAILURE:
+        return "network_failure";
+        break;
+    case parser_result_failure_t::INDEX_BOUNDS_FAILURE:
+        return "index_bounds_failure";
+        break;
+    default:
+        return "unknown failure";
+        break;
+    }
+}
+
 ParserXmlNodeSeek SeekToNodeByElementAttr(xmlNodePtr root, std::string attr, std::string value)
 {
     ParserXmlNodeSeek result;

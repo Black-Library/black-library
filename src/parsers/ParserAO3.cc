@@ -90,13 +90,13 @@ ParseSectionInfo ParserAO3::ParseSection()
     const auto url_adult = index_entry.data_url;
 
     // curl network fetch
-    BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), index_entry.data_url, index_entry.name);
-    const auto curl_res = network_adapter_->CurlGetAllInOne(index_entry.data_url, curl_aio_behavior_);
+    BlackLibraryCommon::LogDebug(parser_name_, "ParseSection: {} section_url: {} - {}", GetParserBehaviorName(parser_behavior_), url_adult, index_entry.name);
+    const auto curl_res = network_adapter_->CurlGetAllInOne(url_adult, curl_aio_behavior_);
     BlackLibraryCommon::LogTrace(parser_name_, "Curl time taken {}", curl_res.total_time);
     auto http_code = curl_res.response_code;
     if (http_code >= 400)
     {
-        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {}", http_code, index_entry.data_url);
+        BlackLibraryCommon::LogError(parser_name_, "Curl request failed {} - {} - {}", http_code, url_adult, GetNetworkAdapterBehaviorName(curl_res.curl_beh));
         BlackLibraryCommon::LogError(parser_name_, "Curl request failed body {}", curl_res.response_body);
         return output;
     }
